@@ -691,3 +691,62 @@ technical proof from human-understanding proof.
 The next action is still the student's ten-question explanation check.
 FedAvg and all Month 2 implementation remain blocked until those answers are
 reviewed and Gate 1 is checked.
+
+## 2026-08-16 — Gate 1 passed: student explanation review
+
+The student completed all ten questions in
+`reports/gate1_self_check.md`. The answers were reviewed separately from the
+automatic artifact audit because a script can confirm files and numbers, but
+it cannot decide whether a person understands what those numbers mean.
+
+### Review decision
+
+**Gate 1 passed: 10 of 10 answers meet the required standard.** The student
+demonstrated the three abilities named explicitly by Gate M1:
+
+1. **How training works:** the answer correctly described the forward pass,
+   cross-entropy calculation, `loss.backward()`, and `optimizer.step()`. The
+   important distinction is clear: backward computes gradients, while the
+   optimizer uses those gradients to change the weights.
+2. **How loss works:** the answer correctly explained that accuracy records
+   whether the highest-scoring class is correct, while cross-entropy also
+   reacts to confidence. Therefore, loss can improve while the number of
+   correct predictions—and thus accuracy—stays unchanged.
+3. **Why accuracy changes:** the answers connected performance to learned
+   weight updates, model structure, dataset difficulty, augmentation,
+   dropout, and evaluation protocol instead of treating accuracy as an
+   isolated number.
+
+The remaining answers also showed that the student can separate train,
+validation, and test roles; explain filters, feature maps, and pooling; use
+the measured 96.80% MLP and 98.60% CNN results without making a universal
+claim; explain why CIFAR-10 is harder than MNIST; distinguish a random seed,
+configuration, and checkpoint; and identify the bird/cat/dog weaknesses that
+later motivate class- and client-level Non-IID analysis.
+
+Two precision notes were recorded for future use. First, logits are raw class
+scores; PyTorch cross-entropy performs the internal transformation needed to
+compare them with the label. Second, the observed CNN advantage is evidence
+for this model/configuration and single seed, not proof that every CNN always
+outperforms every MLP. These are refinements, not errors, so no re-answer is
+required.
+
+### Repository and roadmap update
+
+- `README.md` now checks Gate 1 and sets Month 2, Week 5 as the current unit.
+- `reports/gate1_evidence.md` now records the human-understanding evidence as
+  passed rather than waiting.
+- `reports/verify_gate1_artifacts.py` now supports both the historical open
+  state and the reviewed closed state. The original `month1-gate1` tag remains
+  the exact experiment revision, while `gate1-complete` identifies the later
+  review decision.
+- The historical Month 1 PDF is not rewritten merely to alter its status
+  paragraph. Its experiment results remain tied to the original revision;
+  the self-check, evidence checklist, README, progress log, and completion tag
+  provide the dated closure record.
+
+Gate discipline now permits **Month 2, Week 5 only**: learn the FL roles and
+workflow and read McMahan et al. (2017) using the fixed six-question template.
+Hand-written FedAvg belongs to Week 6 and has not been started. An FL
+framework, FedProx, and every Federated Unlearning method remain blocked by
+their later gates.

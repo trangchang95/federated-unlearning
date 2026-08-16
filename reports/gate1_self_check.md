@@ -100,3 +100,39 @@ A passing response does not need mathematical notation. It should be accurate,
 use the student's own language, connect explanations to the measured Month 1
 results, and distinguish evidence from guesses. After review, the Gate 1
 checkbox in `README.md` can be updated and Gate 2 can begin.
+
+## Review result
+
+**Review date:** 2026-08-16
+
+**Result:** PASS (10/10 answers meet the Gate 1 standard)
+
+The answers demonstrate the three abilities required by Gate M1: explaining
+how a model is trained, explaining what loss measures, and explaining why
+accuracy changes. The review also checked the broader Month 1 foundations
+needed to interpret an experiment correctly.
+
+| Question | What the answer demonstrated | Result |
+|---:|---|---|
+| 1 | Correctly separates forward computation, cross-entropy loss, gradient calculation, and the weight update performed by `optimizer.step()` | Pass |
+| 2 | Correctly assigns training, model selection, and final evaluation to the train, validation, and test splits | Pass |
+| 3 | Correctly explains that loss uses confidence information while accuracy uses only the winning class | Pass |
+| 4 | Correctly explains convolution filters, feature maps, pooling, and spatial structure | Pass |
+| 5 | Uses the measured 96.80% and 98.60% results, calculates the 1.80 percentage-point difference, and avoids a universal claim | Pass |
+| 6 | Correctly relates the MNIST/CIFAR-10 gap to task difficulty and uses the learning curve rather than accuracy alone to judge training | Pass |
+| 7 | Correctly explains the effects of augmentation, dropout, and evaluation mode without misdiagnosing leakage | Pass |
+| 8 | Correctly distinguishes repeatable randomness, recorded configuration, and saved learned weights | Pass |
+| 9 | Correctly identifies the hardest CIFAR-10 classes and dog/cat confusion, then connects them to client-level Non-IID evaluation | Pass |
+| 10 | Correctly explains why FedAvg builds on—not replaces—the centralized training loop and why the gate prevents ambiguous debugging | Pass |
+
+Two precision notes are useful for future explanations, but neither changes
+the pass decision:
+
+- logits are the model's raw class scores; PyTorch cross-entropy internally
+  converts those scores into the comparison needed for the class label;
+- this project's CNN result supports an interpretation about spatial
+  structure under this configuration, not a general proof that every CNN
+  always beats every MLP.
+
+Gate 1 is therefore complete. The next roadmap unit is Month 2, Week 5:
+Federated Learning concepts and the six-question reading of the FedAvg paper.

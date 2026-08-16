@@ -57,7 +57,9 @@ Use a config file per run (`configs/`) and write results to `results/` automatic
 
 ## Current milestone
 
-**Month 1 — ML/DL Foundation** (see plan §9, Gate 1 in §15): centralized CNN baseline on MNIST and CIFAR-10.
+**Month 2, Week 5 — Federated Learning concepts** (see plan §9): learn the
+client/server workflow and read the FedAvg paper before implementing FedAvg in
+Week 6.
 
 ### Month 1 breakdown
 
@@ -66,16 +68,26 @@ Use a config file per run (`configs/`) and write results to `results/` automatic
 - [x] Week 3: CNN baselines on MNIST and CIFAR-10
 - [x] Week 4: evaluation methodology, SISA concepts, and Month 1 report
 
-The next permitted unit is the **Gate 1 beginner explanation check** in
-[`reports/gate1_self_check.md`](reports/gate1_self_check.md). The technical
-artifacts are ready, but the Gate 1 checkbox stays open until the student can
-explain the training loop, loss behavior, CNN feature maps, validation/test
-separation, and the observed results in their own words. Federated Learning,
-Non-IID, FedProx, and Federated Unlearning remain blocked by the gates below.
+The student's ten answers in
+[`reports/gate1_self_check.md`](reports/gate1_self_check.md) were reviewed on
+2026-08-16 and passed. This closes Gate 1: the centralized baselines are
+reproducible, and the student can explain the training loop, loss behavior,
+accuracy changes, CNN features, evaluation splits, and measured results.
+
+### Month 2 breakdown
+
+- [ ] Week 5: FL concepts and six-question reading of McMahan et al. (2017)
+- [ ] Week 6: hand-implemented FedAvg
+- [ ] Week 7: inspect/use an FL framework only after hand-written FedAvg works
+- [ ] Week 8: first MNIST FL experiment and centralized-versus-FedAvg report
+
+The next permitted unit is **Week 5 only**. FedAvg implementation belongs to
+Week 6, after the concepts and paper review. Non-IID, FedProx, and Federated
+Unlearning remain blocked by Gates 2 and 3.
 
 ## Status
 
-- [ ] Gate 1 (Month 1): CNN + centralized baseline
+- [x] Gate 1 (Month 1): CNN + centralized baseline
 - [ ] Gate 2 (Month 2): FedAvg from scratch, multi-client FL
 - [ ] Gate 3 (Month 3): IID/Non-IID + FedProx benchmark
 - [ ] Gate 4 (Month 4): FU baseline reproduced, retraining comparison
@@ -114,8 +126,9 @@ conda run -n mse-ai python reports\build_month1_report.py
 conda run -n mse-ai python reports\verify_month1_report.py
 ```
 
-Verify all non-student Gate 1 evidence without rerunning training. This command
-does not assess understanding or close the gate:
+Verify the recorded Gate 1 technical evidence and completion status without
+rerunning training. The script checks the saved review marker; it does not
+replace the conceptual review of the student's answers:
 
 ```powershell
 conda run -n mse-ai python reports\verify_gate1_artifacts.py

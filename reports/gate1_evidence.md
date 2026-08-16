@@ -5,7 +5,8 @@ This checklist separates two different questions:
 1. **Are the Month 1 technical artifacts complete and reproducible?** This can
    be checked automatically from files, metrics, checkpoints, and Git.
 2. **Can the student explain the concepts?** This requires the student's own
-   answers and cannot be passed by a script or by an AI assistant.
+   answers and a separate conceptual review; a script cannot infer genuine
+   understanding from experiment files.
 
 ## Technical evidence
 
@@ -21,7 +22,7 @@ This checklist separates two different questions:
 | Experiment logging | Every config and result includes all 15 mandatory fields | Proven |
 | Reproducible configuration | Each config pins CPU, seed, runner, dataset version, exact environment manifest, and code tag | Proven |
 | Exact software environment | Python 3.10.20 manifest and exact Month 1 dependency lock | Proven |
-| Git repository and versioned evidence | All Month 1 source, configs, literature, documentation, verifier, and final report are committed under tag `month1-gate1`; data and result outputs remain ignored | Proven |
+| Git repository and versioned evidence | The reproduced Month 1 experiment source is fixed under tag `month1-gate1`; the reviewed Gate 1 closure is fixed under tag `gate1-complete`; data and result outputs remain ignored | Proven |
 | Experiment report | Eight-page PDF built from saved metrics and visually inspected page by page | Proven |
 
 Run the automated audit from the project root:
@@ -33,17 +34,20 @@ conda run -n mse-ai python reports\verify_gate1_artifacts.py
 The checker deliberately fails if a required field or artifact is missing, a
 numeric confusion matrix does not match the test-set size, the CIFAR-10 archive
 checksum changes, report values differ from saved metrics, Month 1 files are
-not committed, the Git worktree is dirty, or `month1-gate1` does not identify
-the checked commit.
+not committed, or the Git worktree is dirty. It also checks that
+`month1-gate1` is an ancestor containing the reproduced experiment state and,
+after closure, that `gate1-complete` identifies the reviewed state.
 
 ## Human-understanding evidence
 
 | Requirement | Evidence | Status |
 |---|---|---|
-| Explain how a model is trained | Student's own Gate 1 answers | Waiting for student |
-| Explain how loss works | Student's own Gate 1 answers | Waiting for student |
-| Explain why accuracy changes | Student's own Gate 1 answers using measured Month 1 evidence | Waiting for student |
+| Explain how a model is trained | Student correctly separated forward, loss, backward, and optimizer weight-update steps | Passed on 2026-08-16 |
+| Explain how loss works | Student correctly distinguished confidence-sensitive cross-entropy from top-class accuracy | Passed on 2026-08-16 |
+| Explain why accuracy changes | Student correctly used learning behavior, dataset difficulty, augmentation, dropout, and measured Month 1 evidence | Passed on 2026-08-16 |
 
-Use [`gate1_study_guide.md`](gate1_study_guide.md) to learn the concepts, then
-answer [`gate1_self_check.md`](gate1_self_check.md) without copying. Gate 1
-must remain unchecked until those answers are reviewed.
+The complete question-by-question decision is recorded in
+[`gate1_self_check.md`](gate1_self_check.md). The historical Month 1 PDF was
+built before the student review, so its Gate-status paragraph records the
+then-current open condition; this checklist and the completion tag record the
+later closure without rewriting the experimental report.

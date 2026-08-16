@@ -1,9 +1,9 @@
-"""Verify the technical evidence for Gate 1 without rerunning model training.
+"""Verify Gate 1 evidence and its recorded status without rerunning training.
 
-This checker does not pass Gate 1 for the student. It proves only that the
-Month 1 files, recorded runs, report, and literature artifacts are present and
-internally consistent. The student's own explanation is a separate gate
-condition in the thesis roadmap.
+The checker proves that the Month 1 files, recorded runs, report, and
+literature artifacts are present and internally consistent. It can validate a
+recorded PASS review, but it does not judge the student's conceptual answers;
+that judgment remains a separate human-review step in the roadmap.
 """
 
 from __future__ import annotations
@@ -507,7 +507,7 @@ def verify_report(metrics_by_name: dict[str, dict], evidence: EvidenceRecorder) 
     )
 
 
-def verify_repository_status(evidence: EvidenceRecorder) -> None:
+def verify_repository_status(evidence: EvidenceRecorder) -> bool:
     readme_path = PROJECT_ROOT / "README.md"
     progress_path = PROJECT_ROOT / "PROGRESS.md"
     guide_path = PROJECT_ROOT / "reports" / "gate1_study_guide.md"
@@ -532,10 +532,20 @@ def verify_repository_status(evidence: EvidenceRecorder) -> None:
     readme = readme_path.read_text(encoding="utf-8")
     for week in range(1, 5):
         evidence.require(f"- [x] Week {week}:" in readme, f"README does not mark Week {week} complete")
+    gate_open = "- [ ] Gate 1 (Month 1):" in readme
+    gate_closed = "- [x] Gate 1 (Month 1):" in readme
     evidence.require(
-        "- [ ] Gate 1 (Month 1):" in readme,
-        "Gate 1 must remain unchecked until the student's explanation is reviewed",
+        gate_open != gate_closed,
+        "README must contain exactly one open or closed Gate 1 status",
     )
+    if gate_closed:
+        self_check = check_path.read_text(encoding="utf-8")
+        evidence.require(
+            "## Review result" in self_check
+            and "**Result:** PASS" in self_check
+            and "10/10 answers meet the Gate 1 standard" in self_check,
+            "README closes Gate 1 but the reviewed PASS decision is missing",
+        )
 
     gitignore = gitignore_path.read_text(encoding="utf-8")
     evidence.require("data/*" in gitignore, "data/ is not ignored as required")
@@ -562,13 +572,31 @@ def verify_repository_status(evidence: EvidenceRecorder) -> None:
         f"Month 1 configs name inconsistent code revisions: {sorted(revisions)}",
     )
     revision = revisions.pop()
+    revision_commit = run_git("rev-parse", f"{revision}^{{commit}}")
+    head_commit = run_git("rev-parse", "HEAD")
     evidence.require(
-        run_git("rev-parse", f"{revision}^{{commit}}") == run_git("rev-parse", "HEAD"),
-        f"Code revision tag {revision!r} does not identify the committed Gate 1 evidence",
+        run_git("merge-base", revision_commit, head_commit) == revision_commit,
+        f"Code revision tag {revision!r} is not an ancestor of the reviewed Gate 1 state",
     )
-    evidence.pass_check(
-        f"All Month 1 evidence is committed, the tree is clean, and tag {revision!r} identifies HEAD"
-    )
+    if gate_closed:
+        completion_tag = "gate1-complete"
+        evidence.require(
+            run_git("rev-parse", f"{completion_tag}^{{commit}}") == head_commit,
+            f"Completion tag {completion_tag!r} does not identify the reviewed Gate 1 state",
+        )
+        evidence.pass_check(
+            f"The tree is clean, {revision!r} preserves the experiment state, "
+            f"and {completion_tag!r} preserves the reviewed PASS state"
+        )
+    else:
+        evidence.require(
+            revision_commit == head_commit,
+            f"Open Gate 1 evidence has changed after code revision tag {revision!r}",
+        )
+        evidence.pass_check(
+            f"All Month 1 evidence is committed, the tree is clean, and tag {revision!r} identifies HEAD"
+        )
+    return gate_closed
 
 
 def main() -> None:
@@ -583,14 +611,18 @@ def main() -> None:
     verify_environment_lock(evidence)
     verify_literature(evidence)
     verify_report(metrics_by_name, evidence)
-    verify_repository_status(evidence)
+    gate_closed = verify_repository_status(evidence)
 
-    print("Gate 1 technical evidence verification passed")
+    print("Gate 1 evidence verification passed")
     for message in evidence.messages:
         print(f"  [PASS] {message}")
     print()
-    print("Remaining condition: the student must answer the Gate 1 self-check in their own words.")
-    print("This script intentionally does not check or close that human-understanding condition.")
+    if gate_closed:
+        print("Gate 1 completion status: PASS (the reviewed decision is recorded and versioned).")
+        print("The script validates that marker; the answers were judged during conceptual review.")
+    else:
+        print("Remaining condition: the student must answer the Gate 1 self-check in their own words.")
+        print("This script intentionally does not judge that human-understanding condition.")
 
 
 if __name__ == "__main__":
