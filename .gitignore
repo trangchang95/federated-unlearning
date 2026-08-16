@@ -10,4 +10,5 @@ results/*
 *.pt
 *.pth
 .ipynb_checkpoints/
+tmp/pdfs/
 .DS_Store
