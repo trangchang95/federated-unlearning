@@ -750,3 +750,68 @@ workflow and read McMahan et al. (2017) using the fixed six-question template.
 Hand-written FedAvg belongs to Week 6 and has not been started. An FL
 framework, FedProx, and every Federated Unlearning method remain blocked by
 their later gates.
+
+## 2026-08-16 — Month 2, Week 5 learning package prepared
+
+Work began on Month 2 only after Gate 1 was reviewed, checked, committed, and
+tagged. This unit prepares the Federated Learning concepts that must be
+understood before writing FedAvg. It does not claim that the student has
+completed Week 5 merely because explanatory files now exist.
+
+### Primary-paper reading
+
+`literature/fedavg_2017_six_questions.md` records the McMahan et al. (2017)
+paper using exactly the six required headings: Problem, Gap, Idea, Assumption,
+Evaluation, and Limitation. The note was checked against the original
+AISTATS/PMLR paper rather than a secondary tutorial.
+
+The central paper result is that clients can perform several local optimizer
+steps before communicating and the server can sample-weight their returned
+models. This often exchanges more inexpensive local computation for fewer
+expensive communication rounds. The note also preserves qualifications that
+are important for research integrity:
+
+- the experiments are primarily empirical and controlled/synchronous;
+- a common global initialization is important before model averaging;
+- very large local-epoch counts can plateau or diverge;
+- raw data remaining local does not prove that model updates reveal nothing;
+- the study establishes ordinary FL, not Federated Unlearning.
+
+The paper's row was added to `literature/literature_matrix.md` with all nine
+required columns. Its “Possible Gap” cell is explicitly a later research
+question and does not select the thesis contribution before Week 19.
+
+### Beginner learning guide
+
+`reports/month2_week5_fl_concepts.md` connects FL to the Gate 1 training
+loop. The guide explains:
+
+- client, server, local model, global model, communication round, local epoch,
+  and aggregation;
+- one complete server → clients → server round;
+- that `loss.backward()` computes local gradients and
+  `optimizer.step()` changes local weights, while server aggregation creates
+  the next global weights;
+- why FedAvg weights local models by example count;
+- the roles and trade-offs of client fraction \(C\), local epochs \(E\), batch
+  size \(B\), and learning rate \(\eta\);
+- the introductory difference between IID and Non-IID clients;
+- common misconceptions, including the difference between data locality and a
+  formal privacy guarantee.
+
+The weighted-average example uses clients with 100, 200, and 700 examples. If
+their returned scalar weights are 1.0, 2.0, and 3.0, FedAvg produces 2.6, not
+the unweighted client mean of 2.0. This example makes the meaning of
+sample-count weighting concrete before it appears in code.
+
+### Required student action
+
+`reports/month2_week5_self_check.md` contains ten beginner questions. The
+student must trace a round, distinguish local optimization from aggregation,
+calculate a two-client weighted average, explain \(C/E/B\), discuss the
+privacy caveat, and connect ordinary FedAvg to the later unlearning problem.
+
+Week 5 remains **in progress** until those answers are supplied and reviewed.
+No experiment was run in this reading/concept unit, so no experiment config or
+result file was created. Week 6 FedAvg code, Week 7 framework use, Month 3
+Non-IID/FedProx, and all Federated Unlearning code remain blocked.

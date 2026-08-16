@@ -81,9 +81,19 @@ accuracy changes, CNN features, evaluation splits, and measured results.
 - [ ] Week 7: inspect/use an FL framework only after hand-written FedAvg works
 - [ ] Week 8: first MNIST FL experiment and centralized-versus-FedAvg report
 
-The next permitted unit is **Week 5 only**. FedAvg implementation belongs to
-Week 6, after the concepts and paper review. Non-IID, FedProx, and Federated
-Unlearning remain blocked by Gates 2 and 3.
+The Week 5 learning package is prepared:
+
+- beginner guide:
+  [`reports/month2_week5_fl_concepts.md`](reports/month2_week5_fl_concepts.md);
+- fixed six-question paper note:
+  [`literature/fedavg_2017_six_questions.md`](literature/fedavg_2017_six_questions.md);
+- student check:
+  [`reports/month2_week5_self_check.md`](reports/month2_week5_self_check.md).
+
+Week 5 remains unchecked until the student answers that self-check and the
+answers are reviewed. FedAvg implementation belongs to Week 6, after this
+concept check. Non-IID, FedProx, and Federated Unlearning remain blocked by
+Gates 2 and 3.
 
 ## Status
 

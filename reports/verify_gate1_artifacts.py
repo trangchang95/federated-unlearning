@@ -580,9 +580,10 @@ def verify_repository_status(evidence: EvidenceRecorder) -> bool:
     )
     if gate_closed:
         completion_tag = "gate1-complete"
+        completion_commit = run_git("rev-parse", f"{completion_tag}^{{commit}}")
         evidence.require(
-            run_git("rev-parse", f"{completion_tag}^{{commit}}") == head_commit,
-            f"Completion tag {completion_tag!r} does not identify the reviewed Gate 1 state",
+            run_git("merge-base", completion_commit, head_commit) == completion_commit,
+            f"Completion tag {completion_tag!r} is not an ancestor of the current roadmap state",
         )
         evidence.pass_check(
             f"The tree is clean, {revision!r} preserves the experiment state, "
