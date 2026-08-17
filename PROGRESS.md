@@ -1174,3 +1174,125 @@ Unlearning code was introduced.
 `README.md` now checks Week 7 and makes Week 8 the current unit. Gate 2 remains
 open. The next task is a modest, config-driven IID MNIST comparison using the
 hand-written FedAvg implementation and a matched centralized SGD baseline.
+
+---
+
+## 2026-08-18 — Month 2, Week 8 completed: first multi-client MNIST comparison
+
+Week 8 now has a real, config-driven experiment comparing the hand-written
+FedAvg workflow with centralized SGD. This completes the technical Month 2
+deliverable, but it does not close Gate 2 yet: the student explanation and the
+required `K`/`E` changes still need review.
+
+### Reproducibility was frozen before training
+
+The experiment is defined by
+`configs/month2_week8_mnist_iid_fedavg_vs_centralized.json` and executed by
+`experiments/iid/month2_week8_mnist_fedavg.py`. Before MNIST training began:
+
+- all 46 synthetic/unit tests passed;
+- the exact Python 3.10.20 CPU environment passed validation;
+- the producing files were committed as `2fb17f49b27a3b0d57a3e3edafa8e2bf514af549`;
+- tag `month2-week8` was created at that same commit;
+- the worktree was clean; and
+- `reports/verify_week8_fedavg.py` returned `PRE-RUN` rather than pretending
+  that a missing experiment had already passed.
+
+The runner records the resolved tag/commit and refuses an untracked, dirty, or
+mismatched revision. It also refuses to overwrite an existing result unless
+`--overwrite` is supplied deliberately.
+
+### What was compared
+
+The canonical protocol uses MNIST with 51,000 training, 9,000 validation, and
+10,000 official test examples. Five clients receive deterministic, disjoint,
+equal-sized IID training shards of 10,200 examples each. The settings are:
+
+| Symbol/setting | Value |
+|---|---:|
+| Total clients `K` | 5 |
+| Client fraction `C` | 1.0 (all five every round) |
+| Local epochs `E` | 1 |
+| Batch size `B` | 128 |
+| Communication rounds `R` | 5 |
+| Centralized epochs | 5 |
+| SGD learning rate | 0.1 |
+| Fixed main seed | 42 |
+
+Both methods use the same training split, `SimpleMLP` architecture, initial
+weights, plain SGD settings, batch size, and 255,000 training-example
+exposures. Validation selects each method's checkpoint. The test set is
+evaluated only after that selection.
+
+This is a matched-*exposure* comparison, not identical optimization.
+Centralized SGD follows one continuous trajectory through the complete split.
+FedAvg creates five local trajectories during each round and then performs a
+sample-weighted average of their model states.
+
+### Measured result
+
+| Method | Test loss | Test accuracy | Macro F1 | Best validation step |
+|---|---:|---:|---:|---:|
+| Centralized SGD | 0.187003 | 94.75% | 94.68% | epoch 5 (94.31%) |
+| Hand-written FedAvg | 0.319598 | 90.99% | 90.86% | round 5 (90.28%) |
+
+FedAvg is **3.76 percentage points lower in test accuracy** and 3.82 points
+lower in macro F1. This negative comparison is reported plainly. It does not
+mean the FedAvg implementation failed: its validation accuracy rises from
+10.42% before training to 84.73%, 88.12%, 89.29%, 89.88%, and 90.28% over the
+five rounds, while validation loss falls every round. It also does not prove
+that centralized training is universally better; this is one architecture,
+one IID split, one training budget, and one fixed seed.
+
+The five IID client test subsets each contain 2,000 examples. Centralized
+client accuracies range from 94.10% to 95.50%; FedAvg client accuracies range
+from 90.35% to 91.50%. These values make client-level utility visible, but
+they are not Non-IID results and there is no unlearning target in Week 8.
+
+### Why the step and communication totals differ
+
+Centralized training performs
+`ceil(51,000 / 128) × 5 = 399 × 5 = 1,995` optimizer steps. Each FedAvg client
+has 10,200 examples, so each performs `ceil(10,200 / 128) = 80` steps per
+round. Across five clients and five rounds, FedAvg performs
+`80 × 5 × 5 = 2,000` local optimizer steps. The five-step difference comes
+from rounding each client's final partial minibatch separately; it is not
+extra training data.
+
+The `SimpleMLP` dense state is 407,080 bytes. Counting one full-model download
+and one upload for every client in every round gives
+`407,080 × 2 × 5 × 5 = 20,354,000` bytes (19.411 MiB). This is deterministic
+tensor-payload accounting, not real network bandwidth, latency, or total
+protocol traffic.
+
+### Exact rerun and artifact verification
+
+The canonical run was executed a second time with the same tagged code,
+config, environment, and seeds. `reports/compare_week8_reruns.py` compared the
+two complete JSON trees after removing only the two measured timing fields.
+Every remaining value was exactly identical, including splits, client
+partitions, histories, losses, accuracies, F1 values, communication totals,
+and checkpoint hashes. CPU times changed from 111.384 to 90.148 seconds for
+centralized training/validation and from 92.255 to 88.971 seconds for FedAvg,
+which is expected and is why timing is not treated as deterministic.
+
+The final command
+
+```powershell
+conda run -n mse-ai python reports\verify_week8_fedavg.py
+```
+
+passed the config, environment, Git provenance, scope, split, partition,
+history, optimizer-step, communication, metric, checkpoint, plot, generated
+summary, and durable-report checks. The detailed versioned report is
+`reports/month2_week8_centralized_vs_fedavg.md`; raw outputs remain under the
+gitignored `results/month2_week8_mnist_iid_comparison/` directory.
+
+### Gate and next step
+
+`README.md` now checks Week 8. `reports/gate2_self_check.md` asks the student to
+explain the result and convergence curve, then propose and run separate
+config-driven changes for `K=10` and `E=2` without overwriting the canonical
+evidence. Gate 2 remains unchecked until those answers and hands-on results
+are reviewed. Non-IID partitioning, FedProx, and Federated Unlearning remain
+blocked; none was introduced in this unit.

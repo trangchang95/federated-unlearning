@@ -69,9 +69,10 @@ Use a config file per run (`configs/`) and write results to `results/` automatic
 
 ## Current milestone
 
-**Month 2, Week 8 — first IID MNIST FL experiment** (see plan §9): compare the
-hand-written multi-client FedAvg workflow with a matched centralized SGD
-baseline using a saved config and automatic result logging.
+**Month 2, Gate 2 review — explain and vary the completed IID experiment**
+(see plan §9): the canonical centralized-versus-FedAvg run is verified. The
+student must now explain it and perform the controlled `K` and `E` changes in
+`reports/gate2_self_check.md` before Gate 2 can close.
 
 ### Month 1 breakdown
 
@@ -91,7 +92,7 @@ accuracy changes, CNN features, evaluation splits, and measured results.
 - [x] Week 5: FL concepts and six-question reading of McMahan et al. (2017)
 - [x] Week 6: hand-implemented FedAvg
 - [x] Week 7: inspect/use an FL framework only after hand-written FedAvg works
-- [ ] Week 8: first MNIST FL experiment and centralized-versus-FedAvg report
+- [x] Week 8: first MNIST FL experiment and centralized-versus-FedAvg report
 
 The Week 5 learning package is prepared:
 
@@ -145,10 +146,43 @@ conda run -n mse-ai python reports\verify_week7_flower.py
 
 Flower 1.30.0 and all 20 Week 6/7 tests passed on 2026-08-18. The comparison
 found matching sample-weighted aggregation and an explicitly recorded client-
-selection rounding difference. Week 8 remains required: Gate 2 is still open
-until the multi-client MNIST run and centralized-versus-FedAvg comparison work
-and are understood. Non-IID, FedProx, and Federated Unlearning remain blocked
-by later gates.
+selection rounding difference.
+
+Week 8 is now technically complete. Its canonical config uses five IID MNIST
+clients, full participation, one local epoch, batch size 128, and five rounds.
+Centralized SGD receives the same initial model, data split, learning rate,
+batch size, and five full-data passes. The measured result is:
+
+| Method | Test accuracy | Macro F1 | Optimizer steps |
+|---|---:|---:|---:|
+| Centralized SGD | 94.75% | 94.68% | 1,995 |
+| Hand-written FedAvg | 90.99% | 90.86% | 2,000 local steps |
+
+FedAvg is 3.76 percentage points lower in this saved run. That negative result
+is reported directly; it is not evidence that centralized training is always
+better. Both methods improve throughout the five recorded passes, but their
+optimizer trajectories and minibatch boundaries differ. FedAvg's estimated
+dense model-transfer payload is 20,354,000 bytes (19.411 MiB), not measured
+network traffic.
+
+The complete beginner report is
+[`reports/month2_week8_centralized_vs_fedavg.md`](reports/month2_week8_centralized_vs_fedavg.md).
+The canonical run was repeated once: every deterministic JSON field and both
+checkpoint hashes were identical; only CPU timings changed. Reproduce and
+verify the saved evidence with:
+
+```powershell
+conda run -n mse-ai python experiments\iid\month2_week8_mnist_fedavg.py --config configs\month2_week8_mnist_iid_fedavg_vs_centralized.json --overwrite
+conda run -n mse-ai python reports\build_month2_week8_report.py
+conda run -n mse-ai python reports\verify_week8_fedavg.py
+```
+
+Gate 2 remains open because its learning check is not yet reviewed. The
+student must answer
+[`reports/gate2_self_check.md`](reports/gate2_self_check.md), change the number
+of clients in a separate config, change local epochs in another matched-budget
+config, and explain the resulting convergence curves. Non-IID, FedProx, and
+Federated Unlearning remain blocked by later gates.
 
 ## Status
 
