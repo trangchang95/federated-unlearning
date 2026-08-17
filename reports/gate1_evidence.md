@@ -47,7 +47,7 @@ after closure, that `gate1-complete` identifies the reviewed state.
 | Explain why accuracy changes | Student correctly used learning behavior, dataset difficulty, augmentation, dropout, and measured Month 1 evidence | Passed on 2026-08-16 |
 
 The complete question-by-question decision is recorded in
-[`gate1_self_check.md`](gate1_self_check.md). The historical Month 1 PDF was
-built before the student review, so its Gate-status paragraph records the
-then-current open condition; this checklist and the completion tag record the
-later closure without rewriting the experimental report.
+[`gate1_self_check.md`](gate1_self_check.md). The Month 1 PDF now states the
+dated Gate 1 outcome and points readers to `README.md` and `PROGRESS.md`; the
+experiment values remain tied to the original reproduced run, while the
+completion tag records the later conceptual review.

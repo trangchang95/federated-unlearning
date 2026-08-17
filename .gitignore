@@ -12,3 +12,5 @@ results/*
 .ipynb_checkpoints/
 tmp/pdfs/
 .DS_Store
+AGENTS.md
+CLAUDE.md

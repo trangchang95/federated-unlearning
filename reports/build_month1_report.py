@@ -235,10 +235,17 @@ def bullet_list(items: list[str], compact: bool = False) -> ListFlowable:
     return ListFlowable(
         [ListItem(Paragraph(item, style), leftIndent=8) for item in items],
         bulletType="bullet",
-        start="circle",
+        # A literal ASCII hyphen, not one of ReportLab's named bullet glyphs
+        # (e.g. "circle" -> U+25CF). Those named glyphs are drawn through a
+        # different code path than normal paragraph text and, with this
+        # embedded TTF, produce a broken ToUnicode CMap: the bullet renders
+        # fine visually but extracts as mojibake ("â—�") for
+        # anyone who copies text from the PDF or runs it through a screen
+        # reader / text extractor. A plain ASCII character avoids the bug.
+        start="-",
         leftIndent=18,
         bulletFontName=BODY_FONT,
-        bulletFontSize=6,
+        bulletFontSize=8,
         spaceAfter=6,
     )
 
@@ -838,10 +845,11 @@ def build_report() -> None:
                 "or forgetting because none of those stages has begun."
             ),
             callout(
-                "<b>Gate 1 status:</b> technical artifacts are ready for review, but the README gate "
-                "must remain unchecked until the student can explain the training loop, loss behavior, "
-                "CNN feature maps, validation/test separation, and the observed accuracy changes in "
-                "their own words."
+                "<b>Gate 1 status:</b> passed on 16 August 2026. The student's ten-question self-check "
+                "(reports/gate1_self_check.md) was reviewed and judged to demonstrate the training "
+                "loop, loss behavior, CNN feature maps, validation/test separation, and the observed "
+                "accuracy changes in the student's own words. README.md and PROGRESS.md carry the "
+                "dated closure record; see those files for the current milestone."
             ),
             heading("References and project evidence", 2),
             p(

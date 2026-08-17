@@ -1,7 +1,7 @@
 # Federated Unlearning — Thesis Prototype
 
 Prototype and experiment codebase for the 6-month thesis plan in
-[`../Ke_hoach_6_thang_Thac_si_Federated_Unlearning.md`](../Ke_hoach_6_thang_Thac_si_Federated_Unlearning.md).
+[`Ke_hoach_6_thang_Thac_si_Federated_Unlearning.md`](Ke_hoach_6_thang_Thac_si_Federated_Unlearning.md).
 
 **Topic:** Federated Unlearning for heterogeneous (Non-IID) Federated Learning.
 
@@ -29,6 +29,17 @@ before training when strict environment validation detects a different Python
 or package version; this prevents an accidental machine-dependent rerun from
 being presented as the same experiment.
 
+For Month 2, use Python 3.10.20 and the separate direct-dependency lock that
+adds the Python-3.10-compatible Flower version used in Week 7:
+
+```powershell
+python -m pip install -r environment\month2_cpu_requirements.txt
+```
+
+The matching runtime record is `environment/month2_cpu_runtime.json`. Flower
+is pinned to 1.30.0 because 1.31 and newer require Python 3.11; this preserves
+the verified Python 3.10 environment rather than silently changing runtimes.
+
 ## Structure
 
 | Folder | Purpose |
@@ -44,6 +55,7 @@ being presented as the same experiment.
 | `environment/` | Exact runtime manifest and dependency locks for reproduced milestones |
 | `literature/` | Six-question paper notes and the literature matrix |
 | `reports/` | Report builders, verification scripts, and gate-review learning material |
+| `tests/` | Deterministic synthetic checks for hand-written algorithms and workflow invariants |
 | `output/` | Versioned final artifacts such as the verified Month 1 PDF report |
 | `results/` | Logged experiment outputs — gitignored |
 | `notebooks/` | Exploratory analysis |
@@ -57,9 +69,9 @@ Use a config file per run (`configs/`) and write results to `results/` automatic
 
 ## Current milestone
 
-**Month 2, Week 5 — Federated Learning concepts** (see plan §9): learn the
-client/server workflow and read the FedAvg paper before implementing FedAvg in
-Week 6.
+**Month 2, Week 8 — first IID MNIST FL experiment** (see plan §9): compare the
+hand-written multi-client FedAvg workflow with a matched centralized SGD
+baseline using a saved config and automatic result logging.
 
 ### Month 1 breakdown
 
@@ -76,9 +88,9 @@ accuracy changes, CNN features, evaluation splits, and measured results.
 
 ### Month 2 breakdown
 
-- [ ] Week 5: FL concepts and six-question reading of McMahan et al. (2017)
-- [ ] Week 6: hand-implemented FedAvg
-- [ ] Week 7: inspect/use an FL framework only after hand-written FedAvg works
+- [x] Week 5: FL concepts and six-question reading of McMahan et al. (2017)
+- [x] Week 6: hand-implemented FedAvg
+- [x] Week 7: inspect/use an FL framework only after hand-written FedAvg works
 - [ ] Week 8: first MNIST FL experiment and centralized-versus-FedAvg report
 
 The Week 5 learning package is prepared:
@@ -90,10 +102,53 @@ The Week 5 learning package is prepared:
 - student check:
   [`reports/month2_week5_self_check.md`](reports/month2_week5_self_check.md).
 
-Week 5 remains unchecked until the student answers that self-check and the
-answers are reviewed. FedAvg implementation belongs to Week 6, after this
-concept check. Non-IID, FedProx, and Federated Unlearning remain blocked by
-Gates 2 and 3.
+The student's ten Week 5 answers were reviewed on 2026-08-18 and passed. The
+student correctly traced one round, separated local optimizer updates from
+server aggregation, calculated sample-weighted averaging, explained the
+`C`/`E`/`B` trade-offs, and preserved the privacy caveat.
+
+The Week 6 hand-written implementation is now complete:
+
+- pure sample-count-weighted aggregation:
+  [`algorithms/fedavg.py`](algorithms/fedavg.py);
+- isolated local SGD responsibility:
+  [`clients/federated_client.py`](clients/federated_client.py);
+- deterministic server round orchestration:
+  [`server/fedavg_server.py`](server/fedavg_server.py);
+- beginner explanation:
+  [`reports/month2_week6_fedavg_implementation.md`](reports/month2_week6_fedavg_implementation.md);
+- synthetic tests: [`tests/test_fedavg.py`](tests/test_fedavg.py).
+
+Verify it without downloading data or running an experiment:
+
+```powershell
+conda run -n mse-ai python reports\verify_week6_fedavg.py
+```
+
+The verifier passed 13 tests on 2026-08-18 and confirmed that no FL framework
+is imported. These checks prove the weighting and round mechanics on synthetic
+data; they do not claim MNIST accuracy or convergence. Week 7 framework work
+was then completed transparently:
+
+- Flower adapter: [`server/flower_compat.py`](server/flower_compat.py);
+- compatibility tests: [`tests/test_flower_compat.py`](tests/test_flower_compat.py);
+- beginner/source mapping:
+  [`reports/month2_week7_flower_compatibility.md`](reports/month2_week7_flower_compatibility.md);
+- exact environment: `environment/month2_cpu_runtime.json` and
+  `environment/month2_cpu_requirements.txt`.
+
+Verify Week 7 with:
+
+```powershell
+conda run -n mse-ai python reports\verify_week7_flower.py
+```
+
+Flower 1.30.0 and all 20 Week 6/7 tests passed on 2026-08-18. The comparison
+found matching sample-weighted aggregation and an explicitly recorded client-
+selection rounding difference. Week 8 remains required: Gate 2 is still open
+until the multi-client MNIST run and centralized-versus-FedAvg comparison work
+and are understood. Non-IID, FedProx, and Federated Unlearning remain blocked
+by later gates.
 
 ## Status
 
@@ -123,6 +178,8 @@ versioned; downloaded data, model checkpoints, plots, and metrics under
 ## Month 1 report and Gate 1 review
 
 - Final report: [`output/pdf/month1_experiment_report.pdf`](output/pdf/month1_experiment_report.pdf)
+- Literature sanity check:
+  [`reports/month1_literature_sanity_check.md`](reports/month1_literature_sanity_check.md)
 - SISA six-question note: [`literature/sisa_2021_six_questions.md`](literature/sisa_2021_six_questions.md)
 - Literature matrix: [`literature/literature_matrix.md`](literature/literature_matrix.md)
 - Beginner Gate 1 study guide: [`reports/gate1_study_guide.md`](reports/gate1_study_guide.md)
@@ -143,3 +200,9 @@ replace the conceptual review of the student's answers:
 ```powershell
 conda run -n mse-ai python reports\verify_gate1_artifacts.py
 ```
+
+The 2026-08-17 literature check classifies all four Month 1 accuracies as
+`plausible / consistent with literature`. It is a source audit only: the
+neural-network values still come from one fixed seed each, and differences in
+architectures, splits, preprocessing, optimizers, epochs, and seeds prevent
+claims of direct comparison or statistical equivalence.

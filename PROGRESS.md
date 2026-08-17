@@ -815,3 +815,362 @@ Week 5 remains **in progress** until those answers are supplied and reviewed.
 No experiment was run in this reading/concept unit, so no experiment config or
 result file was created. Week 6 FedAvg code, Week 7 framework use, Month 3
 Non-IID/FedProx, and all Federated Unlearning code remain blocked.
+
+## 2026-08-17 — Month 1 literature sanity check completed
+
+The four completed centralized baseline accuracies were checked against
+original papers and authoritative official framework examples. This work asks
+a narrow question: are the saved results believable for the corresponding
+dataset and model family? It does not rerun training, tune a model, or treat
+experiments with different protocols as if they were directly comparable.
+
+### Evidence method
+
+`reports/month1_literature_sanity_check.md` labels three kinds of statement
+separately:
+
+1. **Project facts** come from the saved Month 1 configs, runners,
+   architectures, and `metrics.json` outputs.
+2. **Literature facts** come from an exact paper table/figure/page or a named
+   section of an official framework example.
+3. **Inferences** are the conservative plausibility decisions made after the
+   two fact sets are placed together.
+
+This separation matters for a beginner because seeing two nearby accuracy
+numbers does not mean the experiments are equivalent. A different train/test
+split, model, optimizer, epoch count, augmentation rule, or random seed can
+change the result.
+
+The check used two sources for each MNIST linear/MLP family, two for the
+MNIST CNN, and two for the CIFAR-10 CNN. Peer-reviewed or original benchmark
+papers were used where a suitably clear baseline existed. For modest
+CIFAR-10 CNNs, official TensorFlow and PyTorch examples were used because they
+expose their small architectures and training budgets more clearly than the
+highly optimized research models that would give misleading SOTA comparisons.
+
+### Result-by-result decision
+
+| Project baseline | Measured accuracy | Literature sanity decision |
+|---|---:|---|
+| MNIST Logistic Regression | 92.19% | `plausible / consistent with literature` |
+| MNIST one-hidden-layer MLP | 96.80% | `plausible / consistent with literature` |
+| MNIST Small CNN | 98.60% | `plausible / consistent with literature` |
+| CIFAR-10 Small CNN | 71.38% | `plausible / consistent with literature` |
+
+The closest linear benchmark reports 91.7% MNIST accuracy; shallow MLP
+references report 95.3% and 97.2%; modest primary-paper MNIST CNN references
+report roughly 99.01%–99.05% with longer training; and the closest official
+CIFAR-10 example reports 71.63% for a similarly scaled 10-epoch Adam run.
+These facts make the project results believable. They do not prove
+implementation correctness, superiority, replication, or statistical
+equivalence.
+
+One especially important protocol difference was preserved in the report.
+The TensorFlow CIFAR-10 tutorial monitors the official test set as validation
+data every epoch. The project instead reserves 5,000 training examples for
+validation and leaves the canonical 10,000-image test set for final
+evaluation. Therefore, the 71.38% and 71.63% values must not be presented as a
+controlled 0.25-percentage-point agreement.
+
+### Literature records and limitations
+
+Three newly used papers were recorded with exactly the plan's six questions—
+Problem, Gap, Idea, Assumption, Evaluation, and Limitation:
+
+- `literature/lecun_1998_six_questions.md`;
+- `literature/fashion_mnist_2017_six_questions.md`;
+- `literature/scherer_2010_six_questions.md`.
+
+Their required rows and persistent DOI/arXiv links were added to
+`literature/literature_matrix.md`. Official tutorials are recorded in the
+sanity report's verified-source ledger rather than treated as research papers.
+
+The main limitation remains unchanged: each project neural-network result is
+currently one fixed-seed run. A fixed seed supports repeatability, but it does
+not show how much accuracy varies across seeds. The correct conclusion is
+therefore **literature sanity only**. No experiment was run in this unit, so no
+new config/result pair was required. Gate 1 remains complete, Month 2 Week 5
+remains the current learning unit, and no later-gate implementation was
+started.
+
+---
+
+## 2026-08-17 — Consistency and reproducibility audit of Month 1
+
+### Why
+
+The Month 1 report and this log had not been independently checked end-to-end
+against the actual repository state (git history, the remote, and the PDF's
+extracted text) since Gate 1 closed. This entry documents three things that
+audit found and corrected, plus one that it found and is recording as a known
+limitation.
+
+### Correction: the repository has in fact been pushed to a public remote
+
+The 2026-08-16 "Gate 1 evidence audit" entry above states *"Nothing was
+pushed or published to the remote repository."* That statement is wrong.
+`git remote -v` shows `origin` pointing at
+`https://github.com/trangchang95/federated-unlearning`, `git reflog show
+origin/main` shows two prior pushes, and the GitHub page confirms the
+repository is public with all commits through Month 2 Week 5 visible. No raw
+dataset, checkpoint, or `results/` output leaked — `.gitignore` correctly
+excludes `data/*` and `results/*`, so only source code, configs, the
+environment lock, literature notes, and the built PDF report are public,
+which is not sensitive information. The decision, confirmed with the student,
+is to leave the repository public and correct this log rather than change
+visibility. Future entries should not repeat the earlier claim; the repo has
+been public since at least the Week 1 commit's push.
+
+### Fixed: the Month 1 PDF had a text-extraction bug in every bullet point
+
+`reports/build_month1_report.py` built its bullet lists with ReportLab's
+named `"circle"` glyph (Unicode U+25CF), drawn through ReportLab's internal
+bullet-rendering path rather than as ordinary paragraph text. That path
+produced a broken `ToUnicode` mapping in the embedded font: the bullet
+renders as a normal dot on screen, but copying text from the PDF, running it
+through a screen reader, or extracting it programmatically (confirmed with
+`pypdf`) returned `â—�` instead of the bullet. This would not have been
+caught by the earlier visual page-by-page inspection, since it only affects
+extracted text, not the rendered image. The fix switches the bullet to a
+literal ASCII hyphen, which uses the same text path as normal body copy and
+is confirmed to extract cleanly. The report was rebuilt; page count (8),
+structural verification, and every measured number are unchanged — only the
+bullet character and one status sentence (below) differ from the previous
+PDF bytes.
+
+### Fixed: the PDF's Gate 1 status line was stale the same day it was written
+
+Page 8 of the original PDF said *"Gate 1 status: technical artifacts are
+ready for review, but the README gate must remain unchecked..."* — true when
+that paragraph was drafted, but Gate 1 was reviewed and passed later the same
+day (see the "Gate 1 passed" entry above), and the PDF was deliberately never
+rewritten to track that, per the reasoning given in that entry. On reflection,
+a process-status sentence is different from a measured result: freezing
+accuracy numbers to their producing run is correct practice, but leaving a
+now-false status claim in the delivered report is not something a reader
+handed only the PDF (e.g. a supervisor) could detect. The sentence was
+updated to state the actual outcome (passed 16 August 2026) and point to
+`README.md`/`PROGRESS.md` for the current milestone. This is a wording
+correction, not a re-litigation of the Gate 1 decision itself.
+
+### Known limitation, not fixed: Week 1 logistic regression is not bit-reproducible run-to-run
+
+Comparing the very first Week 1 run (validation accuracy 91.71%, test 92.20%)
+to the current `results/month1_week1/metrics.json` (validation accuracy
+91.76%, test 92.19%) shows a difference of one flipped prediction out of
+10,500 test examples. The 2026-08-16 "compliance update" entry describes this
+as "only rounding," which is not accurate — 92.20% and 92.19% at four
+decimal places are two different underlying counts of correct predictions,
+not the same value shown with different precision. The likely cause is
+non-deterministic multi-threaded BLAS reduction order in scikit-learn's
+`lbfgs` solver, which `random_state=42` does not fully control. This is worth
+recording plainly because the project leans heavily on "seed 42 makes a run
+reproducible": that claim holds exactly for the PyTorch experiments (Weeks
+2-3 reran bit-for-bit identical accuracy/F1 across the Gate 1 audit reruns)
+but only approximately for the scikit-learn baseline, to within about one
+example in ten thousand. The gap is too small to change any conclusion in
+this project, so no rerun was triggered; if exact determinism ever matters
+later, pinning `OMP_NUM_THREADS=1`/`OPENBLAS_NUM_THREADS=1` before training
+would be the fix. `metrics.json` remains the authoritative current value; the
+91.71%/24.8s pair in the original Week 1 entry above is superseded evidence
+from before the config-driven rerun, not a data-entry error.
+
+### What was not changed
+
+The measured accuracy, F1, timing, and split numbers throughout this log and
+the PDF are unchanged. This entry only corrects process claims (the push
+statement, the stale gate sentence) and the PDF's non-text-extractable
+bullet glyphs; it does not rerun any experiment or alter any reported result.
+
+---
+
+## 2026-08-18 — Month 2, Week 5 passed: FL concept review
+
+The student supplied answers to all ten questions in
+`reports/month2_week5_self_check.md`. They were reviewed against the beginner
+guide and the primary FedAvg paper note. The result is **PASS (10/10)**, so
+Week 5 is complete.
+
+### What the answers demonstrate
+
+The student can now explain the complete server-to-clients-to-server workflow
+without treating Federated Learning as a black box. In particular, the
+answers correctly distinguish two different weight-changing operations:
+
+1. `optimizer.step()` acts during local training and changes one client's
+   local model using gradients from that client's minibatch;
+2. aggregation acts after local training and combines the returned client
+   models into the next global model.
+
+The weighted-average calculation is also correct: for returned scalar weights
+1.0 and 3.0 from clients with 20 and 80 examples, respectively, FedAvg gives
+`0.2(1.0) + 0.8(3.0) = 2.6`, not the unweighted mean 2.0. The remaining
+answers correctly separate a local epoch from a communication round, explain
+the roles of client fraction `C`, local epochs `E`, and batch size `B`, and
+identify the trade-off between fewer communications and greater client drift.
+
+The privacy and evaluation answers are important for later thesis work. The
+student correctly states that local raw data alone does not provide a formal
+privacy guarantee because model updates can reveal information. The student
+also explains that sample-weighted global accuracy can hide poor performance
+for a small client, so later experiments must report client-level utility.
+
+### Gate and next step
+
+`README.md` now checks Week 5 and identifies Month 2, Week 6 as the current
+unit. Gate 2 remains open: no FedAvg implementation or multi-client experiment
+has been claimed yet. The next permitted task is a hand-written FedAvg
+implementation with explicit local training and sample-weighted aggregation.
+An FL framework remains blocked until that implementation works; Non-IID,
+FedProx, and Federated Unlearning remain blocked by later gates.
+
+No experiment was run for this conceptual review, so no config or result file
+was created.
+
+---
+
+## 2026-08-18 — Month 2, Week 6 completed: FedAvg implemented by hand
+
+Week 6 implements the FedAvg mechanism directly, without Flower or another FL
+framework. This order matters: the project can now inspect every local weight
+update and server aggregation step instead of depending on a library before
+the algorithm is understood.
+
+### What was implemented
+
+The responsibilities are deliberately separated across three modules:
+
+1. `algorithms/fedavg.py` performs the sample-count-weighted average of model
+   state tensors. It validates client counts and tensor compatibility, rejects
+   non-finite values, avoids mutating/aliasing inputs, and gives an explicit
+   policy for non-floating buffers.
+2. `clients/federated_client.py` deep-copies the current global model, creates
+   a fresh local SGD optimizer, trains only on one client's dataset, and
+   returns detached model tensors plus the exact `len(dataset)` count.
+3. `server/fedavg_server.py` deterministically selects clients, keeps the
+   round-start global model unchanged while all selected clients train,
+   aggregates their results, and only then installs the next global model.
+
+For selected clients, the implementation computes
+`sum((n_k / sum_selected(n_j)) * local_state_k)`. The beginner scalar case is
+verified directly: 20 examples returning 1.0 and 80 examples returning 3.0
+produce `0.2(1.0) + 0.8(3.0) = 2.6`.
+
+The server also records a transparent communication estimate. A dense state
+payload is the sum of `tensor elements × bytes per element`. Each selected
+client counts one full-model download and one full-model upload. This is a
+repeatable tensor-byte estimate, not measured network bandwidth or latency.
+
+### Verification evidence
+
+`tests/test_fedavg.py` contains 13 deterministic synthetic checks. The command
+
+```powershell
+conda run -n mse-ai python reports\verify_week6_fedavg.py
+```
+
+passed on 2026-08-18. It proves, among other invariants:
+
+- exact sample-count weighting, including the 20/80 example;
+- no mutation or shared tensor storage between local/global states;
+- fresh, isolated client training and preserved caller RNG state;
+- one-client/full-batch equivalence to centralized SGD;
+- an unequal 4/2-client server round matching an explicit manual aggregate;
+- tensor-exact reproducibility across two independent two-round CPU runs;
+- round 2 starts from the updated round-1 state;
+- a hand-calculated 24-byte model payload and matching upload/download totals;
+- clear rejection of invalid, incompatible, or non-finite updates; and
+- absence of any active/imported FL framework in the Week 6 code.
+
+`reports/month2_week6_fedavg_implementation.md` explains the complete workflow
+and its limitations in beginner language.
+
+### Scope and roadmap decision
+
+No MNIST experiment was run in Week 6. The checks use tiny in-memory tensors
+and datasets because their purpose is algorithm correctness; they are unit
+tests, not research results, so no experiment config/result pair was created.
+They do not establish classification accuracy, convergence, privacy, real
+client isolation, network performance, IID/Non-IID behavior, or a centralized
+comparison.
+
+`README.md` now checks Week 6 and moves the current unit to Week 7. A framework
+may now be inspected because the hand-written implementation works. Gate 2
+remains open until the Week 8 multi-client MNIST experiment and
+centralized-versus-FedAvg comparison are complete and understood. FedProx,
+Non-IID experiments, and every Federated Unlearning method remain blocked.
+
+---
+
+## 2026-08-18 — Month 2, Week 7 completed: Flower inspected transparently
+
+Flower was introduced only after the hand-written FedAvg implementation and
+its 13 tests passed. The framework is used as a compatibility reference, not
+as a replacement for `algorithms/fedavg.py`.
+
+### Version and environment decision
+
+The current Flower line has moved beyond version 1.30, but pip metadata and
+the official changelog show that Flower 1.31 and newer require Python 3.11.
+The project's verified `mse-ai` runtime uses Python 3.10.20. Flower 1.30.0 is
+therefore the newest compatible release for this environment and is pinned in
+`requirements.txt` and `environment/month2_cpu_requirements.txt`. The exact
+runtime is recorded in `environment/month2_cpu_runtime.json`.
+
+This avoids changing Python under previously reproduced work merely to claim
+the newest framework version. The report states the constraint plainly; it
+does not describe 1.30.0 as Flower's newest release overall.
+
+### What was inspected and compared
+
+`server/flower_compat.py` converts copied PyTorch state tensors to the NumPy
+arrays used by Flower 1.30, calls Flower's real weighted aggregation helper,
+and converts copied results back to the original tensor order, shape, dtype,
+and device. The hand-written implementation remains untouched and is compared
+against this independent framework path.
+
+The source-level mapping is:
+
+- the project's server corresponds to Flower's server/strategy role;
+- `train_client` corresponds to a client `fit` path;
+- returned tensor state corresponds to serialized `Parameters`;
+- the project's example count corresponds to `FitRes.num_examples`; and
+- both aggregation paths multiply each returned layer by the client example
+  count, add corresponding layers, and divide by the total count.
+
+`reports/month2_week7_flower_compatibility.md` explains these mappings and the
+limits of this comparison in beginner language.
+
+### Verification and a meaningful difference
+
+The command
+
+```powershell
+conda run -n mse-ai python reports\verify_week7_flower.py
+```
+
+passed with Flower 1.30.0 and **20 tests**: 13 hand-written FedAvg tests plus
+seven framework compatibility tests. Flower matches the hand-written result
+for the 20/80 scalar example (2.6) and an unequal two-tensor example. Both the
+out-of-place helper and Flower's default in-place `FedAvg.aggregate_fit` path
+are checked. Dtype, shape, key order, non-aliasing, and the supported NumPy
+float dtypes are explicit.
+
+The audit also records a real default-policy difference. The project selects
+`ceil(C × K)` clients. With `C=0.3` and five clients, that means two clients.
+Flower 1.30's legacy strategy uses integer truncation plus its minimum-client
+setting; with `min_fit_clients=1`, it selects one. Aggregation agrees once the
+same clients return, but different selection can change convergence and
+communication, so future results must record the policy instead of calling
+the two paths identical.
+
+### Scope and next step
+
+No dataset training, accuracy result, real network process, or privacy claim
+was produced in Week 7. These are compatibility tests, not experiments, so no
+experiment config/result pair was created. No Non-IID, FedProx, or Federated
+Unlearning code was introduced.
+
+`README.md` now checks Week 7 and makes Week 8 the current unit. Gate 2 remains
+open. The next task is a modest, config-driven IID MNIST comparison using the
+hand-written FedAvg implementation and a matched centralized SGD baseline.

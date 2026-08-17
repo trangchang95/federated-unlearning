@@ -12,5 +12,6 @@ reportlab>=4.0
 pdfplumber>=0.11
 pypdf>=5.0
 
-# Week 7+: FL framework, uncomment once FedAvg is implemented by hand
-# flwr>=1.8
+# Week 7 framework check. Flower 1.31+ requires Python 3.11, while this
+# project's verified CPU environment is Python 3.10.20.
+flwr==1.30.0

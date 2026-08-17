@@ -1,0 +1,23 @@
+{
+  "environment_name": "mse-ai",
+  "purpose": "Exact CPU environment for the Month 2 FedAvg and Flower compatibility work",
+  "captured_on": "2026-08-18",
+  "operating_system": "Windows 10 10.0.19045",
+  "python_version": "3.10.20",
+  "device": "cpu",
+  "requirements_lock": "environment/month2_cpu_requirements.txt",
+  "packages": {
+    "torch": "2.12.1",
+    "torchvision": "0.27.1",
+    "numpy": "2.2.5",
+    "pandas": "2.3.3",
+    "matplotlib": "3.10.9",
+    "scikit-learn": "1.7.1",
+    "PyYAML": "6.0.3",
+    "flwr": "1.30.0",
+    "reportlab": "5.0.0",
+    "pdfplumber": "0.11.10",
+    "pypdf": "6.16.1",
+    "Pillow": "12.2.0"
+  }
+}
