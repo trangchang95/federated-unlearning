@@ -1296,3 +1296,85 @@ config-driven changes for `K=10` and `E=2` without overwriting the canonical
 evidence. Gate 2 remains unchecked until those answers and hands-on results
 are reviewed. Non-IID partitioning, FedProx, and Federated Unlearning remain
 blocked; none was introduced in this unit.
+
+---
+
+## 2026-08-18 — Gate 2 readiness made explicit without doing the student's work
+
+The technical Week 8 experiment was already complete, but Gate 2 could not be
+closed yet because its educational evidence was still blank. A separate
+readiness workflow now makes that boundary machine-checkable without answering
+the questions, inventing predictions, creating variant configs, or running the
+required hands-on changes for the student.
+
+### Three states now have different meanings
+
+`reports/verify_gate2_readiness.py` always verifies the protected canonical
+Week 8 evidence first. It then reports one of three states:
+
+- `WAITING`: valid required evidence has not been supplied yet;
+- `FAIL`: an existing file, claim, path, result, or gate marker contradicts
+  the reproducibility rules; or
+- `READY`/`PASS`: both controlled variants and the human learning review are
+  complete, with `PASS` reserved for a committed gate closure.
+
+The current state is deliberately `WAITING`. The checker lists the exact
+remaining work: Questions 1–8, the two predictions, pre-run reviewer approval,
+the tagged `K=10` and `E=2` configs/runs, both post-run interpretations, and a
+dated final conceptual review. `reports/gate2_variant_evidence.json` starts in
+`awaiting_student` state with null variant paths, so missing experiments cannot
+be mistaken for zero-valued or unsuccessful experiments.
+
+### Why the workflow has two human reviews
+
+The self-check now separates **pre-run proposal approval** from the final Gate
+2 review. The producing Git tag must already contain the student's eight
+answers, both predictions, and `APPROVED TO RUN`; therefore the predictions
+are auditable as predictions made before training. A SHA-256 snapshot binds
+that approved pre-run text across both producing tags and the final self-check,
+so a prediction cannot be rewritten after its result is known. After both
+runs, the student must fill the saved-result sections and receive a separate
+dated `PASS` that cannot predate the proposal approval. The script checks only
+that substantive fields exist and that the review markers are coherent. It
+does not use keywords to pretend it can judge whether the explanations are
+conceptually correct.
+
+### Variant evidence is protected before it can close the gate
+
+The future variants are restricted to the intended changes:
+
+- `K=10`, while `C=1`, `E=1`, `B=128`, `R=5`, and five centralized epochs
+  remain fixed; and
+- `E=2`, while `K=5`, `C=1`, `B=128`, and `R=5` remain fixed and centralized
+  epochs become ten to preserve the matched exposure budget.
+
+The verifier normalizes Windows paths so spellings such as `folder` and
+`folder/.` cannot alias the canonical or sibling output directory. It requires
+tagged configs, clean-start provenance, unchanged result-producing code, the
+exact Month 2 runtime, seeded IID splits, complete histories, derived optimizer
+steps/exposures/communication, internally consistent confusion and per-client
+counts/accuracy, loadable checkpoints, valid plots, and reports/summaries
+generated exactly from saved JSON. Per-client macro F1 remains a structurally
+range-checked runner-reported value because the frozen runner does not log a
+confusion matrix for each client; it must not be described as independently
+recomputed. The arithmetic is derived from each config rather than accepted as
+hand-copied constants. No accuracy direction or monotonic curve is required,
+so a negative variant result remains reportable.
+
+### Verification and scope
+
+All 70 tests pass, including 24 Gate 2 readiness tests for controlled config
+deltas, matched budgets, path aliases, placeholder answers, explicit state
+transitions, low-accuracy-but-valid evidence, and the exact closure marker.
+The deterministic Week 8 report check and the full canonical Week 8 post-run
+verifier still pass. The canonical result-producing files were not changed.
+
+The README exact-rerun instructions were also corrected: the runner must be
+executed from tag `month2-week8`, because a newer `main` commit is intentionally
+not allowed to impersonate the producing revision. For the normal beginner
+readiness command, `--allow-waiting` suppresses Conda's misleading error footer
+while leaving the printed state as `WAITING`; automated gate checks omit that
+flag and receive exit code 2.
+
+Gate 2 remains unchecked. No Non-IID partitioning, FedProx, Federated
+Unlearning, or proposed method was started.

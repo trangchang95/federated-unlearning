@@ -122,6 +122,20 @@ allowed.
 
     **Saved run/result after review:**
 
+## Pre-run proposal review
+
+This review happens after the two predictions are written but before either
+config is created, tagged, or executed. Its committed marker makes that order
+auditable: the producing Git tag must already contain this approval.
+
+**Review date:** NOT YET REVIEWED
+
+**Result:** NOT YET REVIEWED
+
+**Reviewer notes:** The reviewer will check that only the intended `K` or `E`
+field changes, the centralized exposure budget stays matched, names/output
+directories are new, and all predicted arithmetic is explained.
+
 ## Passing standard
 
 Gate 2 passes only when the student can:
@@ -137,7 +151,13 @@ Gate 2 passes only when the student can:
 
 ## Review result
 
-**Status:** NOT YET REVIEWED
+**Review date:** NOT YET REVIEWED
+
+**Result:** NOT YET REVIEWED
+
+**Reviewer notes:** The reviewer will assess the explanations and predictions
+for conceptual correctness, then verify both saved variant runs. This field is
+not an automated substitute for that review.
 
 Week 8 is technically complete. Gate 2 remains open until the answers and both
 hands-on changes above are reviewed. Month 3 Non-IID work and FedProx remain

@@ -168,14 +168,30 @@ network traffic.
 The complete beginner report is
 [`reports/month2_week8_centralized_vs_fedavg.md`](reports/month2_week8_centralized_vs_fedavg.md).
 The canonical run was repeated once: every deterministic JSON field and both
-checkpoint hashes were identical; only CPU timings changed. Reproduce and
-verify the saved evidence with:
+checkpoint hashes were identical; only CPU timings changed. Verify the
+already-saved evidence without training or downloading data with:
 
 ```powershell
+conda run -n mse-ai python reports\build_month2_week8_report.py --check
+conda run -n mse-ai python reports\verify_week8_fedavg.py
+```
+
+The canonical config names tag `month2-week8`. The runner intentionally
+refuses to claim an exact rerun when the checked-out `HEAD` is a newer commit.
+For an intentional training rerun, first save or commit your current work,
+then use the producing tag and return to `main` before rebuilding the report:
+
+```powershell
+git switch --detach month2-week8
 conda run -n mse-ai python experiments\iid\month2_week8_mnist_fedavg.py --config configs\month2_week8_mnist_iid_fedavg_vs_centralized.json --overwrite
+git switch main
 conda run -n mse-ai python reports\build_month2_week8_report.py
 conda run -n mse-ai python reports\verify_week8_fedavg.py
 ```
+
+The rerun replaces only the gitignored canonical result directory. CPU timing
+normally changes, so rebuilding the tracked report may produce a documentation
+diff even when all deterministic values and checkpoint hashes repeat.
 
 Gate 2 remains open because its learning check is not yet reviewed. The
 student must answer
@@ -183,6 +199,52 @@ student must answer
 of clients in a separate config, change local epochs in another matched-budget
 config, and explain the resulting convergence curves. Non-IID, FedProx, and
 Federated Unlearning remain blocked by later gates.
+
+Check Gate 2 readiness with:
+
+```powershell
+conda run -n mse-ai python reports\verify_gate2_readiness.py --allow-waiting
+```
+
+The current expected result is `WAITING`, not `PASS`. This means the canonical
+technical evidence is valid but required student evidence is still absent.
+`--allow-waiting` prevents Conda from displaying an error footer for this
+expected beginner state; it never turns `WAITING` into `READY`. Automated gate
+checks should omit the flag so `WAITING` exits with code 2. The checker reads
+[`reports/gate2_variant_evidence.json`](reports/gate2_variant_evidence.json)
+and clearly lists each missing item. It returns `FAIL` for corrupted or
+contradictory evidence and returns `READY` only after all of the following:
+
+1. the student answers Questions 1–8 and writes the two predictions in
+   Questions 9–10;
+2. a reviewer approves the proposed changes before execution;
+3. separate `K=10` and `E=2` configs are committed/tagged and run into new,
+   non-canonical output directories;
+4. deterministic reports are built from both saved `metrics.json` files;
+5. the student interprets both results; and
+6. a human reviewer records a date and `PASS` after checking conceptual
+   correctness.
+
+The pre-run approval must already be present in the Git tag that produces the
+two runs. The checker hashes the approved answers, predictions, and pre-run
+review and requires the same snapshot in both producing tags and the final
+self-check; predictions cannot be rewritten after seeing results. Final
+closure also requires the exact line
+`**Gate 2 status:** CLOSED` in the dated `PROGRESS.md` entry; general words such
+as “Week 8 complete” do not count as a gate decision.
+
+The checker confirms only that answer fields are non-empty; it does not grade
+the prose by keywords or replace the human review. It also does not require a
+variant to beat the canonical accuracy, because negative results must remain
+reportable.
+
+One saved metric has a narrower audit limit: global accuracy/F1, per-class
+accuracy, per-client counts, and weighted per-client accuracy are recomputed
+from logged evidence, but each client's macro F1 is only range-checked. The
+frozen Week 8 runner did not log a confusion matrix per client, so that value
+cannot be independently reconstructed without changing the protected
+experiment. Variant reports must treat it as a runner-reported descriptive
+value, not a separately cross-validated statistic.
 
 ## Status
 
