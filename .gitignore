@@ -5,6 +5,7 @@ venv/
 data/*
 !data/.gitkeep
 results/*
+articles/*
 !results/.gitkeep
 *.ckpt
 *.pt
