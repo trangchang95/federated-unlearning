@@ -1378,3 +1378,139 @@ flag and receive exit code 2.
 
 Gate 2 remains unchecked. No Non-IID partitioning, FedProx, Federated
 Unlearning, or proposed method was started.
+
+---
+
+## 2026-09-06 — Gate 2 Part A reviewed: FedAvg round mechanics and Week 8 result
+
+The student answered all eight Part A questions in
+`reports/gate2_self_check.md`, tracing one FedAvg round, explaining why every
+selected client must start from the same global model, defining `K`/`C`/`E`/
+`B`/`R` with their values in the canonical run, separating optimizer-step
+counts from training-example exposures, reporting the 3.76-percentage-point
+FedAvg-versus-centralized gap without overgeneralizing it, distinguishing
+"validation curves improved" from "the method provably converged," reconstructing
+the communication-byte formula and naming what it omits, and explaining why
+per-client utility and single-seed repeatability are each narrower claims than
+they might first appear.
+
+### Review decision
+
+**Part A: pass (8 of 8 answers meet the required standard.)** The answers
+correctly separate `optimizer.step()` (client-side, local weight change) from
+sample-weighted aggregation (server-side, next global model), correctly state
+the canonical run's `K=5, C=1.0, E=1, B=128, R=5`, and correctly avoid two
+common overclaims this gate specifically checks for: treating one run's
+negative FedAvg result as universal, and treating rising validation curves as
+proof of convergence to a stable limit.
+
+One precision note, not requiring a re-answer: question 7's answer explains
+the communication formula and its omissions correctly but does not show the
+numeric substitution — the `SimpleMLP` state is 407,080 bytes, and
+`407,080 × 2 × 5 × 5 = 20,354,000` bytes is the reported estimate. This is the
+same kind of refinement recorded (without demanding a rewrite) during the
+Gate 1 review.
+
+### What remains open
+
+Part B (Questions 9–10: propose a `K=10` variant and an `E=2` variant, each
+with a written prediction) is still blank, along with the pre-run proposal
+review and the final review section. Per this repository's rule against
+inventing predictions before an experiment runs, and per the gate's own audit
+design — the producing Git tag must already contain the approved predictions,
+hashed so they cannot be edited after the result is known — these two
+proposals and predictions must be written by the student before any `K=10` or
+`E=2` config is created, tagged, or run. No such config was created in this
+session. Gate 2 therefore remains open; Month 3 Non-IID/FedProx work and all
+Federated Unlearning implementation remain blocked.
+
+---
+
+## 2026-09-07 — Gate 2 variant setup: tag-gap correction and K=10/E=2 configs prepared
+
+### Correction: three documented Git tags did not actually exist
+
+Preparing to run the Part B variants required resolving the `month2-week8`
+tag (the Gate 2 readiness verifier hard-depends on it to locate the canonical
+commit). `git tag -l` and `git show-ref --tags` returned nothing on this
+clone, and `git reflog --all` and `git fsck --unreachable --tags` showed no
+trace that any tag had ever existed, on this clone or on `origin`. This
+contradicts three earlier entries above, which state that `month1-gate1`,
+`gate1-complete`, and `month2-week8` were each created.
+
+The commits those entries already name were verified to exist with matching
+content — `2fb17f49b27a3b0d57a3e3edafa8e2bf514af549` (named in the Week 8
+entry) is the exact commit whose config already reads
+`"code_revision": "month2-week8"`. So this was a documentation gap, not a
+lost or divergent commit: the tags were retroactively created pointing at the
+exact commits already on record, not at any new or different commit:
+
+| Tag | Commit | Matches entry |
+|---|---|---|
+| `month1-gate1` | `b1934ec` (Month 1: reproducible centralized baselines and Gate 1 evidence) | 2026-08-16 Gate 1 evidence audit |
+| `gate1-complete` | `3b45e3e` (Gate 1: record student self-check pass) | 2026-08-16 Gate 1 passed |
+| `month2-week8` | `2fb17f4` (Complete literature audit and prepare verified FedAvg run) | 2026-08-18 Week 8 completed |
+
+No commit content changed; only the missing tag pointers were added. Future
+entries should not repeat the earlier "tag was created" claims as evidence of
+anything beyond the commit existing — verify with `git tag -l` before citing
+a tag as proof.
+
+### Correction: the canonical Week 8 config had an uncommitted, unintended edit
+
+Before this session, `configs/month2_week8_mnist_iid_fedavg_vs_centralized.json`
+had a dirty (uncommitted) local change setting `number_of_clients` to `10`
+directly on the canonical file — a direct edit of the protected canonical
+config, which the project rules explicitly forbid. It was never committed, so
+no result was ever produced from it. It was restored to its committed `K=5`
+state with `git restore`, and the intended `K=10` change was moved into its
+own new config instead (below).
+
+### Part B configs created and reviewed
+
+Two new configs were created from the restored canonical file, changing only
+the field Question 9/10 identify plus `experiment_name`, `output_subdirectory`,
+and `code_revision`:
+
+- `configs/month2_week8_mnist_k10_fedavg_vs_centralized.json` —
+  `number_of_clients: 10`, everything else unchanged.
+- `configs/month2_week8_mnist_e2_fedavg_vs_centralized.json` —
+  `local_epochs: 2`, `centralized_epochs: 10`, everything else unchanged.
+
+Both were checked against `reports/verify_gate2_readiness.py`'s
+`VARIANT_RULES` (field set, required values, and allowed-differences list)
+before being recorded. `reports/gate2_variant_evidence.json` now names both
+config paths with `status: "configs_ready"`; `metrics`/`report` remain `null`
+because neither has been run yet.
+
+A structural issue was also found and fixed in `reports/gate2_self_check.md`:
+the student's Part B answers for Questions 9 and 10 were written directly
+under each bullet prompt, but the field the verifier actually reads is the
+`**Proposed changes and prediction:**` marker below that, which was still
+empty — so the automated check would have reported both predictions as
+missing despite them being fully written. The existing text (unchanged,
+nothing added or reworded) was relocated under that marker for both
+questions.
+
+### Pre-run proposal review recorded
+
+**Review date:** 2026-09-07. **Result:** APPROVED TO RUN. Both proposals
+change only their intended field, keep the canonical config's other values
+untouched, and use new identity fields that don't alias the canonical run.
+The K=10 arithmetic (5,100 examples/client, 40,708,000 predicted
+communication bytes, 2,000 total local steps) and the E=2 arithmetic (4,000
+predicted FedAvg steps, 3,990 predicted centralized steps, unchanged
+20,354,000 communication bytes) both check out against the runner's
+step/communication formulas. One precision note, not blocking: the E=2
+answer doesn't state the training-example-exposures number itself (510,000)
+even though its own step-count numbers are consistent with that value.
+
+### What is not yet done
+
+Neither variant has been executed. This machine (macOS, system Python 3.9.6,
+no conda) does not have the Windows/Python-3.10.20/`mse-ai` environment the
+canonical run and `environment/month2_cpu_runtime.json` document — that gap
+must be resolved (installing a matching Python 3.10.20 environment here, or
+running on the original machine) before either tagged config can be executed.
+Gate 2 remains open; no K=10/E=2 result exists, and no Non-IID, FedProx, or
+Federated Unlearning work has been started.

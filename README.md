@@ -70,9 +70,11 @@ Use a config file per run (`configs/`) and write results to `results/` automatic
 ## Current milestone
 
 **Month 2, Gate 2 review — explain and vary the completed IID experiment**
-(see plan §9): the canonical centralized-versus-FedAvg run is verified. The
-student must now explain it and perform the controlled `K` and `E` changes in
-`reports/gate2_self_check.md` before Gate 2 can close.
+(see plan §9): the canonical centralized-versus-FedAvg run is verified, and
+Part A of `reports/gate2_self_check.md` (the eight conceptual questions) was
+reviewed and passed on 2026-09-06. Part B — proposing and predicting `K=10`
+and `E=2` variants, then running and interpreting them — is still open and
+must be completed before Gate 2 can close.
 
 ### Month 1 breakdown
 

@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "status": "awaiting_student",
+  "status": "configs_ready",
   "canonical_config": "configs/month2_week8_mnist_iid_fedavg_vs_centralized.json",
   "student_self_check": "reports/gate2_self_check.md",
   "variants": {
     "number_of_clients_k10": {
-      "config": null,
+      "config": "configs/month2_week8_mnist_k10_fedavg_vs_centralized.json",
       "metrics": null,
       "report": null
     },
     "local_epochs_e2": {
-      "config": null,
+      "config": "configs/month2_week8_mnist_e2_fedavg_vs_centralized.json",
       "metrics": null,
       "report": null
     }
