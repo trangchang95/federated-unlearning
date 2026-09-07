@@ -19,10 +19,10 @@
 | Config | [`configs/month2_week8_mnist_k10_fedavg_vs_centralized.json`](../configs/month2_week8_mnist_k10_fedavg_vs_centralized.json) |
 | Resolved run config | [`results/month2_week8_mnist_k10_variant/resolved_config.json`](../results/month2_week8_mnist_k10_variant/resolved_config.json) |
 | Configured code revision | `month2-week8-k10` |
-| Resolved Git commit / clean HEAD | `b601ac48d77f5194f039a67c06087804c1e3132f` / `True` |
+| Resolved Git commit / clean HEAD | `1315eea929972d2844173e5984588e5638226646` / `True` |
 | Environment manifest | [`environment/month2_cpu_runtime.json`](../environment/month2_cpu_runtime.json) |
-| Resolved-config SHA-256 | `4f418279547d6cf4adde22b5a880de9308b01e64f51a56ccf5eb28365712c05d` |
-| Metrics SHA-256 | `c316e78ac25794d4b62be88477337ccaf2d9679accdf9b4c0f139b4f766a9983` |
+| Resolved-config SHA-256 | `e3b1f38b3e249b360a1dcb00e2ec07d375157334fbe8611cece5eaba52bd3200` |
+| Metrics SHA-256 | `a2b9cca49725cdb7beb3a6d1905f32eae51299b51a6a7484e6d8a3bcdb48a620` |
 | Common initial-model SHA-256 | `f1a6fbfc1590ec7bfef00d6df509b9d5b4eee93b4814397af11b6f4f223d2125` |
 | Partition | `iid_seeded_equal_size` |
 | Fixed seeds | `random_seed=42`, `split_seed=42`, `train_partition_seed=1042`, `test_partition_seed=2042`, `centralized_loader_seed=3042`, `model_initialization_seed=42` |
@@ -73,8 +73,8 @@ With full participation (`C=1`), `R × E = 5 × 1 = 5` FedAvg passes over all cl
 
 | Method | Test loss | Test accuracy | Test macro F1 | Best validation checkpoint | Train + validation-loop time |
 |---|---:|---:|---:|---:|---:|
-| Centralized SGD | 0.187009 | 94.76% | 94.69% | epoch 5 (94.29%) | 9.794 s |
-| Hand-written FedAvg | 0.396494 | 89.55% | 89.37% | round 5 (88.89%) | 9.945 s |
+| Centralized SGD | 0.187009 | 94.76% | 94.69% | epoch 5 (94.29%) | 9.872 s |
+| Hand-written FedAvg | 0.396494 | 89.55% | 89.37% | round 5 (88.89%) | 10.076 s |
 
 **Derived differences:** FedAvg minus centralized is **-5.21 percentage points** for accuracy and **-5.32 percentage points** for macro F1.
 
@@ -154,4 +154,4 @@ For this full-participation run, `50 = K × R = 10 × 5`. The two directions are
 - The clients run sequentially in one CPU process. This validates learning and accounting logic, not deployment throughput, privacy, or network behavior.
 - The result establishes neither Federated Unlearning nor forgetting; those remain later-gate work.
 
-For exact reruns, use the saved and resolved configs, code revision `month2-week8-k10` (commit `b601ac48d77f5194f039a67c06087804c1e3132f`), and environment manifest `environment/month2_cpu_runtime.json`. The recorded seed set is `random_seed=42`, `split_seed=42`, `train_partition_seed=1042`, `test_partition_seed=2042`, `centralized_loader_seed=3042`, `model_initialization_seed=42`.
+For exact reruns, use the saved and resolved configs, code revision `month2-week8-k10` (commit `1315eea929972d2844173e5984588e5638226646`), and environment manifest `environment/month2_cpu_runtime.json`. The recorded seed set is `random_seed=42`, `split_seed=42`, `train_partition_seed=1042`, `test_partition_seed=2042`, `centralized_loader_seed=3042`, `model_initialization_seed=42`.
