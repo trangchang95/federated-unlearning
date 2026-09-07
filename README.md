@@ -69,12 +69,11 @@ Use a config file per run (`configs/`) and write results to `results/` automatic
 
 ## Current milestone
 
-**Month 2, Gate 2 review — explain and vary the completed IID experiment**
-(see plan §9): the canonical centralized-versus-FedAvg run is verified, and
-Part A of `reports/gate2_self_check.md` (the eight conceptual questions) was
-reviewed and passed on 2026-09-06. Part B — proposing and predicting `K=10`
-and `E=2` variants, then running and interpreting them — is still open and
-must be completed before Gate 2 can close.
+**Month 3, Week 9 — IID vs. Non-IID** (see plan §9): Gate 2 closed on
+2026-09-07. The next permitted unit is re-reading the FedAvg paper and the
+Kairouz survey for statistical heterogeneity, then building IID vs. Non-IID
+MNIST partitions. FedProx, Dirichlet partitioning, and every Federated
+Unlearning method remain blocked by Gates 3 and 4.
 
 ### Month 1 breakdown
 
@@ -195,27 +194,32 @@ The rerun replaces only the gitignored canonical result directory. CPU timing
 normally changes, so rebuilding the tracked report may produce a documentation
 diff even when all deterministic values and checkpoint hashes repeat.
 
-Gate 2 remains open because its learning check is not yet reviewed. The
-student must answer
-[`reports/gate2_self_check.md`](reports/gate2_self_check.md), change the number
-of clients in a separate config, change local epochs in another matched-budget
-config, and explain the resulting convergence curves. Non-IID, FedProx, and
-Federated Unlearning remain blocked by later gates.
+Gate 2 closed on 2026-09-07. `reports/gate2_self_check.md` records the
+reviewed Part A answers, the approved and executed `K=10` and `E=2`
+variants, and their interpretation:
+
+| Setting | Centralized | Hand-written FedAvg | Gap |
+|---|---:|---:|---:|
+| Canonical (`K=5, E=1`) | 94.76% | 90.99% | −3.77pp |
+| `K=10` | 94.76% | 89.55% | −5.21pp |
+| `E=2` | 96.17% | 92.31% | −3.86pp |
+
+Every predicted number for both variants (examples/client, optimizer steps,
+exposures, communication bytes) matched the executed result exactly. Non-IID,
+FedProx, and Federated Unlearning remain blocked by later gates.
 
 Check Gate 2 readiness with:
 
 ```powershell
-conda run -n mse-ai python reports\verify_gate2_readiness.py --allow-waiting
+conda run -n mse-ai python reports\verify_gate2_readiness.py
 ```
 
-The current expected result is `WAITING`, not `PASS`. This means the canonical
-technical evidence is valid but required student evidence is still absent.
-`--allow-waiting` prevents Conda from displaying an error footer for this
-expected beginner state; it never turns `WAITING` into `READY`. Automated gate
-checks should omit the flag so `WAITING` exits with code 2. The checker reads
+The expected result is now `PASS`, since every condition below is satisfied
+and this README's Gate 2 checkbox is checked. The checker reads
 [`reports/gate2_variant_evidence.json`](reports/gate2_variant_evidence.json)
 and clearly lists each missing item. It returns `FAIL` for corrupted or
-contradictory evidence and returns `READY` only after all of the following:
+contradictory evidence and returns `READY` (evidence complete, but README/
+PROGRESS not yet updated to reflect it) once all of the following hold:
 
 1. the student answers Questions 1–8 and writes the two predictions in
    Questions 9–10;
@@ -251,7 +255,7 @@ value, not a separately cross-validated statistic.
 ## Status
 
 - [x] Gate 1 (Month 1): CNN + centralized baseline
-- [ ] Gate 2 (Month 2): FedAvg from scratch, multi-client FL
+- [x] Gate 2 (Month 2): FedAvg from scratch, multi-client FL
 - [ ] Gate 3 (Month 3): IID/Non-IID + FedProx benchmark
 - [ ] Gate 4 (Month 4): FU baseline reproduced, retraining comparison
 - [ ] Gate 5 (Month 5): Research gap + proposed method + preliminary results

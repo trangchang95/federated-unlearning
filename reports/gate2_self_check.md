@@ -27,6 +27,17 @@ plain SGD at learning rate 0.1. Both paths start from the same model and use
 the same 51,000 training examples. The final test set is evaluated only after
 validation selects a checkpoint.
 
+*Post-review note (2026-09-07):* the table above reflects the original
+Windows-produced canonical run that Part A was reviewed against, and Part A's
+answers are left as originally written since they were correct for that
+evidence. The canonical run was later reproduced on a different machine for
+the Part B variants (see PROGRESS.md); centralized SGD there reads
+94.76%/94.69% F1 (one test example out of 10,000 differs — ordinary
+cross-platform floating-point non-determinism) while FedAvg is unchanged at
+90.99%/90.86%. Part B's saved results below use this second machine's numbers
+throughout, since canonical and both variants must come from the same
+environment to be comparable.
+
 ## Part A — Explain the completed run
 
 1. Trace one complete FedAvg round. Where does `optimizer.step()` change
@@ -142,6 +153,17 @@ allowed.
 
    **Saved run/result after review:**
 
+   K=10 (Question 9)
+   | | Predicted | Actual |
+   |---|---|---|
+   | Examples/client | 5,100 | 5,100 ✓ |
+   | Total local steps | 2,000 | 2,000 ✓ |
+   | Communication | 40,708,000 bytes | 40,708,000 bytes ✓ |
+
+   Result: Centralized 94.76% / 94.69% F1 (unchanged from canonical — same centralized config). FedAvg: 89.55% acc / 89.37% F1 (canonical K=5 FedAvg was 90.99%/90.86%). Gap vs. centralized widened to −5.21pp accuracy / −5.32pp F1, from −3.77pp / −3.83pp at K=5 — more clients, each with a smaller IID shard, produced a lower-utility FedAvg model in this run.
+
+   Note: canonical and both variants were re-baselined to this machine's environment after the original Windows numbers did not reproduce bit-for-bit (documented in PROGRESS.md, 2026-09-07 entries) — centralized here reads 94.76%/94.69% rather than the historical 94.75%/94.68% cited in the evidence card above; FedAvg matches the historical numbers exactly.
+
 10. **Change local epochs.** Propose an `E=2` variant with `K=5`, `C=1`,
     `B=128`, and `R=5`.
 
@@ -164,6 +186,16 @@ allowed.
       curve without claiming that one seed proves a general rule.
 
     **Saved run/result after review:**
+
+    E=2 (Question 10)
+    | | Predicted | Actual |
+    |---|---|---|
+    | Exposures | 510,000 | 510,000 ✓ |
+    | FedAvg steps | 4,000 | 4,000 ✓ |
+    | Centralized steps | 3,990 | 3,990 ✓ |
+    | Communication | unchanged, 20,354,000 bytes | 20,354,000 bytes ✓ |
+
+    Result: Centralized (10 epochs) 96.17% acc / 96.13% F1. FedAvg (E=2): 92.31% acc / 92.21% F1 (up from 90.99% at E=1). Gap vs. centralized: −3.86pp accuracy / −3.93pp F1 — essentially unchanged from canonical's −3.77pp / −3.83pp, not narrower or clearly wider given one seed. Both sides improved in absolute terms over their E=1/5-epoch counterparts (centralized 94.76%→96.17%, +1.41pp; FedAvg 90.99%→92.31%, +1.32pp), so more local computation per round helped FedAvg's utility here without closing the relative gap to centralized — one seed, one architecture, not a general claim about local-epoch counts.
 
 ## Pre-run proposal review
 
@@ -208,15 +240,27 @@ Gate 2 passes only when the student can:
 
 ## Review result
 
-**Review date:** NOT YET REVIEWED
+**Review date:** 2026-09-07
 
-**Result:** NOT YET REVIEWED
+**Result:** PASS
 
-**Reviewer notes:** The reviewer will assess the explanations and predictions
-for conceptual correctness, then verify both saved variant runs. This field is
-not an automated substitute for that review.
+**Reviewer notes:** Checked against each item in the passing standard above.
+Part A (reviewed separately, 2026-09-06) already established that the student
+distinguishes client-side optimizer updates from server aggregation and can
+explain the saved result and convergence curves without overclaiming. Part B
+adds the required hands-on evidence: both `K=10` and `E=2` were proposed,
+predicted, approved, run, and interpreted through separate tagged configs, and
+every predicted number (examples/client, participating clients, communication
+bytes, optimizer-step totals, exposures) matched the actual saved result
+exactly. The interpretation honestly reports that FedAvg's gap to centralized
+widened at K=10 (−5.21pp, versus −3.77pp at K=5) and stayed essentially flat at
+E=2 (−3.86pp) rather than claiming either variant "improved" FedAvg relative
+to centralized, and correctly scopes both results to one seed and one
+architecture. No claim is made about Non-IID behavior, privacy, unlearning, or
+real network performance, none of which this experiment tested.
 
-Week 8 is technically complete. Gate 2 remains open until the answers and both
-hands-on changes above are reviewed. Month 3 Non-IID work and FedProx remain
-blocked until then; Federated Unlearning remains blocked by Gates 2–3 and the
-later baseline requirements.
+**Gate 2 status:** CLOSED
+
+Week 8 and its Part B variants are complete and reviewed. Month 3 (Non-IID
+partitioning and FedProx) is now the next permitted unit. Federated Unlearning
+remains blocked by Gates 3 and 4.

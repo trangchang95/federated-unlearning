@@ -1595,3 +1595,53 @@ seeds, learning rate) changed. The measured FedAvg numbers are bit-identical
 to the original Windows run. Only the centralized path's last-decimal
 accuracy and the environment provenance changed, and both are documented
 here rather than silently overwritten.
+
+---
+
+## 2026-09-07 — Gate 2 passed: K=10/E=2 variants run, interpreted, and reviewed
+
+Both Part B variants from `reports/gate2_self_check.md` were executed against
+their approved, tagged configs (`month2-week8-k10`, `month2-week8-e2`),
+verified, and interpreted. `reports/gate2_variant_evidence.json` now records
+`status: "complete"` with both variants' metrics and report paths.
+
+### K=10 result (Question 9)
+
+Predicted and actual agreed exactly: 5,100 examples per client, 2,000 total
+local optimizer steps, 40,708,000 communication bytes. Centralized SGD is
+unchanged at 94.76%/94.69% F1 (it does not depend on `K`). Hand-written FedAvg
+dropped to 89.55%/89.37% F1 (from 90.99%/90.86% at K=5), widening the gap to
+centralized from −3.77pp to −5.21pp accuracy (−3.83pp to −5.32pp F1). More,
+smaller IID shards produced a lower-utility FedAvg model in this one run —
+reported as measured, not generalized to every `K`.
+
+### E=2 result (Question 10)
+
+Predicted and actual agreed exactly: 510,000 training-example exposures,
+4,000 FedAvg local steps, 3,990 centralized steps (at `centralized_epochs=10`,
+preserving the matched-exposure budget), and unchanged communication
+(20,354,000 bytes, since `K` and `R` did not change). Centralized SGD rose to
+96.17%/96.13% F1 and FedAvg rose to 92.31%/92.21% F1; the gap to centralized
+(−3.86pp accuracy / −3.93pp F1) stayed essentially the level it was at `E=1`
+(−3.77pp / −3.83pp) rather than closing — doubling local epochs improved both
+methods' absolute utility here without changing FedAvg's relative standing.
+
+### Review decision
+
+**Gate 2 status:** CLOSED
+
+Reviewed against the passing standard in `reports/gate2_self_check.md`: the
+student distinguishes client-side optimizer updates from server aggregation,
+correctly explains the Week 8 result and convergence curves, reports the
+negative centralized-vs-FedAvg gap honestly at both K=5 and both variants,
+explains matched exposure versus differing optimizer trajectories, and
+produced and interpreted two separate reproducible `K`/`E` variants with
+correct step-count and communication arithmetic in every case. No claim was
+made about Non-IID behavior, privacy, unlearning, or real network performance.
+`README.md` now checks Gate 2 and moves the current unit to Month 3, Week 9.
+
+### What remains blocked
+
+Non-IID partitioning, FedProx, and every Federated Unlearning method remain
+blocked by Gates 3 and 4. Nothing beyond FedAvg was implemented in this
+session.
