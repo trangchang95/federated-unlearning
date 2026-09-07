@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "status": "configs_ready",
+  "status": "complete",
   "canonical_config": "configs/month2_week8_mnist_iid_fedavg_vs_centralized.json",
   "student_self_check": "reports/gate2_self_check.md",
   "variants": {
     "number_of_clients_k10": {
       "config": "configs/month2_week8_mnist_k10_fedavg_vs_centralized.json",
-      "metrics": null,
-      "report": null
+      "metrics": "results/month2_week8_mnist_k10_variant/metrics.json",
+      "report": "reports/month2_week8_k10_variant_report.md"
     },
     "local_epochs_e2": {
       "config": "configs/month2_week8_mnist_e2_fedavg_vs_centralized.json",
-      "metrics": null,
-      "report": null
+      "metrics": "results/month2_week8_mnist_e2_variant/metrics.json",
+      "report": "reports/month2_week8_e2_variant_report.md"
     }
   }
 }
