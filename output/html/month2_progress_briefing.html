@@ -144,6 +144,8 @@
   /* ---------- Ahead grid ---------- */
   .ahead-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.3rem; }
   .ahead-card { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 1.1rem 1.2rem; }
+  .ahead-card.current { border-color: var(--amber); border-left-width: 3px; }
+  .ahead-card.current .m { color: var(--amber); }
   .ahead-card .m { font-family: var(--font-mono); font-size: 0.68rem; color: var(--accent-strong); letter-spacing: 0.05em; text-transform: uppercase; }
   .ahead-card h4 { font-family: var(--font-body); font-size: 0.98rem; font-weight: 600; margin: 0.3rem 0 0.4rem; color: var(--ink); }
   .ahead-card p { font-size: 0.86rem; color: var(--ink-soft); margin: 0; max-width: none; }
@@ -170,8 +172,8 @@
     <h1>Federated Unlearning for Heterogeneous Federated Learning</h1>
     <p class="subtitle-vn">Xây dựng và đánh giá giải pháp Federated Unlearning cho môi trường Federated Learning không đồng nhất</p>
     <div class="meta-row">
-      <div class="meta-item"><div class="k">Stage</div><div class="v">Month 2 of 6</div></div>
-      <div class="meta-item"><div class="k">Gate</div><div class="v">Gate 2 &mdash; in review</div></div>
+      <div class="meta-item"><div class="k">Stage</div><div class="v">Month 3 of 6</div></div>
+      <div class="meta-item"><div class="k">Gate</div><div class="v">Gate 2 &mdash; closed</div></div>
       <div class="meta-item"><div class="k">Prepared</div><div class="v">2026-09-07</div></div>
     </div>
   </header>
@@ -180,13 +182,13 @@
     <div class="section-num">01</div>
     <h2>Where this stands on the six-month plan</h2>
     <div class="body-text">
-      <p>The thesis follows a gate system: each month's methods are only allowed to start once the previous gate has both technical evidence (code that runs and reproduces) and a passed conceptual review (the student can explain what the numbers mean, not just that the code executed). Gate 1 closed on 2026-08-16 after the centralized baselines were verified and reviewed. Gate 2 covers hand-written FedAvg and the first multi-client experiment, and is currently in its review stage.</p>
+      <p>The thesis follows a gate system: each month's methods are only allowed to start once the previous gate has both technical evidence (code that runs and reproduces) and a passed conceptual review (the student can explain what the numbers mean, not just that the code executed). Gate 1 closed on 2026-08-16 after the centralized baselines were verified and reviewed. Gate 2, covering hand-written FedAvg and the first multi-client experiment, closed on 2026-09-07.</p>
       <p>Nothing past FedAvg &mdash; no Non-IID partitioning, no FedProx, no unlearning method &mdash; has been started. That is deliberate, not a delay: the plan explicitly blocks each later month until its gate closes, so early work is never built on an unverified foundation.</p>
     </div>
     <div class="timeline-row">
       <div class="tl-node done"><div class="tl-dot">1</div><div class="tl-label">Foundation</div><div class="tl-sub">CNN baselines</div></div>
-      <div class="tl-node active"><div class="tl-dot">2</div><div class="tl-label">FedAvg</div><div class="tl-sub">Gate 2 in review</div></div>
-      <div class="tl-node"><div class="tl-dot">3</div><div class="tl-label">Non-IID</div><div class="tl-sub">FedProx</div></div>
+      <div class="tl-node done"><div class="tl-dot">2</div><div class="tl-label">FedAvg</div><div class="tl-sub">Closed 2026-09-07</div></div>
+      <div class="tl-node active"><div class="tl-dot">3</div><div class="tl-label">Non-IID</div><div class="tl-sub">FedProx</div></div>
       <div class="tl-node"><div class="tl-dot">4</div><div class="tl-label">Unlearning</div><div class="tl-sub">FedEraser, KD-FU</div></div>
       <div class="tl-node"><div class="tl-dot">5</div><div class="tl-label">Contribution</div><div class="tl-sub">Proposed method</div></div>
       <div class="tl-node"><div class="tl-dot">6</div><div class="tl-label">Thesis</div><div class="tl-sub">Final eval</div></div>
@@ -235,8 +237,8 @@
     <div class="compare">
       <div class="compare-row">
         <div class="name">Centralized SGD</div>
-        <div class="compare-track"><div class="compare-fill central" style="width:94.75%"></div></div>
-        <div class="pct mono">94.75%</div>
+        <div class="compare-track"><div class="compare-fill central" style="width:94.76%"></div></div>
+        <div class="pct mono">94.76%</div>
       </div>
       <div class="compare-row">
         <div class="name">Hand-written FedAvg</div>
@@ -244,7 +246,7 @@
         <div class="pct mono">90.99%</div>
       </div>
     </div>
-    <p class="compare-diff">&minus;3.76 percentage points (macro F1: &minus;3.82 points).</p>
+    <p class="compare-diff">&minus;3.77 percentage points (macro F1: &minus;3.83 points).</p>
     <div class="body-text">
       <p>This is reported plainly as a negative result for FedAvg in this configuration &mdash; the plan's own risk-management guidance is explicit that a thesis does not need to show every method beating every baseline, only that results are measured and interpreted honestly. It is correct to say FedAvg underperformed here; it is not correct to generalize from one seed, one client count, and one IID split to a claim that centralized training is always better. FedAvg's own validation accuracy rose across all five rounds (10.4% &rarr; 84.7% &rarr; 88.1% &rarr; 89.3% &rarr; 89.9% &rarr; 90.3%), showing the method is learning as expected, just converging to a lower point under this specific budget.</p>
     </div>
@@ -257,32 +259,44 @@
         </tbody>
       </table>
     </div>
-    <p class="note">The five extra optimizer steps are minibatch rounding, not extra data: both paths process exactly the same 255,000 example exposures. Communication is a deterministic tensor-payload estimate &mdash; one model download and upload per client per round &mdash; not measured network traffic. The whole run was repeated once end to end: every deterministic value, including both checkpoint hashes, matched exactly; only CPU wall-clock time differed.</p>
+    <p class="note">The five extra optimizer steps are minibatch rounding, not extra data: both paths process exactly the same 255,000 example exposures. Communication is a deterministic tensor-payload estimate &mdash; one model download and upload per client per round &mdash; not measured network traffic. These numbers come from a machine re-baseline on 2026-09-07: the original Windows run measured 94.75%/94.68% centralized (one test example out of 10,000 different, ordinary cross-platform floating-point non-determinism); FedAvg is unchanged.</p>
   </section>
 
   <section>
     <div class="section-num">05</div>
-    <h2>Gate 2 &mdash; current status</h2>
-    <p class="lede">Passing Gate 2 requires more than a working experiment: the student must explain what the Week 8 result means, then deliberately change it in two controlled ways and interpret what changes and what doesn't.</p>
+    <h2>Gate 2 &mdash; closed 2026-09-07</h2>
+    <p class="lede">Passing Gate 2 required more than a working experiment: explaining what the Week 8 result means, then deliberately changing it in two controlled ways and interpreting what changes and what doesn't.</p>
     <div class="body-text">
-      <p>Part A of the review asked eight conceptual questions &mdash; tracing exactly where local training changes weights versus where server aggregation does, explaining why every client must start a round from the same global model, and correctly separating the negative accuracy result from any claim about FedAvg's general superiority or inferiority. All eight were answered correctly and reviewed as passing on 2026-09-06.</p>
-      <p>Part B asks for two further experiments, proposed and predicted <em>before</em> either is run: doubling the client count to <span class="mono">K=10</span> while holding everything else fixed, and doubling local epochs to <span class="mono">E=2</span> while scaling the centralized baseline's epoch count to match (so the exposure comparison stays fair). Both proposals were reviewed and approved to run on 2026-09-07, with predicted communication costs and optimizer-step counts checked against the runner's own accounting formulas before any code was executed.</p>
+      <p>Part A asked eight conceptual questions &mdash; tracing exactly where local training changes weights versus where server aggregation does, explaining why every client must start a round from the same global model, and correctly separating the negative accuracy result from any claim about FedAvg's general superiority or inferiority. All eight were answered correctly and reviewed as passing on 2026-09-06.</p>
+      <p>Part B required two further experiments, proposed and predicted <em>before</em> either was run: doubling the client count to <span class="mono">K=10</span> while holding everything else fixed, and doubling local epochs to <span class="mono">E=2</span> while scaling the centralized baseline's epoch count to match (so the exposure comparison stayed fair). Every predicted number &mdash; examples per client, optimizer-step totals, training-example exposures, communication bytes &mdash; matched the executed result exactly.</p>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Setting</th><th class="num">Centralized</th><th class="num">FedAvg</th><th class="num">Gap</th></tr></thead>
+        <tbody>
+          <tr><td>Canonical (<span class="mono">K=5, E=1</span>)</td><td class="num">94.76%</td><td class="num">90.99%</td><td class="num">&minus;3.77pp</td></tr>
+          <tr><td><span class="mono">K=10</span></td><td class="num">94.76%</td><td class="num">89.55%</td><td class="num">&minus;5.21pp</td></tr>
+          <tr><td><span class="mono">E=2</span></td><td class="num">96.17%</td><td class="num">92.31%</td><td class="num">&minus;3.86pp</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="body-text">
+      <p>Doubling the client count (<span class="mono">K=10</span>) widened FedAvg's gap to centralized &mdash; more, smaller IID shards produced a lower-utility model in this run, at double the communication cost (40.7 MB vs. 20.4 MB) for the same number of optimizer steps. Doubling local epochs (<span class="mono">E=2</span>) raised both methods' absolute accuracy (centralized +1.4pp, FedAvg +1.3pp) without changing communication at all, since transfer frequency depends on client count and rounds, not local epochs &mdash; but it also left the relative gap to centralized essentially unchanged. Both results are reported as measured, from one seed and one architecture, not as general claims about client count or local-epoch tuning.</p>
     </div>
     <ul class="checklist">
       <li class="done"><span class="box"></span><span>Part A &mdash; 8 conceptual questions on FedAvg mechanics, reviewed and passed (2026-09-06)</span></li>
       <li class="done"><span class="box"></span><span>Part B proposals &mdash; <span class="mono">K=10</span> and <span class="mono">E=2</span> variants, predictions written and reviewed</span></li>
       <li class="done"><span class="box"></span><span>Pre-run approval recorded, both configs tagged (<span class="mono">month2-week8-k10</span>, <span class="mono">month2-week8-e2</span>)</span></li>
-      <li class="active"><span class="box"></span><span><strong>In progress</strong> &mdash; a matching Python 3.10.20 environment is being built on the current machine; the canonical run and both variants are about to execute</span></li>
-      <li><span class="box"></span><span>Final interpretation of both variants and a dated review to close Gate 2</span></li>
+      <li class="done"><span class="box"></span><span>Both variants executed &mdash; every prediction matched the actual result</span></li>
+      <li class="done"><span class="box"></span><span>Final interpretation reviewed, dated PASS recorded 2026-09-07</span></li>
     </ul>
-    <div class="callout">Nothing about the <span class="mono">K=10</span>/<span class="mono">E=2</span> results is known yet. This section will be updated once both variants have actually run &mdash; no numbers are being anticipated here.</div>
   </section>
 
   <section>
     <div class="section-num">06</div>
-    <h2>What comes after Gate 2 closes</h2>
+    <h2>What's next &mdash; Month 3</h2>
     <div class="ahead-grid">
-      <div class="ahead-card"><div class="m">Month 3</div><h4>Heterogeneous FL</h4><p>IID vs. Non-IID partitioning at Dirichlet &alpha; = 1.0, 0.5, and 0.1, then FedProx as a second FL baseline built specifically to handle client drift under heterogeneity.</p></div>
+      <div class="ahead-card current"><div class="m">Month 3 &middot; current</div><h4>Heterogeneous FL</h4><p>IID vs. Non-IID partitioning at Dirichlet &alpha; = 1.0, 0.5, and 0.1, then FedProx as a second FL baseline built specifically to handle client drift under heterogeneity.</p></div>
       <div class="ahead-card"><div class="m">Month 4</div><h4>Federated Unlearning</h4><p>A full-retraining baseline first, then reproducing FedEraser and a knowledge-distillation-based unlearning method as the project's first forgetting baselines.</p></div>
       <div class="ahead-card"><div class="m">Month 5</div><h4>Research contribution</h4><p>A literature-grounded gap analysis across existing FU methods, followed by a proposed Non-IID-aware unlearning method with preliminary results.</p></div>
       <div class="ahead-card"><div class="m">Month 6</div><h4>Final evaluation</h4><p>The full benchmark across datasets and settings, an ablation study, and the completed thesis and demo.</p></div>
