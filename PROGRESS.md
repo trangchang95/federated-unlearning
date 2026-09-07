@@ -1514,3 +1514,84 @@ must be resolved (installing a matching Python 3.10.20 environment here, or
 running on the original machine) before either tagged config can be executed.
 Gate 2 remains open; no K=10/E=2 result exists, and no Non-IID, FedProx, or
 Federated Unlearning work has been started.
+
+---
+
+## 2026-09-07 — Canonical Week 8 evidence re-baselined from Windows to this Mac
+
+### What happened
+
+A Python 3.10.20 environment was built on this Mac (system Python 3.9.6 had
+no path to the exact pinned version; a user-level pyenv build was used
+instead of Homebrew or an admin-rights installer, after first fixing a
+missing `_lzma` module by compiling `xz` into a local, non-admin prefix).
+With the exact pinned package versions from
+`environment/month2_cpu_requirements.txt` installed, the canonical Week 8
+config was rerun on this machine as a prerequisite check: `reports/
+verify_gate2_readiness.py` will not evaluate the K=10/E=2 variants until the
+canonical result independently verifies, and no local canonical result
+existed on this machine at all (`results/` and `data/` are correctly
+gitignored, so nothing had ever synced here).
+
+Hand-written FedAvg reproduced exactly: 90.99% test accuracy, 90.86% macro
+F1, identical to the numbers recorded in the Week 8 entries above. Centralized
+SGD reproduced almost exactly but not bit-for-bit: 94.76%/94.69% here versus
+94.75%/94.68% on the original Windows machine — a difference of exactly one
+test example out of 10,000. This is consistent with ordinary cross-platform
+floating-point non-determinism (macOS's math libraries reducing
+matrix-multiply sums in a different order than Windows/MKL did), not a bug in
+the implementation; `torch.use_deterministic_algorithms(True)` guarantees
+determinism *within* one environment, not bit-identical results *across*
+environments. This is the same category of gap as the Week 1 logistic-
+regression non-determinism recorded above, at a smaller magnitude.
+
+### The decision, and what it costs
+
+`reports/verify_week8_fedavg.py` requires the committed canonical report to
+match freshly computed metrics exactly, so this one-example difference is
+enough to fail it outright with the original Windows-produced report left in
+place. Two options were considered: document the gap and keep the Windows
+result as canonical (meaning the K=10/E=2 variants would need to run on the
+original Windows machine, since a variant must be compared against a
+canonical baseline from the same environment), or accept this Mac as the new
+reference environment for Gate 2's remaining work. The student chose to
+re-baseline to this Mac, after being shown explicitly what that requires:
+Gate 2's readiness verifier hardcodes the canonical tag name (`month2-week8`)
+as a Python constant rather than reading it from the config, so re-baselining
+means **force-moving that tag to a new commit** rather than creating a new
+tag name. This is a real cost, stated plainly: every entry above that cites
+`month2-week8` was written when that tag pointed at commit
+`2fb17f49b27a3b0d57a3e3edafa8e2bf514af549` (the original Windows-producing
+revision). That commit still exists and is unchanged; only what the tag name
+currently resolves to has moved. A reader following an old citation of
+`month2-week8` from before 2026-09-07 should resolve it against this entry,
+not assume the tag still points where it did when that entry was written.
+
+### What changed
+
+- `environment/month2_cpu_runtime.json`: `operating_system` updated from
+  `Windows 10 10.0.19045` to `macOS-26.5.1-arm64-arm-64bit`, `captured_on`
+  updated to `2026-09-07`, and a new `previously_captured_on` field records
+  the superseded Windows description inline. `python_version` and every
+  pinned package version are unchanged — the same exact versions were
+  installed here.
+- `reports/month2_week8_centralized_vs_fedavg.md` was rebuilt from this
+  machine's metrics (94.76%/94.69% centralized; FedAvg unchanged).
+- `reports/month2_week8_k10_variant_report.md` and
+  `reports/month2_week8_e2_variant_report.md` were generated from this same
+  environment, so all three results (canonical, K=10, E=2) are now mutually
+  consistent — produced by the same machine, same environment manifest, same
+  session.
+- The `month2-week8`, `month2-week8-k10`, and `month2-week8-e2` tags were all
+  force-moved to point at the single new commit containing the above, so
+  `reports/verify_gate2_readiness.py`'s requirement that a variant's
+  implementation files not differ from the canonical tag's files now compares
+  a commit to itself for all three.
+
+### What did not change
+
+No model code, no algorithm, no configuration value (`K`, `E`, `B`, `R`,
+seeds, learning rate) changed. The measured FedAvg numbers are bit-identical
+to the original Windows run. Only the centralized path's last-decimal
+accuracy and the environment provenance changed, and both are documented
+here rather than silently overwritten.

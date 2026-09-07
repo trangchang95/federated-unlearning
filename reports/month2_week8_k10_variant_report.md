@@ -1,6 +1,6 @@
 # Month 2, Week 8 — Centralized SGD vs Hand-Written FedAvg
 
-> Generated deterministically from [`results/month2_week8_mnist_iid_comparison/metrics.json`](../results/month2_week8_mnist_iid_comparison/metrics.json). Do not copy result numbers into this report by hand.
+> Generated deterministically from [`results/month2_week8_mnist_k10_variant/metrics.json`](../results/month2_week8_mnist_k10_variant/metrics.json). Do not copy result numbers into this report by hand.
 
 ## How to read the evidence
 
@@ -16,13 +16,13 @@
 | Item | Recorded value |
 |---|---|
 | Dataset | `MNIST` — 51,000 train / 9,000 validation / 10,000 test examples |
-| Config | [`configs/month2_week8_mnist_iid_fedavg_vs_centralized.json`](../configs/month2_week8_mnist_iid_fedavg_vs_centralized.json) |
-| Resolved run config | [`results/month2_week8_mnist_iid_comparison/resolved_config.json`](../results/month2_week8_mnist_iid_comparison/resolved_config.json) |
-| Configured code revision | `month2-week8` |
-| Resolved Git commit / clean HEAD | `2fb17f49b27a3b0d57a3e3edafa8e2bf514af549` / `True` |
+| Config | [`configs/month2_week8_mnist_k10_fedavg_vs_centralized.json`](../configs/month2_week8_mnist_k10_fedavg_vs_centralized.json) |
+| Resolved run config | [`results/month2_week8_mnist_k10_variant/resolved_config.json`](../results/month2_week8_mnist_k10_variant/resolved_config.json) |
+| Configured code revision | `month2-week8-k10` |
+| Resolved Git commit / clean HEAD | `b601ac48d77f5194f039a67c06087804c1e3132f` / `True` |
 | Environment manifest | [`environment/month2_cpu_runtime.json`](../environment/month2_cpu_runtime.json) |
-| Resolved-config SHA-256 | `69f9a8e6f564ad4c27f5eac206ca886bad872ecdca964d04557d00188ead21c8` |
-| Metrics SHA-256 | `cf9b81c9ffb778462a74b2eaf27c6a49955fa7d397a86d0bc8a86e052079cd23` |
+| Resolved-config SHA-256 | `4f418279547d6cf4adde22b5a880de9308b01e64f51a56ccf5eb28365712c05d` |
+| Metrics SHA-256 | `c316e78ac25794d4b62be88477337ccaf2d9679accdf9b4c0f139b4f766a9983` |
 | Common initial-model SHA-256 | `f1a6fbfc1590ec7bfef00d6df509b9d5b4eee93b4814397af11b6f4f223d2125` |
 | Partition | `iid_seeded_equal_size` |
 | Fixed seeds | `random_seed=42`, `split_seed=42`, `train_partition_seed=1042`, `test_partition_seed=2042`, `centralized_loader_seed=3042`, `model_initialization_seed=42` |
@@ -35,8 +35,8 @@
 
 | Symbol | Meaning | This run |
 |---|---|---:|
-| `K` | Total number of clients | 5 |
-| `C` | Fraction of clients selected each round | 1.00 (5 of 5 selected) |
+| `K` | Total number of clients | 10 |
+| `C` | Fraction of clients selected each round | 1.00 (10 of 10 selected) |
 | `E` | Local epochs completed by each selected client before upload | 1 |
 | `B` | Local/central minibatch size | 128 |
 | `R` | FedAvg communication rounds | 5 |
@@ -60,7 +60,7 @@ With full participation (`C=1`), `R × E = 5 × 1 = 5` FedAvg passes over all cl
 | Mechanically different | Why it matters |
 |---|---|
 | Centralized SGD | One model processes the complete shuffled training split and updates after every central minibatch. |
-| FedAvg | 5 IID client shards train separate local copies; the server performs a sample-weighted model average once per round. |
+| FedAvg | 10 IID client shards train separate local copies; the server performs a sample-weighted model average once per round. |
 | Minibatch boundaries | Splitting 51,000 examples across clients changes where partial final batches occur, even though total example exposures match. |
 | Communication | Centralized simulation records 0 model-transfer bytes; FedAvg counts one download and one upload per selected client per round. |
 | Data order and update trajectory | `Centralized SGD follows one continuous trajectory; FedAvg follows separate local trajectories and averages model weights. Partial final batches also make the optimizer-step counts differ.` |
@@ -73,14 +73,14 @@ With full participation (`C=1`), `R × E = 5 × 1 = 5` FedAvg passes over all cl
 
 | Method | Test loss | Test accuracy | Test macro F1 | Best validation checkpoint | Train + validation-loop time |
 |---|---:|---:|---:|---:|---:|
-| Centralized SGD | 0.187009 | 94.76% | 94.69% | epoch 5 (94.29%) | 9.934 s |
-| Hand-written FedAvg | 0.319598 | 90.99% | 90.86% | round 5 (90.28%) | 9.954 s |
+| Centralized SGD | 0.187009 | 94.76% | 94.69% | epoch 5 (94.29%) | 9.794 s |
+| Hand-written FedAvg | 0.396494 | 89.55% | 89.37% | round 5 (88.89%) | 9.945 s |
 
-**Derived differences:** FedAvg minus centralized is **-3.77 percentage points** for accuracy and **-3.83 percentage points** for macro F1.
+**Derived differences:** FedAvg minus centralized is **-5.21 percentage points** for accuracy and **-5.32 percentage points** for macro F1.
 
-**Interpretation — report the negative result honestly:** FedAvg underperformed the centralized reference by **3.77 percentage points** in test accuracy; its macro-F1 difference was **-3.83 percentage points**. This is the honest outcome of this saved run, not evidence that one method is generally superior. The two optimization procedures are mechanically different, and only one fixed-seed run is available.
+**Interpretation — report the negative result honestly:** FedAvg underperformed the centralized reference by **5.21 percentage points** in test accuracy; its macro-F1 difference was **-5.32 percentage points**. This is the honest outcome of this saved run, not evidence that one method is generally superior. The two optimization procedures are mechanically different, and only one fixed-seed run is available.
 
-The saved visual evidence is the [convergence plot](../results/month2_week8_mnist_iid_comparison/convergence_comparison.png), [centralized confusion matrix](../results/month2_week8_mnist_iid_comparison/centralized_confusion_matrix.png), and [FedAvg confusion matrix](../results/month2_week8_mnist_iid_comparison/fedavg_confusion_matrix.png).
+The saved visual evidence is the [convergence plot](../results/month2_week8_mnist_k10_variant/convergence_comparison.png), [centralized confusion matrix](../results/month2_week8_mnist_k10_variant/centralized_confusion_matrix.png), and [FedAvg confusion matrix](../results/month2_week8_mnist_k10_variant/fedavg_confusion_matrix.png).
 
 ## 5. Validation behavior and convergence
 
@@ -89,16 +89,16 @@ The saved visual evidence is the [convergence plot](../results/month2_week8_mnis
 | Cumulative full-data-equivalent passes | Central validation accuracy | Central validation loss | FedAvg validation accuracy | FedAvg validation loss |
 |---:|---:|---:|---:|---:|
 | 0 | 10.42% | 2.297378 | 10.42% | 2.297378 |
-| 1 | 89.83% | 0.356070 | 84.73% | 0.682182 |
-| 2 | 91.69% | 0.289488 | 88.12% | 0.459437 |
-| 3 | 92.68% | 0.250824 | 89.29% | 0.392832 |
-| 4 | 93.68% | 0.223018 | 89.88% | 0.360449 |
-| 5 | 94.29% | 0.202904 | 90.28% | 0.340381 |
+| 1 | 89.83% | 0.356070 | 78.27% | 1.184959 |
+| 2 | 91.69% | 0.289488 | 84.66% | 0.679512 |
+| 3 | 92.68% | 0.250824 | 86.86% | 0.530195 |
+| 4 | 93.68% | 0.223018 | 88.08% | 0.459561 |
+| 5 | 94.29% | 0.202904 | 88.89% | 0.418942 |
 
 - Centralized best: epoch 5, validation accuracy 94.29%; final epoch accuracy 94.29%.
-- FedAvg best: round 5 (pass 5), validation accuracy 90.28%; final round accuracy 90.28%.
+- FedAvg best: round 5 (pass 5), validation accuracy 88.89%; final round accuracy 88.89%.
 
-**Interpretation:** Both methods improved from their common untrained starting point. The best validation gains were +83.87 percentage points for centralized SGD and +79.86 percentage points for FedAvg. This supports a narrow claim that training progressed; 5 data passes are not enough to claim mathematical convergence or a stable asymptote.
+**Interpretation:** Both methods improved from their common untrained starting point. The best validation gains were +83.87 percentage points for centralized SGD and +78.47 percentage points for FedAvg. This supports a narrow claim that training progressed; 5 data passes are not enough to claim mathematical convergence or a stable asymptote.
 
 ## 6. Per-client test utility
 
@@ -108,14 +108,19 @@ These are IID test partitions used to expose whether the overall average hides a
 
 | Client | Test examples | Central accuracy | FedAvg accuracy | FedAvg − central | Central macro F1 | FedAvg macro F1 |
 |---:|---:|---:|---:|---:|---:|---:|
-| 0 | 2,000 | 94.10% | 90.80% | -3.30 percentage points | 93.95% | 90.60% |
-| 1 | 2,000 | 95.45% | 91.50% | -3.95 percentage points | 95.37% | 91.28% |
-| 2 | 2,000 | 94.80% | 90.95% | -3.85 percentage points | 94.72% | 90.81% |
-| 3 | 2,000 | 94.75% | 91.35% | -3.40 percentage points | 94.65% | 91.18% |
-| 4 | 2,000 | 94.70% | 90.35% | -4.35 percentage points | 94.72% | 90.40% |
+| 0 | 1,000 | 95.40% | 90.20% | -5.20 percentage points | 95.24% | 89.93% |
+| 1 | 1,000 | 92.80% | 89.10% | -3.70 percentage points | 92.59% | 88.80% |
+| 2 | 1,000 | 96.50% | 91.20% | -5.30 percentage points | 96.50% | 91.01% |
+| 3 | 1,000 | 94.40% | 88.90% | -5.50 percentage points | 94.25% | 88.55% |
+| 4 | 1,000 | 95.30% | 90.10% | -5.20 percentage points | 95.16% | 89.76% |
+| 5 | 1,000 | 94.30% | 87.90% | -6.40 percentage points | 94.25% | 87.74% |
+| 6 | 1,000 | 93.40% | 87.90% | -5.50 percentage points | 93.31% | 87.50% |
+| 7 | 1,000 | 96.10% | 90.90% | -5.20 percentage points | 96.00% | 90.78% |
+| 8 | 1,000 | 94.50% | 89.00% | -5.50 percentage points | 94.55% | 89.12% |
+| 9 | 1,000 | 94.90% | 90.30% | -4.60 percentage points | 94.94% | 90.25% |
 
-- Centralized client accuracy range: 94.10% to 95.45%.
-- FedAvg client accuracy range: 90.35% to 91.50%.
+- Centralized client accuracy range: 92.80% to 96.50%.
+- FedAvg client accuracy range: 87.90% to 91.20%.
 
 **Interpretation:** client-level differences are descriptive checks for this one IID split. They do not estimate performance for a population of real clients and must not be called non-target-client preservation (no unlearning target exists in Week 8).
 
@@ -132,15 +137,15 @@ Thus the saved totals are **1,995 centralized steps vs 2,000 FedAvg local steps*
 
 **Derived fact**
 
-`407,080 payload bytes × 2 directions × 25 client-round participations = 20,354,000 bytes = 19.411 MiB`.
+`407,080 payload bytes × 2 directions × 50 client-round participations = 40,708,000 bytes = 38.822 MiB`.
 
-For this full-participation run, `25 = K × R = 5 × 5`. The two directions are one global-model download and one locally trained model upload. `E` does not multiply communication because all 1 local epoch(s) occur between those two transfers.
+For this full-participation run, `50 = K × R = 10 × 5`. The two directions are one global-model download and one locally trained model upload. `E` does not multiply communication because all 1 local epoch(s) occur between those two transfers.
 
 **Limitation:** this is a dense tensor-payload estimate. It excludes protocol headers, serialization overhead, retries, latency, compression, and network contention. Timing was measured as `sequential CPU process; not distributed wall-clock time`, so the CPU seconds above are not a real distributed-system speed benchmark.
 
 ## 9. Conclusion and limits
 
-**Interpretation:** the saved run is sufficient to check that the hand-written multi-client FedAvg workflow trains, logs its mechanics, and can be compared with a deliberately matched centralized reference. FedAvg underperformed the centralized reference by **3.77 percentage points** in test accuracy; its macro-F1 difference was **-3.83 percentage points**. This is the honest outcome of this saved run, not evidence that one method is generally superior. The two optimization procedures are mechanically different, and only one fixed-seed run is available.
+**Interpretation:** the saved run is sufficient to check that the hand-written multi-client FedAvg workflow trains, logs its mechanics, and can be compared with a deliberately matched centralized reference. FedAvg underperformed the centralized reference by **5.21 percentage points** in test accuracy; its macro-F1 difference was **-5.32 percentage points**. This is the honest outcome of this saved run, not evidence that one method is generally superior. The two optimization procedures are mechanically different, and only one fixed-seed run is available.
 
 **Limitations**
 
@@ -149,4 +154,4 @@ For this full-participation run, `25 = K × R = 5 × 5`. The two directions are 
 - The clients run sequentially in one CPU process. This validates learning and accounting logic, not deployment throughput, privacy, or network behavior.
 - The result establishes neither Federated Unlearning nor forgetting; those remain later-gate work.
 
-For exact reruns, use the saved and resolved configs, code revision `month2-week8` (commit `2fb17f49b27a3b0d57a3e3edafa8e2bf514af549`), and environment manifest `environment/month2_cpu_runtime.json`. The recorded seed set is `random_seed=42`, `split_seed=42`, `train_partition_seed=1042`, `test_partition_seed=2042`, `centralized_loader_seed=3042`, `model_initialization_seed=42`.
+For exact reruns, use the saved and resolved configs, code revision `month2-week8-k10` (commit `b601ac48d77f5194f039a67c06087804c1e3132f`), and environment manifest `environment/month2_cpu_runtime.json`. The recorded seed set is `random_seed=42`, `split_seed=42`, `train_partition_seed=1042`, `test_partition_seed=2042`, `centralized_loader_seed=3042`, `model_initialization_seed=42`.
