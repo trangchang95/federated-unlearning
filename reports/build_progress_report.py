@@ -309,13 +309,93 @@ def build_report() -> None:
             )
         )
 
+    # --- Week 10 section ---
+    story.append(PageBreak())
+    story.append(Paragraph("Month 3, Week 10 — Dirichlet(&alpha;) Severity Gradient", styles["h2"]))
+    story.append(
+        Paragraph(
+            "Week 9 showed one pathological extreme. Week 10 asks how FedAvg "
+            "degrades as heterogeneity is dialed continuously, using Hsu, Qi "
+            "&amp; Brown (2019)'s per-class Dirichlet(&alpha;) label-skew "
+            "scheme: a smaller &alpha; concentrates each digit class onto "
+            "fewer clients; a larger &alpha; keeps classes close to uniformly "
+            "spread. Three configs (&alpha; = 1.0, 0.5, 0.1) each retrain "
+            "centralized SGD and hand-written FedAvg from identical initial "
+            "weights under the same protocol as Week 8/9.",
+            styles["body"],
+        )
+    )
+    dirichlet_alphas = [
+        ("1.0", "month3_week10_mnist_alpha1.0"),
+        ("0.5", "month3_week10_mnist_alpha0.5"),
+        ("0.1", "month3_week10_mnist_alpha0.1"),
+    ]
+    week10 = {
+        alpha: load_json(RESULTS_ROOT / subdir / "metrics.json")
+        for alpha, subdir in dirichlet_alphas
+    }
+    iid_gap_pp = (week9["iid"]["final_test_accuracy"] - canonical["centralized"]["accuracy"]) * 100
+    table_rows = [
+        ["Setting", "Centralized", "FedAvg", "Gap (pp)"],
+        [
+            "IID (Week 8/9)",
+            percentage(canonical["centralized"]["accuracy"]),
+            percentage(week9["iid"]["final_test_accuracy"]),
+            f"{iid_gap_pp:+.2f}",
+        ],
+    ]
+    for alpha, _subdir in dirichlet_alphas:
+        result = week10[alpha]
+        table_rows.append(
+            [
+                f"Dirichlet α={alpha}",
+                percentage(result["centralized"]["final_test_accuracy"]),
+                percentage(result["fedavg"]["final_test_accuracy"]),
+                f"{(result['fedavg']['final_test_accuracy'] - result['centralized']['final_test_accuracy']) * 100:+.2f}",
+            ]
+        )
+    table_rows.append(
+        [
+            "Pathological shards (Week 9)",
+            percentage(canonical["centralized"]["accuracy"]),
+            percentage(week9["noniid"]["final_test_accuracy"]),
+            f"{(week9['noniid']['final_test_accuracy'] - canonical['centralized']['accuracy']) * 100:+.2f}",
+        ]
+    )
+    story.append(data_table(table_rows, [1.9 * inch, 1.15 * inch, 1.0 * inch, 0.9 * inch]))
+    story.append(
+        Paragraph(
+            "The severity gradient is nonlinear in &alpha;, matching Hsu et "
+            "al.'s own finding: &alpha;=1.0 and &alpha;=0.5 both stay within "
+            "about 1.4 points of the IID result, while &alpha;=0.1 causes a "
+            "much larger drop. Dirichlet skew also unevenly skews client "
+            "<i>quantity</i>, not just label mix — training-set sizes ranged "
+            "from about 6,100 to 16,700 examples across the 5 clients at "
+            "every &alpha; tested, a real, literature-typical side effect of "
+            "the per-class draw. Placing Week 9's pathological-shard result "
+            "in the same table shows “Non-IID” is a spectrum: "
+            "Dirichlet &alpha;=0.1 is meaningfully less severe than the "
+            "2-shard scheme, even though both are informally called "
+            "“severe.”",
+            styles["body"],
+        )
+    )
+    week10_class_png = RESULTS_ROOT / "month3_week10_mnist_alpha0.1" / "class_distribution.png"
+    if week10_class_png.is_file():
+        story.append(Spacer(1, 4))
+        story.append(Image(str(week10_class_png), width=5.0 * inch, height=2.98 * inch))
+        story.append(
+            Paragraph(
+                "Figure: per-client training-set class distribution at Dirichlet &alpha;=0.1.",
+                styles["caption"],
+            )
+        )
+
     # --- Next steps ---
     story.append(Paragraph("Next: completing Month 3 (Gate 3)", styles["h2"]))
     story.append(
         Paragraph(
-            "Week 10 introduces Dirichlet(&alpha;) partitioning at "
-            "&alpha; = 1.0, 0.5, and 0.1 for milder, more realistic "
-            "heterogeneity than this week's pathological shards. Week 11 "
+            "Week 11 "
             "implements FedProx, which adds a proximal term intended to "
             "reduce client drift under heterogeneity. Week 12 benchmarks "
             "FedAvg against FedProx across IID and Non-IID settings, which "
