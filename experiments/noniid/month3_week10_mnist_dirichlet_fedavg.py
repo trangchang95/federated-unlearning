@@ -137,7 +137,7 @@ def train_centralized(
         batch_size=config["batch_size"],
         shuffle=True,
         num_workers=0,
-        generator=torch.Generator().manual_seed(config["split_seed"]),
+        generator=torch.Generator().manual_seed(config["centralized_loader_seed"]),
     )
     test_loader = DataLoader(test_data, batch_size=256, shuffle=False, num_workers=0)
 

@@ -38,6 +38,7 @@
   "selection_rule": "ceil(client_fraction * number_of_clients), minimum 1",
   "num_workers": 0,
   "split_seed": 42,
+  "centralized_loader_seed": 3042,
   "train_partition_seed": 1042,
   "model_initialization_seed": 42,
   "expected_training_examples": 51000,
