@@ -1719,3 +1719,47 @@ recognized branch of the field.
 12 (the full FedAvg-vs-FedProx benchmark across settings, which closes Gate
 3). No FedProx code, Dirichlet partitioning, or Federated Unlearning work
 was started in this session.
+
+---
+
+## 2026-09-08 — Month 3, Week 10: Dirichlet(α) partitioning
+
+### What was built
+
+`clients/dirichlet_partition.py` implements Hsu, Qi & Brown (2019)'s
+per-class Dirichlet(α) label-skew scheme: for each digit class, draw
+proportions from `Dirichlet(α,...,α)` over the 5 clients and split that
+class's examples accordingly (largest-remainder rounding for an exact
+split). Six tests cover determinism, near-uniform behavior at large α,
+concentration at small α, seed-sensitivity, input validation, and a
+guaranteed-trigger case for the "a client received zero examples" guard.
+
+`experiments/noniid/month3_week10_mnist_dirichlet_fedavg.py` trains
+centralized SGD and hand-written FedAvg from identical initial weights
+under the Week 8 canonical protocol, with three configs at α = 1.0, 0.5,
+0.1. A first pass reused `split_seed` for the centralized minibatch
+shuffle and got 94.65% instead of the established 94.76% centralized
+reference — not a bug, just an inconsistency with Week 8's convention of a
+dedicated `centralized_loader_seed`. Fixed and rerun before write-up.
+
+### Result
+
+| Setting | Centralized | FedAvg | Gap |
+|---|---:|---:|---:|
+| IID (Week 8/9) | 94.76% | 90.99% | −3.77pp |
+| Dirichlet α=1.0 | 94.76% | 90.59% | −4.17pp |
+| Dirichlet α=0.5 | 94.76% | 89.83% | −4.93pp |
+| Dirichlet α=0.1 | 94.76% | 71.60% | −23.16pp |
+| Pathological shards (Week 9) | 94.76% | 64.01% | −30.75pp |
+
+The severity gradient is nonlinear in α, matching Hsu et al.'s own finding:
+α=1.0 and α=0.5 stay close to the IID number, while α=0.1 causes a much
+larger drop. Dirichlet also skews client *quantity* (training-set sizes
+ranged from ~6,100 to ~16,700 examples across clients at every α tested),
+a real, literature-typical side effect of the per-class draw. Full writeup
+with all five client-size breakdowns: `reports/month3_week10_dirichlet_benchmark.md`.
+
+### What remains for Month 3
+
+`README.md` now marks Week 10 done and Week 11 (FedProx) as the current
+unit. No FedProx code or Federated Unlearning work was started.

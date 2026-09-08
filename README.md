@@ -69,12 +69,13 @@ Use a config file per run (`configs/`) and write results to `results/` automatic
 
 ## Current milestone
 
-**Month 3, Week 10 — Dirichlet(α) partitioning** (see plan §9): Week 9
-(IID vs. Non-IID) is complete —
+**Month 3, Week 11 — FedProx** (see plan §9): Weeks 9-10 are complete —
 [`reports/month3_week9_iid_vs_noniid.md`](reports/month3_week9_iid_vs_noniid.md)
-compares hand-written FedAvg on IID versus pathological shard-based Non-IID
-MNIST clients. FedProx (Week 11) and every Federated Unlearning method
-remain blocked by Gates 3 and 4.
+and
+[`reports/month3_week10_dirichlet_benchmark.md`](reports/month3_week10_dirichlet_benchmark.md)
+establish FedAvg's accuracy across a severity gradient from IID through
+Dirichlet(α=1.0/0.5/0.1) to pathological shards. Every Federated Unlearning
+method remains blocked by Gates 3 and 4.
 
 ### Month 1 breakdown
 
@@ -256,7 +257,7 @@ value, not a separately cross-validated statistic.
 ### Month 3 breakdown
 
 - [x] Week 9: IID vs. Non-IID FedAvg comparison
-- [ ] Week 10: Dirichlet(α) partitioning (α = 1.0, 0.5, 0.1)
+- [x] Week 10: Dirichlet(α) partitioning (α = 1.0, 0.5, 0.1)
 - [ ] Week 11: FedProx
 - [ ] Week 12: FedAvg-vs-FedProx benchmark across IID/Non-IID settings (closes Gate 3)
 
@@ -289,6 +290,32 @@ Reproduce with:
 ```bash
 python experiments/noniid/month3_week9_mnist_noniid_fedavg.py \
     --config configs/month3_week9_mnist_iid_vs_noniid_fedavg.json
+```
+
+`clients/dirichlet_partition.py` implements Hsu, Qi & Brown (2019)'s
+per-class Dirichlet(α) label-skew scheme, letting severity be dialed with
+one number instead of Week 9's all-or-nothing shards.
+`experiments/noniid/month3_week10_mnist_dirichlet_fedavg.py` runs the same
+matched centralized-vs-FedAvg comparison at α = 1.0, 0.5, and 0.1:
+
+| Setting | Centralized | FedAvg | Gap |
+|---|---:|---:|---:|
+| IID (Week 8/9) | 94.76% | 90.99% | −3.77pp |
+| Dirichlet α=1.0 | 94.76% | 90.59% | −4.17pp |
+| Dirichlet α=0.5 | 94.76% | 89.83% | −4.93pp |
+| Dirichlet α=0.1 | 94.76% | 71.60% | −23.16pp |
+| Pathological shards (Week 9) | 94.76% | 64.01% | −30.75pp |
+
+The severity gradient is nonlinear in α (matching Hsu et al.'s own finding):
+α=1.0/0.5 stay close to IID, while α=0.1 causes a much larger drop. Full
+explanation, including per-client training-set size breakdowns:
+[`reports/month3_week10_dirichlet_benchmark.md`](reports/month3_week10_dirichlet_benchmark.md).
+Reproduce with:
+
+```bash
+python experiments/noniid/month3_week10_mnist_dirichlet_fedavg.py --config configs/month3_week10_mnist_alpha1.0_fedavg.json
+python experiments/noniid/month3_week10_mnist_dirichlet_fedavg.py --config configs/month3_week10_mnist_alpha0.5_fedavg.json
+python experiments/noniid/month3_week10_mnist_dirichlet_fedavg.py --config configs/month3_week10_mnist_alpha0.1_fedavg.json
 ```
 
 This is intentionally lighter-weight than Week 8: config-driven and
