@@ -173,8 +173,8 @@
     <p class="subtitle-vn">Xây dựng và đánh giá giải pháp Federated Unlearning cho môi trường Federated Learning không đồng nhất</p>
     <div class="meta-row">
       <div class="meta-item"><div class="k">Stage</div><div class="v">Month 3 of 6</div></div>
-      <div class="meta-item"><div class="k">Gate</div><div class="v">Gate 2 &mdash; closed</div></div>
-      <div class="meta-item"><div class="k">Prepared</div><div class="v">2026-09-07</div></div>
+      <div class="meta-item"><div class="k">Gate</div><div class="v">Gate 2 closed &middot; Week 9 done</div></div>
+      <div class="meta-item"><div class="k">Prepared</div><div class="v">2026-09-08</div></div>
     </div>
   </header>
 
@@ -183,12 +183,12 @@
     <h2>Where this stands on the six-month plan</h2>
     <div class="body-text">
       <p>The thesis follows a gate system: each month's methods are only allowed to start once the previous gate has both technical evidence (code that runs and reproduces) and a passed conceptual review (the student can explain what the numbers mean, not just that the code executed). Gate 1 closed on 2026-08-16 after the centralized baselines were verified and reviewed. Gate 2, covering hand-written FedAvg and the first multi-client experiment, closed on 2026-09-07.</p>
-      <p>Nothing past FedAvg &mdash; no Non-IID partitioning, no FedProx, no unlearning method &mdash; has been started. That is deliberate, not a delay: the plan explicitly blocks each later month until its gate closes, so early work is never built on an unverified foundation.</p>
+      <p>Non-IID partitioning has now started (Week 9, below), since the plan allows it once Gate 2 closes. FedProx and every unlearning method remain untouched &mdash; the plan explicitly blocks each later month until its own gate closes, so work is never built on an unverified foundation.</p>
     </div>
     <div class="timeline-row">
       <div class="tl-node done"><div class="tl-dot">1</div><div class="tl-label">Foundation</div><div class="tl-sub">CNN baselines</div></div>
       <div class="tl-node done"><div class="tl-dot">2</div><div class="tl-label">FedAvg</div><div class="tl-sub">Closed 2026-09-07</div></div>
-      <div class="tl-node active"><div class="tl-dot">3</div><div class="tl-label">Non-IID</div><div class="tl-sub">FedProx</div></div>
+      <div class="tl-node active"><div class="tl-dot">3</div><div class="tl-label">Non-IID</div><div class="tl-sub">1 of 4 weeks done</div></div>
       <div class="tl-node"><div class="tl-dot">4</div><div class="tl-label">Unlearning</div><div class="tl-sub">FedEraser, KD-FU</div></div>
       <div class="tl-node"><div class="tl-dot">5</div><div class="tl-label">Contribution</div><div class="tl-sub">Proposed method</div></div>
       <div class="tl-node"><div class="tl-dot">6</div><div class="tl-label">Thesis</div><div class="tl-sub">Final eval</div></div>
@@ -294,9 +294,40 @@
 
   <section>
     <div class="section-num">06</div>
-    <h2>What's next &mdash; Month 3</h2>
+    <h2>Month 3, Week 9 &mdash; IID vs. Non-IID</h2>
+    <p class="lede">With Gate 2 closed, Month 3 asks what happens to plain FedAvg once clients stop being interchangeable random samples of the dataset &mdash; the realistic case for phones, hospitals, or any real deployment.</p>
+    <div class="body-text">
+      <p>Kairouz et al. (2019/2021)'s survey supplies the vocabulary: <strong>statistical heterogeneity</strong> (different data distributions per client, tested here) versus <strong>systems heterogeneity</strong> (different compute/connectivity, not simulated). A new pathological Non-IID partition &mdash; McMahan et al. (2017)'s label-sorted shard scheme, 2 shards per client &mdash; was implemented and compared against the existing IID partition, training hand-written FedAvg from identical initial weights under the same <span class="mono">K=5, C=1, E=1, B=128, R=5</span> protocol as Week 8. Only the client partition differs.</p>
+    </div>
+    <div class="compare">
+      <div class="compare-row">
+        <div class="name">IID</div>
+        <div class="compare-track"><div class="compare-fill central" style="width:90.99%"></div></div>
+        <div class="pct mono">90.99%</div>
+      </div>
+      <div class="compare-row">
+        <div class="name">Non-IID (2 shards/client)</div>
+        <div class="compare-track"><div class="compare-fill fedavg" style="width:64.01%"></div></div>
+        <div class="pct mono">64.01%</div>
+      </div>
+    </div>
+    <p class="compare-diff">&minus;26.98 percentage points from client drift (macro F1: 90.86% &rarr; 57.80%).</p>
+    <div class="body-text">
+      <p>The IID number exactly reproduces Week 8's canonical FedAvg result &mdash; a built-in sanity check that the new runner is wired correctly, not a new measurement. Each Non-IID client's saved class histogram is dominated by 1-2 digits (e.g. one client held 4,969 fives and 5,064 sixes, essentially nothing else), while every IID client stays close to flat across all ten digits &mdash; the heterogeneity is visible in the saved data, not just asserted. This one result is a pathological extreme (McMahan's own 2-shard benchmark), not a Dirichlet sweep or a FedProx comparison &mdash; those are Weeks 10 and 11.</p>
+    </div>
+    <ul class="checklist">
+      <li class="done"><span class="box"></span><span>Literature &mdash; Kairouz et al. (2019/2021) survey read, statistical/systems heterogeneity distinction recorded</span></li>
+      <li class="done"><span class="box"></span><span>Shard-based Non-IID partition implemented and tested (determinism, label concentration, validation)</span></li>
+      <li class="done"><span class="box"></span><span>IID-vs-Non-IID FedAvg comparison run, verified against Week 8's IID result</span></li>
+      <li><span class="box"></span><span><strong>Next</strong> &mdash; Week 10: Dirichlet(&alpha;) partitioning at &alpha; = 1.0, 0.5, 0.1</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-num">07</div>
+    <h2>What's next</h2>
     <div class="ahead-grid">
-      <div class="ahead-card current"><div class="m">Month 3 &middot; current</div><h4>Heterogeneous FL</h4><p>IID vs. Non-IID partitioning at Dirichlet &alpha; = 1.0, 0.5, and 0.1, then FedProx as a second FL baseline built specifically to handle client drift under heterogeneity.</p></div>
+      <div class="ahead-card current"><div class="m">Month 3 &middot; current</div><h4>Heterogeneous FL</h4><p>Dirichlet(&alpha;) partitioning at &alpha; = 1.0, 0.5, and 0.1 (Week 10), then FedProx as a second FL baseline built specifically to handle client drift under heterogeneity (Week 11), then the benchmark that closes Gate 3 (Week 12).</p></div>
       <div class="ahead-card"><div class="m">Month 4</div><h4>Federated Unlearning</h4><p>A full-retraining baseline first, then reproducing FedEraser and a knowledge-distillation-based unlearning method as the project's first forgetting baselines.</p></div>
       <div class="ahead-card"><div class="m">Month 5</div><h4>Research contribution</h4><p>A literature-grounded gap analysis across existing FU methods, followed by a proposed Non-IID-aware unlearning method with preliminary results.</p></div>
       <div class="ahead-card"><div class="m">Month 6</div><h4>Final evaluation</h4><p>The full benchmark across datasets and settings, an ablation study, and the completed thesis and demo.</p></div>
