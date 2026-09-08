@@ -322,7 +322,7 @@ def main() -> None:
     elapsed_seconds = time.perf_counter() - start_time
 
     metrics = {
-        "source_config": str(args.config.relative_to(PROJECT_ROOT)),
+        "source_config": str(args.config.resolve().relative_to(PROJECT_ROOT)),
         "config": config,
         "runtime": runtime,
         "trainable_parameters": sum(tensor.numel() for tensor in initial_state.values()),

@@ -69,11 +69,12 @@ Use a config file per run (`configs/`) and write results to `results/` automatic
 
 ## Current milestone
 
-**Month 3, Week 9 — IID vs. Non-IID** (see plan §9): Gate 2 closed on
-2026-09-07. The next permitted unit is re-reading the FedAvg paper and the
-Kairouz survey for statistical heterogeneity, then building IID vs. Non-IID
-MNIST partitions. FedProx, Dirichlet partitioning, and every Federated
-Unlearning method remain blocked by Gates 3 and 4.
+**Month 3, Week 10 — Dirichlet(α) partitioning** (see plan §9): Week 9
+(IID vs. Non-IID) is complete —
+[`reports/month3_week9_iid_vs_noniid.md`](reports/month3_week9_iid_vs_noniid.md)
+compares hand-written FedAvg on IID versus pathological shard-based Non-IID
+MNIST clients. FedProx (Week 11) and every Federated Unlearning method
+remain blocked by Gates 3 and 4.
 
 ### Month 1 breakdown
 
@@ -251,6 +252,50 @@ frozen Week 8 runner did not log a confusion matrix per client, so that value
 cannot be independently reconstructed without changing the protected
 experiment. Variant reports must treat it as a runner-reported descriptive
 value, not a separately cross-validated statistic.
+
+### Month 3 breakdown
+
+- [x] Week 9: IID vs. Non-IID FedAvg comparison
+- [ ] Week 10: Dirichlet(α) partitioning (α = 1.0, 0.5, 0.1)
+- [ ] Week 11: FedProx
+- [ ] Week 12: FedAvg-vs-FedProx benchmark across IID/Non-IID settings (closes Gate 3)
+
+Week 9 re-read McMahan et al. (2017) and read Kairouz et al. (2019/2021),
+*Advances and Open Problems in Federated Learning*, for the first time
+([`literature/kairouz_2019_six_questions.md`](literature/kairouz_2019_six_questions.md)),
+which supplies the statistical-vs-systems-heterogeneity vocabulary the plan's
+Gate 3 explanation requires.
+
+`clients/noniid_partition.py` implements the classic pathological
+shard-based Non-IID scheme (McMahan et al. 2017, Section 3): sort training
+examples by label, cut into equal shards, and give each client 2 shards from
+a seeded shuffle. `experiments/noniid/month3_week9_mnist_noniid_fedavg.py`
+trains hand-written FedAvg from identical initial weights under the Week 8
+canonical protocol (`K=5, C=1, E=1, B=128, R=5`), differing only in the
+client partition:
+
+| Partition | Test accuracy | Test macro F1 |
+|---|---:|---:|
+| IID | 90.99% | 90.86% |
+| Non-IID (2 shards/client) | 64.01% | 57.80% |
+
+The IID number exactly reproduces Week 8's canonical FedAvg result (a
+built-in sanity check on the new runner); the Non-IID run drops 26.98 points
+from client drift, with saved per-client class histograms and confusion
+matrices as direct evidence. Full explanation:
+[`reports/month3_week9_iid_vs_noniid.md`](reports/month3_week9_iid_vs_noniid.md).
+Reproduce with:
+
+```bash
+python experiments/noniid/month3_week9_mnist_noniid_fedavg.py \
+    --config configs/month3_week9_mnist_iid_vs_noniid_fedavg.json
+```
+
+This is intentionally lighter-weight than Week 8: config-driven and
+deterministic like every experiment here, but without Week 8's Git-tag-locked
+provenance chain or a student self-check, since it is a Week 9 exploratory
+comparison rather than the Gate 3 evidence (reserved for the Week 12
+benchmark).
 
 ## Status
 

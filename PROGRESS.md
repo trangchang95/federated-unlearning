@@ -1645,3 +1645,77 @@ made about Non-IID behavior, privacy, unlearning, or real network performance.
 Non-IID partitioning, FedProx, and every Federated Unlearning method remain
 blocked by Gates 3 and 4. Nothing beyond FedAvg was implemented in this
 session.
+
+---
+
+## 2026-09-08 — Test suite decoupled from live gate-tracking files
+
+Five tests and one error in `tests/test_gate2_readiness.py` failed after Gate
+2 closed, because they read `reports/gate2_self_check.md`,
+`reports/gate2_variant_evidence.json`, and `README.md` directly and asserted
+those files were still in their original blank/open state — true when the
+tests were written, false now that the project has legitimately progressed.
+
+`BLANK_SELF_CHECK_TEXT` and `BLANK_MANIFEST` now embed the original blank
+scaffold from commit `28a2ba4` directly in the test file, and the README
+checkbox test uses a synthetic unchecked snippet via the same tempdir+patch
+pattern the existing checked-marker test already used. All 70 tests pass
+independent of the live files' current content; `reports/verify_gate2_readiness.py`
+still independently returns `PASS`.
+
+## 2026-09-08 — Month 3, Week 9: IID vs. Non-IID FedAvg
+
+### What was built
+
+`clients/noniid_partition.py` implements the pathological shard-based
+Non-IID scheme from McMahan et al. (2017, Section 3): sort the 51,000
+training examples by label, cut them into equal shards, and give each of the
+5 clients 2 shards from a seeded shuffle — since MNIST's classes are nearly
+balanced, this concentrates each client on 1-2 digits. Four tests confirm
+determinism, label concentration, seed-sensitivity, and input validation,
+mirroring `tests/test_iid_partition.py`'s style.
+
+`experiments/noniid/month3_week9_mnist_noniid_fedavg.py` trains hand-written
+FedAvg twice from identical initial weights and the Week 8 canonical
+protocol (`K=5, C=1, E=1, B=128, R=5`, SGD `lr=0.1`), differing only in
+whether clients receive the IID or the new Non-IID partition. This is
+config-driven, deterministic, and auto-saves its outputs like every other
+experiment, but intentionally skips Week 8's Git-tag-locked provenance
+chain and student self-check: Week 9 is an exploratory comparison, not the
+Gate 3 evidence, which the plan reserves for the Week 12 benchmark.
+
+### Result
+
+| Partition | Test accuracy | Test macro F1 |
+|---|---:|---:|
+| IID | 90.99% | 90.86% |
+| Non-IID (2 shards/client) | 64.01% | 57.80% |
+
+The IID number exactly reproduces Week 8's canonical FedAvg result, which is
+expected (same seed, weights, and hyperparameters) and serves as a built-in
+sanity check that the new runner is wired correctly. The Non-IID run drops
+26.98 points — the client-drift effect described in
+`reports/month3_week9_iid_vs_noniid.md`, with saved per-client class
+histograms (each Non-IID client dominated by 1-2 digits, each IID client
+close to flat across all ten) and confusion matrices as direct evidence, not
+just an assertion.
+
+### Literature
+
+`literature/kairouz_2019_six_questions.md` records Kairouz et al.
+(2019/2021), *Advances and Open Problems in Federated Learning*, using the
+plan's six-question template, and its row was added to
+`literature/literature_matrix.md`. Its main value for this thesis is
+vocabulary: separating **statistical heterogeneity** (different data
+distributions per client — what Week 9 tests) from **systems heterogeneity**
+(different compute/connectivity/availability — not simulated here), and
+confirming this thesis's Non-IID + client-level FU path sits inside a
+recognized branch of the field.
+
+### What remains for Month 3
+
+`README.md` now marks Week 9 done and Week 10 (Dirichlet(α) partitioning at
+α=1.0/0.5/0.1) as the current unit, followed by Week 11 (FedProx) and Week
+12 (the full FedAvg-vs-FedProx benchmark across settings, which closes Gate
+3). No FedProx code, Dirichlet partitioning, or Federated Unlearning work
+was started in this session.
