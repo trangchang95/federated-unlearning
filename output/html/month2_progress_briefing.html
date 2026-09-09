@@ -173,7 +173,7 @@
     <p class="subtitle-vn">Xây dựng và đánh giá giải pháp Federated Unlearning cho môi trường Federated Learning không đồng nhất</p>
     <div class="meta-row">
       <div class="meta-item"><div class="k">Stage</div><div class="v">Month 3 of 6</div></div>
-      <div class="meta-item"><div class="k">Gate</div><div class="v">Gate 2 closed &middot; Weeks 9-10 done</div></div>
+      <div class="meta-item"><div class="k">Gate</div><div class="v">Gate 2 closed &middot; Weeks 9-11 done</div></div>
       <div class="meta-item"><div class="k">Prepared</div><div class="v">2026-09-08</div></div>
     </div>
   </header>
@@ -188,7 +188,7 @@
     <div class="timeline-row">
       <div class="tl-node done"><div class="tl-dot">1</div><div class="tl-label">Foundation</div><div class="tl-sub">CNN baselines</div></div>
       <div class="tl-node done"><div class="tl-dot">2</div><div class="tl-label">FedAvg</div><div class="tl-sub">Closed 2026-09-07</div></div>
-      <div class="tl-node active"><div class="tl-dot">3</div><div class="tl-label">Non-IID</div><div class="tl-sub">2 of 4 weeks done</div></div>
+      <div class="tl-node active"><div class="tl-dot">3</div><div class="tl-label">Non-IID</div><div class="tl-sub">3 of 4 weeks done</div></div>
       <div class="tl-node"><div class="tl-dot">4</div><div class="tl-label">Unlearning</div><div class="tl-sub">FedEraser, KD-FU</div></div>
       <div class="tl-node"><div class="tl-dot">5</div><div class="tl-label">Contribution</div><div class="tl-sub">Proposed method</div></div>
       <div class="tl-node"><div class="tl-dot">6</div><div class="tl-label">Thesis</div><div class="tl-sub">Final eval</div></div>
@@ -348,15 +348,43 @@
       <li class="done"><span class="box"></span><span>Dirichlet(&alpha;) partition implemented and tested (near-uniform at large &alpha;, concentrated at small &alpha;, zero-example guard)</span></li>
       <li class="done"><span class="box"></span><span>Three severity levels run (&alpha; = 1.0, 0.5, 0.1), each matched against a freshly trained centralized baseline</span></li>
       <li class="done"><span class="box"></span><span>Centralized number verified identical (94.76%) across all runs and consistent with Weeks 8/9</span></li>
-      <li><span class="box"></span><span><strong>Next</strong> &mdash; Week 11: FedProx, aimed specifically at the drift this table documents</span></li>
     </ul>
   </section>
 
   <section>
     <div class="section-num">08</div>
+    <h2>Month 3, Week 11 &mdash; does FedProx help?</h2>
+    <p class="lede">Li et al. (2020)'s FedProx adds a proximal term specifically to limit the client drift Weeks 9-10 measured. The direct question: at the heterogeneity level where FedAvg struggled most, does it actually help?</p>
+    <div class="body-text">
+      <p><span class="mono">mu=0</span> is verified by test to reproduce hand-written FedAvg exactly (client weights and a full server round), so FedProx here is a strict generalization, not a parallel reimplementation that could silently drift from FedAvg's semantics. The experiment reuses Week 10's exact Dirichlet(&alpha;=0.1) partition, seeds, and initial weights, sweeping <span class="mono">mu &isin; {0.01, 0.1, 1.0}</span>.</p>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Method</th><th class="num">E=1 accuracy</th><th class="num">E=5 accuracy</th></tr></thead>
+        <tbody>
+          <tr><td>FedAvg (&mu;=0)</td><td class="num">71.60%</td><td class="num">76.28%</td></tr>
+          <tr><td>FedProx (&mu;=0.01)</td><td class="num">71.43%</td><td class="num">75.33%</td></tr>
+          <tr><td>FedProx (&mu;=0.1)</td><td class="num">69.65%</td><td class="num">69.65%</td></tr>
+          <tr><td>FedProx (&mu;=1.0)</td><td class="num">60.15%</td><td class="num">57.30%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="body-text">
+      <p><strong>FedProx did not beat FedAvg at any swept &mu;</strong>, in either local-epoch setting &mdash; reported plainly, per the plan's own rule that a negative result must remain reportable rather than hidden or searched-away. This does not contradict Li et al.'s paper: their clearest reported gains come under systems heterogeneity (clients doing genuinely different amounts of local work) and longer training horizons, neither of which this 5-round, uniform-local-epoch experiment tests. Full discussion, plus three checks that rule out an implementation bug (mu=0 equivalence tested not assumed; E=1/E=5 histories genuinely differ; one striking coincidence &mdash; &mu;=0.1 landing on identical 69.65% at both E=1 and E=5 &mdash; traced and confirmed real): <a href="reports/month3_week11_fedprox.md">reports/month3_week11_fedprox.md</a>.</p>
+    </div>
+    <ul class="checklist">
+      <li class="done"><span class="box"></span><span>FedProx implemented as a strict FedAvg generalization, verified equivalent at &mu;=0</span></li>
+      <li class="done"><span class="box"></span><span>Mu sweep run at the most severe realistic heterogeneity tested (Dirichlet &alpha;=0.1), at two local-epoch settings</span></li>
+      <li class="done"><span class="box"></span><span>Negative result investigated and reported honestly, not hidden</span></li>
+      <li><span class="box"></span><span><strong>Next</strong> &mdash; Week 12: the full FedAvg-vs-FedProx benchmark across IID/Non-IID settings that closes Gate 3</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-num">09</div>
     <h2>What's next</h2>
     <div class="ahead-grid">
-      <div class="ahead-card current"><div class="m">Month 3 &middot; current</div><h4>Heterogeneous FL</h4><p>FedProx as a second FL baseline built specifically to handle the client drift Weeks 9-10 measured (Week 11), then the benchmark that closes Gate 3 (Week 12).</p></div>
+      <div class="ahead-card current"><div class="m">Month 3 &middot; current</div><h4>Heterogeneous FL</h4><p>The Week 12 benchmark across IID/Non-IID settings closes Gate 3.</p></div>
       <div class="ahead-card"><div class="m">Month 4</div><h4>Federated Unlearning</h4><p>A full-retraining baseline first, then reproducing FedEraser and a knowledge-distillation-based unlearning method as the project's first forgetting baselines.</p></div>
       <div class="ahead-card"><div class="m">Month 5</div><h4>Research contribution</h4><p>A literature-grounded gap analysis across existing FU methods, followed by a proposed Non-IID-aware unlearning method with preliminary results.</p></div>
       <div class="ahead-card"><div class="m">Month 6</div><h4>Final evaluation</h4><p>The full benchmark across datasets and settings, an ablation study, and the completed thesis and demo.</p></div>
