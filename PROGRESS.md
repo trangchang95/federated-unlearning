@@ -1763,3 +1763,58 @@ with all five client-size breakdowns: `reports/month3_week10_dirichlet_benchmark
 
 `README.md` now marks Week 10 done and Week 11 (FedProx) as the current
 unit. No FedProx code or Federated Unlearning work was started.
+
+---
+
+## 2026-09-09 — Month 3, Week 11: FedProx implemented; did not beat FedAvg here
+
+### What was built
+
+`literature/fedprox_2020_six_questions.md` records Li et al. (2020) using
+the plan's six-question template; its row was added to
+`literature/literature_matrix.md`.
+
+`clients/fedprox_client.py` and `server/fedprox_server.py` add FedProx as a
+strict generalization of the existing hand-written FedAvg: the local loss
+becomes `task_loss + (mu/2) * ||w - w_global||^2`, and `mu=0` is verified by
+five tests to reproduce plain FedAvg exactly (client-level weights and a
+full server round). `clients/federated_client.py` and
+`server/fedavg_server.py` (frozen Gate 2 evidence) were not touched; the
+tiny shared validation helper was duplicated rather than imported for that
+reason. One test initially used `mu=50` at `lr=0.2`, which diverged
+(`lr*mu=10` is far outside SGD's stable range for a quadratic proximal
+term, roughly `0 < lr*mu < 2`); fixed to `mu=3` before committing.
+
+### Result: FedProx did not beat FedAvg
+
+`experiments/noniid/month3_week11_mnist_fedprox.py` reused Week 10's exact
+Dirichlet(α=0.1) partition, seeds, and initial weights (FedAvg: 71.60%) and
+swept `mu ∈ {0.01, 0.1, 1.0}`:
+
+| Method | E=1 accuracy | E=5 accuracy |
+|---|---:|---:|
+| FedAvg (μ=0) | 71.60% | 76.28% |
+| FedProx (μ=0.01) | 71.43% | 75.33% |
+| FedProx (μ=0.1) | 69.65% | 69.65% |
+| FedProx (μ=1.0) | 60.15% | 57.30% |
+
+FedProx underperformed FedAvg at every swept μ, in both local-epoch
+settings, falling monotonically as μ increased. This is reported plainly,
+per the plan's standing rule that a negative result must remain reportable.
+Full discussion of why (short 5-round horizon, uniform local epochs across
+clients rather than the systems heterogeneity FedProx's own paper shows its
+clearest gains under, and a small model/easy task) is in
+`reports/month3_week11_fedprox.md`, along with three checks that rule out an
+implementation bug: mu=0 equivalence is tested, not assumed; the E=1 and
+E=5 round-by-round histories genuinely differ; and one striking coincidence
+(μ=0.1 landing on the identical 69.65% in both E=1 and E=5) was traced to
+the underlying per-round trajectories and confirmed as real, not a
+copy-paste or caching error.
+
+### What remains for Month 3
+
+`README.md` now marks Week 11 done and Week 12 (the FedAvg-vs-FedProx
+benchmark across IID/Non-IID settings that closes Gate 3) as the current
+unit. This week's negative result is itself one input to that benchmark,
+not a reason to exclude FedProx from it. No Federated Unlearning work was
+started.
