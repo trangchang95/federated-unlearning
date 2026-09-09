@@ -69,16 +69,17 @@ Use a config file per run (`configs/`) and write results to `results/` automatic
 
 ## Current milestone
 
-**Month 3, Week 12 — Benchmark (closes Gate 3)** (see plan §9): Weeks 9-11
-are complete —
+**Gate 3 review** (see plan §9, §15): Weeks 9-12 are technically complete —
 [`reports/month3_week9_iid_vs_noniid.md`](reports/month3_week9_iid_vs_noniid.md),
 [`reports/month3_week10_dirichlet_benchmark.md`](reports/month3_week10_dirichlet_benchmark.md),
-and
-[`reports/month3_week11_fedprox.md`](reports/month3_week11_fedprox.md)
+[`reports/month3_week11_fedprox.md`](reports/month3_week11_fedprox.md), and
+[`reports/month3_week12_benchmark.md`](reports/month3_week12_benchmark.md)
 establish FedAvg's accuracy across a severity gradient from IID through
-Dirichlet(α=1.0/0.5/0.1) to pathological shards, and FedProx's measured
-(negative, honestly reported) result against FedAvg at α=0.1. Every
-Federated Unlearning method remains blocked by Gates 3 and 4.
+Dirichlet(α=1.0/0.5/0.1) to pathological shards, and the full Week 12
+FedAvg-vs-FedProx benchmark across all four settings. Gate 3 remains open
+because its learning check — [`reports/gate3_self_check.md`](reports/gate3_self_check.md)
+— is not yet reviewed. Every Federated Unlearning method remains blocked by
+Gates 3 and 4.
 
 ### Month 1 breakdown
 
@@ -262,7 +263,7 @@ value, not a separately cross-validated statistic.
 - [x] Week 9: IID vs. Non-IID FedAvg comparison
 - [x] Week 10: Dirichlet(α) partitioning (α = 1.0, 0.5, 0.1)
 - [x] Week 11: FedProx
-- [ ] Week 12: FedAvg-vs-FedProx benchmark across IID/Non-IID settings (closes Gate 3)
+- [x] Week 12: FedAvg-vs-FedProx benchmark across IID/Non-IID settings (technically complete; Gate 3 review pending)
 
 Week 9 re-read McMahan et al. (2017) and read Kairouz et al. (2019/2021),
 *Advances and Open Problems in Federated Learning*, for the first time
@@ -353,6 +354,39 @@ Reproduce with:
 python experiments/noniid/month3_week11_mnist_fedprox.py --config configs/month3_week11_mnist_fedprox_mu_sweep.json
 python experiments/noniid/month3_week11_mnist_fedprox.py --config configs/month3_week11_mnist_fedprox_mu_sweep_e5.json
 ```
+
+`experiments/noniid/month3_week12_fedprox_benchmark.py` completes the
+benchmark table (plan §9): FedAvg legs reuse already-verified Week 8-10
+evidence; only FedProx (fixed `mu=0.01`, the least-detrimental value Week
+11 found) was run fresh at IID and α=1.0/0.5, with α=0.1 reused directly
+from Week 11:
+
+| Setting | FedAvg | FedProx (μ=0.01) |
+|---|---:|---:|
+| IID | 90.99% | 90.88% |
+| Dirichlet α=1.0 | 90.59% | 90.54% |
+| Dirichlet α=0.5 | 89.83% | 89.72% |
+| Dirichlet α=0.1 | 71.60% | 71.43% |
+
+FedProx is very slightly below FedAvg at every setting, including IID —
+consistent with Week 11 at a wider μ sweep, now shown across the full
+heterogeneity range at one fixed μ. Full discussion (why this does not
+contradict Li et al. 2020 — their clearest gains need systems heterogeneity
+and longer horizons, neither present here):
+[`reports/month3_week12_benchmark.md`](reports/month3_week12_benchmark.md).
+Reproduce with:
+
+```bash
+python experiments/noniid/month3_week12_fedprox_benchmark.py --config configs/month3_week12_iid_fedprox.json
+python experiments/noniid/month3_week12_fedprox_benchmark.py --config configs/month3_week12_alpha1.0_fedprox.json
+python experiments/noniid/month3_week12_fedprox_benchmark.py --config configs/month3_week12_alpha0.5_fedprox.json
+```
+
+Gate 3's learning check,
+[`reports/gate3_self_check.md`](reports/gate3_self_check.md), asks eight
+questions on statistical vs. systems heterogeneity, client drift mechanics,
+and correctly scoping FedProx's negative result — prepared, not yet
+answered.
 
 ## Status
 

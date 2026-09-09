@@ -1818,3 +1818,51 @@ benchmark across IID/Non-IID settings that closes Gate 3) as the current
 unit. This week's negative result is itself one input to that benchmark,
 not a reason to exclude FedProx from it. No Federated Unlearning work was
 started.
+
+---
+
+## 2026-09-09 — Month 3, Week 12: benchmark complete; Gate 3 self-check prepared
+
+### What was built
+
+`experiments/noniid/month3_week12_fedprox_benchmark.py` runs only the
+FedProx leg of the benchmark table (FedAvg numbers for all four settings
+already exist as verified evidence from Weeks 8-10) at a single fixed
+`mu=0.01` — the least-detrimental value Week 11 found — across IID and
+Dirichlet α=1.0/0.5. The α=0.1 FedProx number reuses Week 11's saved
+`mu=0.01` result rather than rerunning it.
+
+### The benchmark
+
+| Setting | FedAvg | FedProx (μ=0.01) |
+|---|---:|---:|
+| IID | 90.99% | 90.88% |
+| Dirichlet α=1.0 | 90.59% | 90.54% |
+| Dirichlet α=0.5 | 89.83% | 89.72% |
+| Dirichlet α=0.1 | 71.60% | 71.43% |
+
+FedProx is very slightly below FedAvg at every setting, including IID —
+consistent with Week 11's finding at a wider μ sweep, now shown to hold
+across the full heterogeneity range at one fixed μ. Communication is
+identical across every row (20,354,000 bytes), since it depends only on
+model size, client count, and rounds, none of which differ between the two
+algorithms. Full discussion, including why this does not contradict Li et
+al. (2020) (their clearest gains require systems heterogeneity and longer
+horizons, neither present here): `reports/month3_week12_benchmark.md`.
+
+### Gate 3 self-check prepared, not answered
+
+`reports/gate3_self_check.md` asks eight questions covering statistical vs.
+systems heterogeneity, client drift mechanics, why the α-vs-accuracy
+relationship is nonlinear, what FedProx's proximal term targets, and how to
+correctly scope FedProx's negative result here rather than either
+dismissing the method or overclaiming what one benchmark disproves. No
+answers were written — per this repository's standing rule against
+inventing content the student must supply themselves, and matching how
+Gate 1 and Gate 2's self-checks were handled.
+
+### What remains
+
+Gate 3 remains open until the student's answers are reviewed. Month 4
+(Machine Unlearning, SISA, full retraining, FedEraser, KD-based FU) remains
+blocked until then.
