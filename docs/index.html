@@ -1,0 +1,426 @@
+<title>FedAvg Progress Briefing</title>
+<style>
+  :root {
+    --bg: #f4f6f5;
+    --surface: #ffffff;
+    --surface-2: #eaeeec;
+    --ink: #17211f;
+    --ink-soft: #48564f;
+    --ink-faint: #7c8b83;
+    --border: #d7ddda;
+    --accent: #1f6f6b;
+    --accent-strong: #124e4b;
+    --accent-wash: #e4efee;
+    --amber: #a96a1f;
+    --amber-wash: #f6ecdd;
+    --green: #2f7a4d;
+    --green-wash: #e6f1e9;
+    --red: #9c4a35;
+    --red-wash: #f5e9e5;
+    --shadow: 0 1px 2px rgba(23,33,31,0.06), 0 10px 30px -14px rgba(23,33,31,0.2);
+    --font-display: 'Fraunces', Georgia, 'Iowan Old Style', serif;
+    --font-body: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1413; --surface: #161f1d; --surface-2: #1e2725;
+      --ink: #e9efec; --ink-soft: #a9b8b2; --ink-faint: #74847d; --border: #2b3532;
+      --accent: #57c2b6; --accent-strong: #8ddccf; --accent-wash: #1b2f2c;
+      --amber: #e3ab5f; --amber-wash: #302518; --green: #7cc294; --green-wash: #1a2b20;
+      --red: #d99277; --red-wash: #2f2019;
+      --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 10px 30px -14px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1413; --surface: #161f1d; --surface-2: #1e2725;
+    --ink: #e9efec; --ink-soft: #a9b8b2; --ink-faint: #74847d; --border: #2b3532;
+    --accent: #57c2b6; --accent-strong: #8ddccf; --accent-wash: #1b2f2c;
+    --amber: #e3ab5f; --amber-wash: #302518; --green: #7cc294; --green-wash: #1a2b20;
+    --red: #d99277; --red-wash: #2f2019;
+    --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 10px 30px -14px rgba(0,0,0,0.5);
+  }
+
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--font-body); line-height: 1.6; }
+  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; color: var(--ink); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  p { max-width: 68ch; }
+  ::selection { background: var(--accent-wash); }
+
+  .page { max-width: 860px; margin: 0 auto; padding: 3.5rem 1.5rem 6rem; }
+
+  /* ---------- Header ---------- */
+  header.hero {
+    padding: 2.6rem 2.2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-shadow: var(--shadow);
+    margin-bottom: 3rem;
+  }
+  .kicker {
+    font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.13em; text-transform: uppercase;
+    color: var(--accent-strong); display: inline-flex; align-items: center; gap: 0.6em; margin-bottom: 1rem;
+  }
+  .kicker::before { content: ""; width: 20px; height: 2px; background: var(--accent); }
+  header.hero h1 { font-size: clamp(1.7rem, 3.6vw, 2.5rem); font-weight: 600; line-height: 1.1; max-width: 22ch; margin: 0 0 0.7rem; }
+  header.hero .subtitle-vn { font-family: var(--font-display); font-style: italic; color: var(--ink-soft); font-size: 1.05rem; max-width: 46ch; margin: 0 0 1.6rem; }
+  .meta-row { display: flex; gap: 2.2rem; flex-wrap: wrap; }
+  .meta-item .k { font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); }
+  .meta-item .v { font-size: 1rem; color: var(--ink); margin-top: 0.15rem; font-weight: 500; }
+
+  /* ---------- Sections ---------- */
+  section { margin-bottom: 3.4rem; }
+  .section-num { font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-faint); }
+  section h2 { font-size: 1.55rem; font-weight: 600; margin: 0.25rem 0 1rem; }
+  section > p.lede { color: var(--ink-soft); font-size: 1.02rem; margin: 0 0 1.4rem; }
+  section .body-text p { color: var(--ink); font-size: 0.98rem; margin: 0 0 1rem; }
+  section .body-text p:last-child { margin-bottom: 0; }
+
+  /* ---------- Timeline ---------- */
+  .timeline-row { display: flex; align-items: stretch; gap: 0; margin: 1.6rem 0 0.5rem; }
+  .tl-node { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; padding: 0 0.3rem; }
+  .tl-dot {
+    width: 2.2rem; height: 2.2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-mono); font-weight: 600; font-size: 0.88rem; border: 2px solid var(--border);
+    background: var(--surface); color: var(--ink-faint); z-index: 1; margin-bottom: 0.6rem;
+  }
+  .tl-node.done .tl-dot { background: var(--green-wash); border-color: var(--green); color: var(--green); }
+  .tl-node.active .tl-dot { background: var(--amber-wash); border-color: var(--amber); color: var(--amber); box-shadow: 0 0 0 5px var(--amber-wash); }
+  .tl-node::before { content: ""; position: absolute; top: 1.1rem; left: -50%; width: 100%; height: 2px; background: var(--border); z-index: 0; }
+  .tl-node:first-child::before { display: none; }
+  .tl-node.done::before, .tl-node.active::before { background: var(--green); }
+  .tl-label { font-size: 0.82rem; font-weight: 600; color: var(--ink); }
+  .tl-sub { font-size: 0.7rem; color: var(--ink-faint); margin-top: 0.1rem; max-width: 11ch; }
+
+  /* ---------- Stat cards ---------- */
+  .stat-row { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1.4rem 0; }
+  .stat-card { flex: 1; min-width: 170px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 1.05rem 1.15rem; }
+  .stat-card .tag { font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-faint); }
+  .stat-card .value { font-family: var(--font-mono); font-size: 1.6rem; font-weight: 600; color: var(--accent-strong); margin-top: 0.3rem; }
+  .stat-card .label { font-size: 0.8rem; color: var(--ink-soft); margin-top: 0.15rem; }
+
+  /* ---------- Comparison bars ---------- */
+  .compare { margin: 1.5rem 0 0.6rem; display: flex; flex-direction: column; gap: 0.9rem; max-width: 620px; }
+  .compare-row { display: grid; grid-template-columns: 150px 1fr 82px; align-items: center; gap: 1rem; }
+  .compare-row .name { font-size: 0.9rem; font-weight: 600; }
+  .compare-track { height: 13px; background: var(--surface-2); border-radius: 7px; overflow: hidden; border: 1px solid var(--border); }
+  .compare-fill { height: 100%; border-radius: 7px 0 0 7px; }
+  .compare-fill.central { background: var(--accent); }
+  .compare-fill.fedavg { background: var(--amber); }
+  .compare-row .pct { font-family: var(--font-mono); font-size: 0.92rem; text-align: right; }
+  .compare-diff { margin-top: 0.4rem; font-size: 0.86rem; color: var(--red); }
+
+  /* ---------- Tables ---------- */
+  .table-scroll { overflow-x: auto; margin: 1.3rem 0; }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; background: var(--surface); border: 1px solid var(--border); border-radius: 3px; }
+  .data-table th, .data-table td { padding: 0.55em 0.85em; text-align: left; border-bottom: 1px solid var(--border); }
+  .data-table th { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); background: var(--surface-2); font-weight: 500; }
+  .data-table td.num, .data-table th.num { text-align: right; font-family: var(--font-mono); }
+  .data-table tr:last-child td { border-bottom: none; }
+
+  /* ---------- Checklist ---------- */
+  .checklist { list-style: none; margin: 1.3rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+  .checklist li { display: flex; align-items: flex-start; gap: 0.7em; font-size: 0.93rem; }
+  .checklist .box { flex: none; width: 1.1rem; height: 1.1rem; border-radius: 3px; border: 1.5px solid var(--border); margin-top: 0.15em; display: flex; align-items: center; justify-content: center; }
+  .checklist li.done .box { background: var(--green); border-color: var(--green); }
+  .checklist li.done .box::after { content: "\2713"; color: var(--surface); font-size: 0.68rem; font-weight: 700; }
+  .checklist li.active .box { border-color: var(--amber); border-style: dashed; }
+  .checklist li.active .box::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--amber); }
+  .checklist li.done { color: var(--ink-soft); }
+
+  .note {
+    margin-top: 1.2rem; font-size: 0.86rem; color: var(--ink-faint);
+    border-left: 2px solid var(--border); padding-left: 0.9rem; max-width: 60ch;
+  }
+  .callout {
+    margin-top: 1.2rem; padding: 0.95rem 1.15rem; border-radius: 3px;
+    background: var(--amber-wash); border: 1px solid color-mix(in srgb, var(--amber) 35%, var(--border));
+    font-size: 0.88rem; color: var(--ink);
+  }
+
+  /* ---------- Ahead grid ---------- */
+  .ahead-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.3rem; }
+  .ahead-card { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 1.1rem 1.2rem; }
+  .ahead-card.current { border-color: var(--amber); border-left-width: 3px; }
+  .ahead-card.current .m { color: var(--amber); }
+  .ahead-card .m { font-family: var(--font-mono); font-size: 0.68rem; color: var(--accent-strong); letter-spacing: 0.05em; text-transform: uppercase; }
+  .ahead-card h4 { font-family: var(--font-body); font-size: 0.98rem; font-weight: 600; margin: 0.3rem 0 0.4rem; color: var(--ink); }
+  .ahead-card p { font-size: 0.86rem; color: var(--ink-soft); margin: 0; max-width: none; }
+
+  footer {
+    margin-top: 3.5rem; padding-top: 1.4rem; border-top: 1px solid var(--border);
+    font-size: 0.78rem; color: var(--ink-faint); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+  }
+
+  @media (max-width: 560px) {
+    header.hero { padding: 1.8rem 1.3rem; }
+    .timeline-row { flex-wrap: wrap; row-gap: 1.3rem; }
+    .tl-node { flex: 1 1 30%; }
+    .compare-row { grid-template-columns: 100px 1fr 64px; }
+  }
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<div class="page">
+
+  <header class="hero">
+    <div class="kicker">Progress briefing &middot; for mentor review</div>
+    <h1>Federated Unlearning for Heterogeneous Federated Learning</h1>
+    <p class="subtitle-vn">Xây dựng và đánh giá giải pháp Federated Unlearning cho môi trường Federated Learning không đồng nhất</p>
+    <div class="meta-row">
+      <div class="meta-item"><div class="k">Stage</div><div class="v">Month 3 of 6</div></div>
+      <div class="meta-item"><div class="k">Gate</div><div class="v">Gate 2 closed &middot; Gate 3 pending review</div></div>
+      <div class="meta-item"><div class="k">Prepared</div><div class="v">2026-09-08</div></div>
+    </div>
+  </header>
+
+  <section>
+    <div class="section-num">01</div>
+    <h2>Where this stands on the six-month plan</h2>
+    <div class="body-text">
+      <p>The thesis follows a gate system: each month's methods are only allowed to start once the previous gate has both technical evidence (code that runs and reproduces) and a passed conceptual review (the student can explain what the numbers mean, not just that the code executed). Gate 1 closed on 2026-08-16 after the centralized baselines were verified and reviewed. Gate 2, covering hand-written FedAvg and the first multi-client experiment, closed on 2026-09-07.</p>
+      <p>Non-IID partitioning has now started (Week 9, below), since the plan allows it once Gate 2 closes. FedProx and every unlearning method remain untouched &mdash; the plan explicitly blocks each later month until its own gate closes, so work is never built on an unverified foundation.</p>
+    </div>
+    <div class="timeline-row">
+      <div class="tl-node done"><div class="tl-dot">1</div><div class="tl-label">Foundation</div><div class="tl-sub">CNN baselines</div></div>
+      <div class="tl-node done"><div class="tl-dot">2</div><div class="tl-label">FedAvg</div><div class="tl-sub">Closed 2026-09-07</div></div>
+      <div class="tl-node active"><div class="tl-dot">3</div><div class="tl-label">Non-IID</div><div class="tl-sub">4/4 weeks, Gate pending</div></div>
+      <div class="tl-node"><div class="tl-dot">4</div><div class="tl-label">Unlearning</div><div class="tl-sub">FedEraser, KD-FU</div></div>
+      <div class="tl-node"><div class="tl-dot">5</div><div class="tl-label">Contribution</div><div class="tl-sub">Proposed method</div></div>
+      <div class="tl-node"><div class="tl-dot">6</div><div class="tl-label">Thesis</div><div class="tl-sub">Final eval</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">02</div>
+    <h2>Month 1 &mdash; centralized baselines (closed 2026-08-16)</h2>
+    <p class="lede">Before any federated method, the project needed a ceiling: what does a single model trained on all the data, with no client structure at all, actually achieve? Four models were trained on MNIST and CIFAR-10, each stricter than the last.</p>
+    <div class="body-text">
+      <p>Logistic regression established the floor (a model that can only draw straight lines between classes). A small multilayer perceptron came next, showing what a hidden layer of learned features buys over that floor. A convolutional network followed, exploiting the fact that nearby pixels form shapes rather than being independent numbers &mdash; on MNIST it pushed error down further, and on the harder, more varied CIFAR-10 images it produced a realistic reference for how much room the "easy" MNIST numbers were leaving on the table.</p>
+      <p>All four were reviewed against the original literature as a plausibility check (not a claim of exact replication, since architectures, splits, and training budgets differ), and the student passed a ten-question review demonstrating understanding of forward propagation, loss, backpropagation, and why validation and test sets must stay separate.</p>
+    </div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="tag">Logistic regression &middot; MNIST</div><div class="value">92.19%</div><div class="label">test accuracy</div></div>
+      <div class="stat-card"><div class="tag">MLP &middot; MNIST</div><div class="value">96.80%</div><div class="label">test accuracy</div></div>
+      <div class="stat-card"><div class="tag">Small CNN &middot; MNIST</div><div class="value">98.60%</div><div class="label">test accuracy</div></div>
+      <div class="stat-card"><div class="tag">Small CNN &middot; CIFAR-10</div><div class="value">71.38%</div><div class="label">test accuracy</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-num">03</div>
+    <h2>Month 2, Weeks 5&ndash;7 &mdash; FedAvg written by hand</h2>
+    <p class="lede">Federated Averaging (McMahan et al., 2017) was implemented from scratch before any framework was introduced, so every line responsible for the result could be inspected directly rather than trusted as a black box.</p>
+    <div class="body-text">
+      <p>The mechanism itself is simple to state: each round, selected clients receive a copy of the current global model, train locally on their own data for a fixed number of epochs, and send their updated weights back. The server then combines those weights, giving each client's update a weight equal to its share of the total training examples used that round &mdash; a client with more data pulls the average further toward its update. That weighted average becomes the next global model.</p>
+      <p>Thirteen synthetic tests verify this mechanism in isolation: correct weighting on unequal client sizes, no accidental sharing of tensor memory between local and global models, exact reproducibility across repeated runs, and correct rejection of invalid updates. Only after those passed was Flower (an established FL framework, version 1.30.0, the newest release still compatible with this project's Python 3.10 environment) introduced &mdash; used strictly as an independent check, never as the code path that produces results. Flower's own aggregation function was run side by side with the hand-written one on the same inputs and matched exactly, including a hand-verified example: two clients with 20 and 80 examples returning weights 1.0 and 3.0 average to 2.6, not the unweighted 2.0.</p>
+    </div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="tag">Week 6</div><div class="value">13</div><div class="label">synthetic tests on hand-written FedAvg, all passing</div></div>
+      <div class="stat-card"><div class="tag">Week 7</div><div class="value">20</div><div class="label">tests total after the Flower compatibility check</div></div>
+      <div class="stat-card"><div class="tag">Verified match</div><div class="value">2.6</div><div class="label">weighted-average scalar check (20/80 example), agrees exactly with Flower</div></div>
+    </div>
+    <p class="note">One real difference was found and recorded rather than glossed over: this project's client-selection rule rounds up (<span class="mono">ceil(C&times;K)</span>), while Flower's default legacy strategy truncates. Aggregation still agrees once the same clients participate &mdash; but the two paths can select a different number of clients from the same settings.</p>
+  </section>
+
+  <section>
+    <div class="section-num">04</div>
+    <h2>Month 2, Week 8 &mdash; the first real result</h2>
+    <p class="lede">With the mechanism verified on synthetic data, the first genuine question could be asked: on real MNIST data, split across several clients, how does hand-written FedAvg compare to an ordinary centralized model trained on the same data?</p>
+    <div class="body-text">
+      <p>Five clients received equal-sized, independently and identically distributed (IID) shards of the 51,000-image MNIST training set. All five participated in every one of five communication rounds, training for one local epoch each. The centralized baseline used the same starting weights, the same optimizer settings, and five full passes over the same data &mdash; a matched-<em>exposure</em> comparison, meaning both paths see the same total number of training examples (255,000), even though centralized training follows one continuous trajectory while FedAvg alternates five separate local trajectories with an averaging step in between.</p>
+    </div>
+    <div class="compare">
+      <div class="compare-row">
+        <div class="name">Centralized SGD</div>
+        <div class="compare-track"><div class="compare-fill central" style="width:94.76%"></div></div>
+        <div class="pct mono">94.76%</div>
+      </div>
+      <div class="compare-row">
+        <div class="name">Hand-written FedAvg</div>
+        <div class="compare-track"><div class="compare-fill fedavg" style="width:90.99%"></div></div>
+        <div class="pct mono">90.99%</div>
+      </div>
+    </div>
+    <p class="compare-diff">&minus;3.77 percentage points (macro F1: &minus;3.83 points).</p>
+    <div class="body-text">
+      <p>This is reported plainly as a negative result for FedAvg in this configuration &mdash; the plan's own risk-management guidance is explicit that a thesis does not need to show every method beating every baseline, only that results are measured and interpreted honestly. It is correct to say FedAvg underperformed here; it is not correct to generalize from one seed, one client count, and one IID split to a claim that centralized training is always better. FedAvg's own validation accuracy rose across all five rounds (10.4% &rarr; 84.7% &rarr; 88.1% &rarr; 89.3% &rarr; 89.9% &rarr; 90.3%), showing the method is learning as expected, just converging to a lower point under this specific budget.</p>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th></th><th class="num">Optimizer steps</th><th class="num">Communication</th></tr></thead>
+        <tbody>
+          <tr><td>Centralized SGD</td><td class="num">1,995</td><td class="num">&mdash;</td></tr>
+          <tr><td>Hand-written FedAvg</td><td class="num">2,000 local steps</td><td class="num">20,354,000 bytes (19.4 MiB)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">The five extra optimizer steps are minibatch rounding, not extra data: both paths process exactly the same 255,000 example exposures. Communication is a deterministic tensor-payload estimate &mdash; one model download and upload per client per round &mdash; not measured network traffic. These numbers come from a machine re-baseline on 2026-09-07: the original Windows run measured 94.75%/94.68% centralized (one test example out of 10,000 different, ordinary cross-platform floating-point non-determinism); FedAvg is unchanged.</p>
+  </section>
+
+  <section>
+    <div class="section-num">05</div>
+    <h2>Gate 2 &mdash; closed 2026-09-07</h2>
+    <p class="lede">Passing Gate 2 required more than a working experiment: explaining what the Week 8 result means, then deliberately changing it in two controlled ways and interpreting what changes and what doesn't.</p>
+    <div class="body-text">
+      <p>Part A asked eight conceptual questions &mdash; tracing exactly where local training changes weights versus where server aggregation does, explaining why every client must start a round from the same global model, and correctly separating the negative accuracy result from any claim about FedAvg's general superiority or inferiority. All eight were answered correctly and reviewed as passing on 2026-09-06.</p>
+      <p>Part B required two further experiments, proposed and predicted <em>before</em> either was run: doubling the client count to <span class="mono">K=10</span> while holding everything else fixed, and doubling local epochs to <span class="mono">E=2</span> while scaling the centralized baseline's epoch count to match (so the exposure comparison stayed fair). Every predicted number &mdash; examples per client, optimizer-step totals, training-example exposures, communication bytes &mdash; matched the executed result exactly.</p>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Setting</th><th class="num">Centralized</th><th class="num">FedAvg</th><th class="num">Gap</th></tr></thead>
+        <tbody>
+          <tr><td>Canonical (<span class="mono">K=5, E=1</span>)</td><td class="num">94.76%</td><td class="num">90.99%</td><td class="num">&minus;3.77pp</td></tr>
+          <tr><td><span class="mono">K=10</span></td><td class="num">94.76%</td><td class="num">89.55%</td><td class="num">&minus;5.21pp</td></tr>
+          <tr><td><span class="mono">E=2</span></td><td class="num">96.17%</td><td class="num">92.31%</td><td class="num">&minus;3.86pp</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="body-text">
+      <p>Doubling the client count (<span class="mono">K=10</span>) widened FedAvg's gap to centralized &mdash; more, smaller IID shards produced a lower-utility model in this run, at double the communication cost (40.7 MB vs. 20.4 MB) for the same number of optimizer steps. Doubling local epochs (<span class="mono">E=2</span>) raised both methods' absolute accuracy (centralized +1.4pp, FedAvg +1.3pp) without changing communication at all, since transfer frequency depends on client count and rounds, not local epochs &mdash; but it also left the relative gap to centralized essentially unchanged. Both results are reported as measured, from one seed and one architecture, not as general claims about client count or local-epoch tuning.</p>
+    </div>
+    <ul class="checklist">
+      <li class="done"><span class="box"></span><span>Part A &mdash; 8 conceptual questions on FedAvg mechanics, reviewed and passed (2026-09-06)</span></li>
+      <li class="done"><span class="box"></span><span>Part B proposals &mdash; <span class="mono">K=10</span> and <span class="mono">E=2</span> variants, predictions written and reviewed</span></li>
+      <li class="done"><span class="box"></span><span>Pre-run approval recorded, both configs tagged (<span class="mono">month2-week8-k10</span>, <span class="mono">month2-week8-e2</span>)</span></li>
+      <li class="done"><span class="box"></span><span>Both variants executed &mdash; every prediction matched the actual result</span></li>
+      <li class="done"><span class="box"></span><span>Final interpretation reviewed, dated PASS recorded 2026-09-07</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-num">06</div>
+    <h2>Month 3, Week 9 &mdash; IID vs. Non-IID</h2>
+    <p class="lede">With Gate 2 closed, Month 3 asks what happens to plain FedAvg once clients stop being interchangeable random samples of the dataset &mdash; the realistic case for phones, hospitals, or any real deployment.</p>
+    <div class="body-text">
+      <p>Kairouz et al. (2019/2021)'s survey supplies the vocabulary: <strong>statistical heterogeneity</strong> (different data distributions per client, tested here) versus <strong>systems heterogeneity</strong> (different compute/connectivity, not simulated). A new pathological Non-IID partition &mdash; McMahan et al. (2017)'s label-sorted shard scheme, 2 shards per client &mdash; was implemented and compared against the existing IID partition, training hand-written FedAvg from identical initial weights under the same <span class="mono">K=5, C=1, E=1, B=128, R=5</span> protocol as Week 8. Only the client partition differs.</p>
+    </div>
+    <div class="compare">
+      <div class="compare-row">
+        <div class="name">IID</div>
+        <div class="compare-track"><div class="compare-fill central" style="width:90.99%"></div></div>
+        <div class="pct mono">90.99%</div>
+      </div>
+      <div class="compare-row">
+        <div class="name">Non-IID (2 shards/client)</div>
+        <div class="compare-track"><div class="compare-fill fedavg" style="width:64.01%"></div></div>
+        <div class="pct mono">64.01%</div>
+      </div>
+    </div>
+    <p class="compare-diff">&minus;26.98 percentage points from client drift (macro F1: 90.86% &rarr; 57.80%).</p>
+    <div class="body-text">
+      <p>The IID number exactly reproduces Week 8's canonical FedAvg result &mdash; a built-in sanity check that the new runner is wired correctly, not a new measurement. Each Non-IID client's saved class histogram is dominated by 1-2 digits (e.g. one client held 4,969 fives and 5,064 sixes, essentially nothing else), while every IID client stays close to flat across all ten digits &mdash; the heterogeneity is visible in the saved data, not just asserted. This one result is a pathological extreme (McMahan's own 2-shard benchmark), not a Dirichlet sweep or a FedProx comparison &mdash; those are Weeks 10 and 11.</p>
+    </div>
+    <ul class="checklist">
+      <li class="done"><span class="box"></span><span>Literature &mdash; Kairouz et al. (2019/2021) survey read, statistical/systems heterogeneity distinction recorded</span></li>
+      <li class="done"><span class="box"></span><span>Shard-based Non-IID partition implemented and tested (determinism, label concentration, validation)</span></li>
+      <li class="done"><span class="box"></span><span>IID-vs-Non-IID FedAvg comparison run, verified against Week 8's IID result</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-num">07</div>
+    <h2>Month 3, Week 10 &mdash; Dirichlet(&alpha;) severity gradient</h2>
+    <p class="lede">Week 9 showed one pathological extreme. Week 10 asks how FedAvg degrades as heterogeneity is dialed continuously, using Hsu, Qi &amp; Brown (2019)'s per-class Dirichlet(&alpha;) label-skew scheme.</p>
+    <div class="body-text">
+      <p>Three configs (&alpha; = 1.0, 0.5, 0.1) each train centralized SGD and hand-written FedAvg from identical initial weights under the same <span class="mono">K=5, C=1, E=1, B=128, R=5</span> protocol as Week 8/9. A smaller &alpha; concentrates each digit class onto fewer clients; a larger &alpha; keeps every class close to uniformly spread.</p>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Setting</th><th class="num">Centralized</th><th class="num">FedAvg</th><th class="num">Gap</th></tr></thead>
+        <tbody>
+          <tr><td>IID (Week 8/9)</td><td class="num">94.76%</td><td class="num">90.99%</td><td class="num">&minus;3.77pp</td></tr>
+          <tr><td>Dirichlet &alpha;=1.0</td><td class="num">94.76%</td><td class="num">90.59%</td><td class="num">&minus;4.17pp</td></tr>
+          <tr><td>Dirichlet &alpha;=0.5</td><td class="num">94.76%</td><td class="num">89.83%</td><td class="num">&minus;4.93pp</td></tr>
+          <tr><td>Dirichlet &alpha;=0.1</td><td class="num">94.76%</td><td class="num">71.60%</td><td class="num">&minus;23.16pp</td></tr>
+          <tr><td>Pathological shards (Week 9)</td><td class="num">94.76%</td><td class="num">64.01%</td><td class="num">&minus;30.75pp</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="body-text">
+      <p>The severity gradient is nonlinear in &alpha;, matching Hsu et al.'s own finding: &alpha;=1.0 and &alpha;=0.5 both stay within about 1.4 points of the IID result, while &alpha;=0.1 causes a much larger 19-point drop from &alpha;=0.5. Dirichlet skew also unevenly skews client <em>quantity</em> &mdash; training-set sizes ranged from about 6,100 to 16,700 examples across the 5 clients at every &alpha; tested &mdash; a real, literature-typical side effect of the per-class draw, not a bug. Placing Week 9's pathological-shard number in the same table shows "Non-IID" is a spectrum: Dirichlet &alpha;=0.1 (71.60%) is meaningfully less severe than the 2-shard scheme (64.01%), even though both are informally called "severe."</p>
+    </div>
+    <ul class="checklist">
+      <li class="done"><span class="box"></span><span>Dirichlet(&alpha;) partition implemented and tested (near-uniform at large &alpha;, concentrated at small &alpha;, zero-example guard)</span></li>
+      <li class="done"><span class="box"></span><span>Three severity levels run (&alpha; = 1.0, 0.5, 0.1), each matched against a freshly trained centralized baseline</span></li>
+      <li class="done"><span class="box"></span><span>Centralized number verified identical (94.76%) across all runs and consistent with Weeks 8/9</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-num">08</div>
+    <h2>Month 3, Week 11 &mdash; does FedProx help?</h2>
+    <p class="lede">Li et al. (2020)'s FedProx adds a proximal term specifically to limit the client drift Weeks 9-10 measured. The direct question: at the heterogeneity level where FedAvg struggled most, does it actually help?</p>
+    <div class="body-text">
+      <p><span class="mono">mu=0</span> is verified by test to reproduce hand-written FedAvg exactly (client weights and a full server round), so FedProx here is a strict generalization, not a parallel reimplementation that could silently drift from FedAvg's semantics. The experiment reuses Week 10's exact Dirichlet(&alpha;=0.1) partition, seeds, and initial weights, sweeping <span class="mono">mu &isin; {0.01, 0.1, 1.0}</span>.</p>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Method</th><th class="num">E=1 accuracy</th><th class="num">E=5 accuracy</th></tr></thead>
+        <tbody>
+          <tr><td>FedAvg (&mu;=0)</td><td class="num">71.60%</td><td class="num">76.28%</td></tr>
+          <tr><td>FedProx (&mu;=0.01)</td><td class="num">71.43%</td><td class="num">75.33%</td></tr>
+          <tr><td>FedProx (&mu;=0.1)</td><td class="num">69.65%</td><td class="num">69.65%</td></tr>
+          <tr><td>FedProx (&mu;=1.0)</td><td class="num">60.15%</td><td class="num">57.30%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="body-text">
+      <p><strong>FedProx did not beat FedAvg at any swept &mu;</strong>, in either local-epoch setting &mdash; reported plainly, per the plan's own rule that a negative result must remain reportable rather than hidden or searched-away. This does not contradict Li et al.'s paper: their clearest reported gains come under systems heterogeneity (clients doing genuinely different amounts of local work) and longer training horizons, neither of which this 5-round, uniform-local-epoch experiment tests. Full discussion, plus three checks that rule out an implementation bug (mu=0 equivalence tested not assumed; E=1/E=5 histories genuinely differ; one striking coincidence &mdash; &mu;=0.1 landing on identical 69.65% at both E=1 and E=5 &mdash; traced and confirmed real): <a href="reports/month3_week11_fedprox.md">reports/month3_week11_fedprox.md</a>.</p>
+    </div>
+    <ul class="checklist">
+      <li class="done"><span class="box"></span><span>FedProx implemented as a strict FedAvg generalization, verified equivalent at &mu;=0</span></li>
+      <li class="done"><span class="box"></span><span>Mu sweep run at the most severe realistic heterogeneity tested (Dirichlet &alpha;=0.1), at two local-epoch settings</span></li>
+      <li class="done"><span class="box"></span><span>Negative result investigated and reported honestly, not hidden</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-num">09</div>
+    <h2>Month 3, Week 12 &mdash; the Gate 3 benchmark</h2>
+    <p class="lede">The complete FedAvg-vs-FedProx table across all four data distributions Weeks 9-10 characterized, at one fixed FedProx &mu; rather than re-tuning per setting.</p>
+    <div class="body-text">
+      <p>FedAvg legs reuse already-verified evidence from Weeks 8-10; only FedProx (&mu;=0.01, the least-detrimental value Week 11 found) was run fresh at IID and &alpha;=1.0/0.5, with &alpha;=0.1 reused directly from Week 11.</p>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Setting</th><th class="num">FedAvg</th><th class="num">FedProx (&mu;=0.01)</th></tr></thead>
+        <tbody>
+          <tr><td>IID</td><td class="num">90.99%</td><td class="num">90.88%</td></tr>
+          <tr><td>Dirichlet &alpha;=1.0</td><td class="num">90.59%</td><td class="num">90.54%</td></tr>
+          <tr><td>Dirichlet &alpha;=0.5</td><td class="num">89.83%</td><td class="num">89.72%</td></tr>
+          <tr><td>Dirichlet &alpha;=0.1</td><td class="num">71.60%</td><td class="num">71.43%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="body-text">
+      <p>FedProx is very slightly below FedAvg at every setting, including IID &mdash; consistent with Week 11's finding at a wider &mu; sweep, now shown across the full heterogeneity range at one fixed &mu;. Communication is identical across every row (20,354,000 bytes) since it depends only on model size, client count, and rounds. Full discussion: <a href="reports/month3_week12_benchmark.md">reports/month3_week12_benchmark.md</a>.</p>
+    </div>
+    <ul class="checklist">
+      <li class="done"><span class="box"></span><span>Benchmark table complete: FedAvg and FedProx across IID + 3 Dirichlet severities</span></li>
+      <li class="done"><span class="box"></span><span>Gate 3 self-check prepared (8 questions: statistical/systems heterogeneity, client drift, scoping FedProx's result)</span></li>
+      <li class="active"><span class="box"></span><span><strong>Awaiting review</strong> &mdash; Gate 3 closes once the self-check is answered and reviewed, same discipline as Gates 1-2</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-num">10</div>
+    <h2>What's next</h2>
+    <div class="ahead-grid">
+      <div class="ahead-card current"><div class="m">Month 3 &middot; Gate 3 pending</div><h4>Heterogeneous FL</h4><p>Technically complete; awaiting the student's Gate 3 self-check review before Month 4 can start.</p></div>
+      <div class="ahead-card"><div class="m">Month 4</div><h4>Federated Unlearning</h4><p>A full-retraining baseline first, then reproducing FedEraser and a knowledge-distillation-based unlearning method as the project's first forgetting baselines.</p></div>
+      <div class="ahead-card"><div class="m">Month 5</div><h4>Research contribution</h4><p>A literature-grounded gap analysis across existing FU methods, followed by a proposed Non-IID-aware unlearning method with preliminary results.</p></div>
+      <div class="ahead-card"><div class="m">Month 6</div><h4>Final evaluation</h4><p>The full benchmark across datasets and settings, an ablation study, and the completed thesis and demo.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Federated Unlearning thesis &mdash; 6-month plan</span>
+    <span>Prepared 2026-09-07 for mentor review</span>
+  </footer>
+
+</div>

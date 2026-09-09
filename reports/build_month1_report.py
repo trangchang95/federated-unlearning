@@ -334,7 +334,7 @@ def draw_page(canvas, document) -> None:
     canvas.restoreState()
 
 
-def build_report() -> None:
+def build_month1_story() -> list:
     week1 = load_metrics("month1_week1")
     week2 = load_metrics("month1_week2")
     mnist_cnn = load_metrics("month1_week3_mnist_cnn")
@@ -377,19 +377,6 @@ def build_report() -> None:
     mnist_feature_example = mnist_cnn["feature_map_example"]
     cifar_feature_example = cifar_cnn["feature_map_example"]
     prepared_date = date.today().strftime("%d %B %Y")
-
-    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    document = SimpleDocTemplate(
-        str(OUTPUT_PATH),
-        pagesize=LETTER,
-        rightMargin=0.65 * inch,
-        leftMargin=0.65 * inch,
-        topMargin=0.72 * inch,
-        bottomMargin=0.62 * inch,
-        title="Month 1 Experiment Report - Federated Unlearning Thesis",
-        author="Federated Unlearning Thesis Project",
-        subject="Centralized ML and DL baselines on MNIST and CIFAR-10",
-    )
 
     story = []
 
@@ -865,7 +852,23 @@ def build_report() -> None:
         ]
     )
 
-    document.build(story, onFirstPage=draw_page, onLaterPages=draw_page)
+    return story
+
+
+def build_report() -> None:
+    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    document = SimpleDocTemplate(
+        str(OUTPUT_PATH),
+        pagesize=LETTER,
+        rightMargin=0.65 * inch,
+        leftMargin=0.65 * inch,
+        topMargin=0.72 * inch,
+        bottomMargin=0.62 * inch,
+        title="Month 1 Experiment Report - Federated Unlearning Thesis",
+        author="Federated Unlearning Thesis Project",
+        subject="Centralized ML and DL baselines on MNIST and CIFAR-10",
+    )
+    document.build(build_month1_story(), onFirstPage=draw_page, onLaterPages=draw_page)
     print(f"Wrote {OUTPUT_PATH}")
 
 

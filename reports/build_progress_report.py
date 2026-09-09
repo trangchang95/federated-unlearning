@@ -146,7 +146,7 @@ def data_table(rows: list[list[str]], col_widths: list[float]) -> Table:
     return table
 
 
-def build_report() -> None:
+def build_month2_3_story() -> list:
     styles = make_styles()
     story: list = []
 
@@ -514,6 +514,10 @@ def build_report() -> None:
         )
     )
 
+    return story
+
+
+def build_report() -> None:
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     document = SimpleDocTemplate(
         str(OUTPUT_PATH),
@@ -524,7 +528,7 @@ def build_report() -> None:
         bottomMargin=0.75 * inch,
         title="Month 2-3 Progress Report",
     )
-    document.build(story)
+    document.build(build_month2_3_story())
     print(f"Wrote {OUTPUT_PATH}")
 
 
