@@ -69,13 +69,16 @@ Use a config file per run (`configs/`) and write results to `results/` automatic
 
 ## Current milestone
 
-**Month 3, Week 11 — FedProx** (see plan §9): Weeks 9-10 are complete —
-[`reports/month3_week9_iid_vs_noniid.md`](reports/month3_week9_iid_vs_noniid.md)
+**Month 3, Week 12 — Benchmark (closes Gate 3)** (see plan §9): Weeks 9-11
+are complete —
+[`reports/month3_week9_iid_vs_noniid.md`](reports/month3_week9_iid_vs_noniid.md),
+[`reports/month3_week10_dirichlet_benchmark.md`](reports/month3_week10_dirichlet_benchmark.md),
 and
-[`reports/month3_week10_dirichlet_benchmark.md`](reports/month3_week10_dirichlet_benchmark.md)
+[`reports/month3_week11_fedprox.md`](reports/month3_week11_fedprox.md)
 establish FedAvg's accuracy across a severity gradient from IID through
-Dirichlet(α=1.0/0.5/0.1) to pathological shards. Every Federated Unlearning
-method remains blocked by Gates 3 and 4.
+Dirichlet(α=1.0/0.5/0.1) to pathological shards, and FedProx's measured
+(negative, honestly reported) result against FedAvg at α=0.1. Every
+Federated Unlearning method remains blocked by Gates 3 and 4.
 
 ### Month 1 breakdown
 
@@ -258,7 +261,7 @@ value, not a separately cross-validated statistic.
 
 - [x] Week 9: IID vs. Non-IID FedAvg comparison
 - [x] Week 10: Dirichlet(α) partitioning (α = 1.0, 0.5, 0.1)
-- [ ] Week 11: FedProx
+- [x] Week 11: FedProx
 - [ ] Week 12: FedAvg-vs-FedProx benchmark across IID/Non-IID settings (closes Gate 3)
 
 Week 9 re-read McMahan et al. (2017) and read Kairouz et al. (2019/2021),
@@ -323,6 +326,33 @@ deterministic like every experiment here, but without Week 8's Git-tag-locked
 provenance chain or a student self-check, since it is a Week 9 exploratory
 comparison rather than the Gate 3 evidence (reserved for the Week 12
 benchmark).
+
+`literature/fedprox_2020_six_questions.md` records Li et al. (2020).
+`clients/fedprox_client.py` / `server/fedprox_server.py` add FedProx as a
+strict generalization of hand-written FedAvg (`mu=0` verified by test to
+reproduce FedAvg exactly, client- and server-round-level).
+`experiments/noniid/month3_week11_mnist_fedprox.py` reused Week 10's exact
+Dirichlet(α=0.1) partition/seeds/initial weights and swept
+`mu ∈ {0.01, 0.1, 1.0}`:
+
+| Method | E=1 accuracy | E=5 accuracy |
+|---|---:|---:|
+| FedAvg (μ=0) | 71.60% | 76.28% |
+| FedProx (μ=0.01) | 71.43% | 75.33% |
+| FedProx (μ=0.1) | 69.65% | 69.65% |
+| FedProx (μ=1.0) | 60.15% | 57.30% |
+
+**FedProx did not beat FedAvg at any swept μ**, in either local-epoch
+setting — reported plainly, per the plan's Risk 3 guidance that a negative
+result must remain reportable. Full discussion (why, and three checks
+ruling out an implementation bug) in
+[`reports/month3_week11_fedprox.md`](reports/month3_week11_fedprox.md).
+Reproduce with:
+
+```bash
+python experiments/noniid/month3_week11_mnist_fedprox.py --config configs/month3_week11_mnist_fedprox_mu_sweep.json
+python experiments/noniid/month3_week11_mnist_fedprox.py --config configs/month3_week11_mnist_fedprox_mu_sweep_e5.json
+```
 
 ## Status
 
