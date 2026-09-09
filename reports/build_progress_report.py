@@ -391,13 +391,76 @@ def build_report() -> None:
             )
         )
 
+    # --- Week 11 section ---
+    story.append(PageBreak())
+    story.append(Paragraph("Month 3, Week 11 — Does FedProx Help?", styles["h2"]))
+    story.append(
+        Paragraph(
+            "Li et al. (2020)'s FedProx adds a proximal term "
+            "(mu/2)*||w - w_global||&sup2; to each client's local loss, "
+            "specifically to limit the client drift Weeks 9-10 measured. "
+            "mu=0 is verified by test to reproduce hand-written FedAvg "
+            "exactly (client weights and a full server round), so FedProx "
+            "here is a strict generalization, not a parallel "
+            "reimplementation. The experiment reuses Week 10's exact "
+            "Dirichlet(&alpha;=0.1) partition, seeds, and initial weights, "
+            "sweeping mu &isin; {0.01, 0.1, 1.0} at two local-epoch counts.",
+            styles["body"],
+        )
+    )
+    week11 = load_json(RESULTS_ROOT / "month3_week11_mnist_fedprox_mu_sweep" / "metrics.json")
+    week11_e5 = load_json(RESULTS_ROOT / "month3_week11_mnist_fedprox_mu_sweep_e5" / "metrics.json")
+    mu_table = [["Method", "E=1 accuracy", "E=5 accuracy"]]
+    mu_table.append(
+        ["FedAvg (mu=0)", percentage(week11["fedavg"]["final_test_accuracy"]), percentage(week11_e5["fedavg"]["final_test_accuracy"])]
+    )
+    for mu in ("0.01", "0.1", "1.0"):
+        mu_table.append(
+            [
+                f"FedProx (mu={mu})",
+                percentage(week11["fedprox"][mu]["final_test_accuracy"]),
+                percentage(week11_e5["fedprox"][mu]["final_test_accuracy"]),
+            ]
+        )
+    story.append(data_table(mu_table, [1.8 * inch, 1.4 * inch, 1.4 * inch]))
+    story.append(
+        Paragraph(
+            "<b>FedProx did not beat FedAvg at any swept mu</b>, in either "
+            "local-epoch setting — reported plainly, per the plan's own "
+            "rule that a negative result must remain reportable. This does "
+            "not contradict Li et al.'s paper: their clearest reported "
+            "gains come under systems heterogeneity (clients doing "
+            "genuinely different amounts of local work) and longer "
+            "training horizons, neither of which this 5-round, "
+            "uniform-local-epoch experiment tests. Three checks rule out "
+            "an implementation bug: mu=0 equivalence is tested, not "
+            "assumed; the E=1 and E=5 round-by-round histories genuinely "
+            "differ; and one striking coincidence — mu=0.1 landing on the "
+            "identical 69.65% at both E=1 and E=5 — was traced to the "
+            "underlying per-round trajectories and confirmed real, not a "
+            "copy-paste error. Full discussion: "
+            "reports/month3_week11_fedprox.md.",
+            styles["body"],
+        )
+    )
+    week11_convergence_png = (
+        RESULTS_ROOT / "month3_week11_mnist_fedprox_mu_sweep" / "convergence_comparison.png"
+    )
+    if week11_convergence_png.is_file():
+        story.append(Spacer(1, 4))
+        story.append(Image(str(week11_convergence_png), width=6.4 * inch, height=3.9 * inch))
+        story.append(
+            Paragraph(
+                "Figure: FedAvg vs. FedProx test accuracy per round at Dirichlet &alpha;=0.1, E=1.",
+                styles["caption"],
+            )
+        )
+
     # --- Next steps ---
     story.append(Paragraph("Next: completing Month 3 (Gate 3)", styles["h2"]))
     story.append(
         Paragraph(
-            "Week 11 "
-            "implements FedProx, which adds a proximal term intended to "
-            "reduce client drift under heterogeneity. Week 12 benchmarks "
+            "Week 12 benchmarks "
             "FedAvg against FedProx across IID and Non-IID settings, which "
             "closes Gate 3. Federated Unlearning remains blocked until "
             "Gates 3 and 4 both close.",
