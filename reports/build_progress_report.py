@@ -456,14 +456,60 @@ def build_report() -> None:
             )
         )
 
-    # --- Next steps ---
-    story.append(Paragraph("Next: completing Month 3 (Gate 3)", styles["h2"]))
+    # --- Week 12 section ---
+    story.append(PageBreak())
+    story.append(Paragraph("Month 3, Week 12 — The Gate 3 Benchmark", styles["h2"]))
     story.append(
         Paragraph(
-            "Week 12 benchmarks "
-            "FedAvg against FedProx across IID and Non-IID settings, which "
-            "closes Gate 3. Federated Unlearning remains blocked until "
-            "Gates 3 and 4 both close.",
+            "The complete FedAvg-vs-FedProx table (plan &sect;9) across all "
+            "four data distributions Weeks 9-10 characterized. FedAvg legs "
+            "reuse already-verified evidence from Weeks 8-10; only FedProx "
+            "(fixed mu=0.01, the least-detrimental value Week 11 found) was "
+            "run fresh at IID and alpha=1.0/0.5, with alpha=0.1 reused "
+            "directly from Week 11 rather than rerun.",
+            styles["body"],
+        )
+    )
+    week12_configs = [
+        ("IID", "month3_week12_iid_fedprox", week9["iid"]["final_test_accuracy"]),
+        ("Dirichlet α=1.0", "month3_week12_alpha1.0_fedprox", week10["1.0"]["fedavg"]["final_test_accuracy"]),
+        ("Dirichlet α=0.5", "month3_week12_alpha0.5_fedprox", week10["0.5"]["fedavg"]["final_test_accuracy"]),
+    ]
+    benchmark_rows = [["Setting", "FedAvg", "FedProx (mu=0.01)"]]
+    for label, subdir, fedavg_accuracy in week12_configs:
+        week12_metrics = load_json(RESULTS_ROOT / subdir / "metrics.json")
+        benchmark_rows.append(
+            [label, percentage(fedavg_accuracy), percentage(week12_metrics["fedprox"]["final_test_accuracy"])]
+        )
+    benchmark_rows.append(
+        [
+            "Dirichlet α=0.1",
+            percentage(week10["0.1"]["fedavg"]["final_test_accuracy"]),
+            percentage(week11["fedprox"]["0.01"]["final_test_accuracy"]),
+        ]
+    )
+    story.append(data_table(benchmark_rows, [1.9 * inch, 1.5 * inch, 2.0 * inch]))
+    story.append(
+        Paragraph(
+            "FedProx is very slightly below FedAvg at every setting, "
+            "including IID — consistent with Week 11's finding at a wider "
+            "mu sweep, now shown across the full heterogeneity range at one "
+            "fixed mu. Communication is identical across every row "
+            "(20,354,000 bytes) since it depends only on model size, client "
+            "count, and rounds, not which algorithm is used. Full "
+            "discussion, including why this does not contradict Li et al. "
+            "(2020): reports/month3_week12_benchmark.md.",
+            styles["body"],
+        )
+    )
+    story.append(
+        Paragraph(
+            "Gate 3's learning check (reports/gate3_self_check.md) asks "
+            "eight questions on statistical vs. systems heterogeneity, "
+            "client drift mechanics, and correctly scoping FedProx's "
+            "negative result — prepared, not yet answered. Gate 3 remains "
+            "open until it is reviewed; Federated Unlearning remains "
+            "blocked until Gates 3 and 4 both close.",
             styles["body"],
         )
     )
