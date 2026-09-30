@@ -1930,9 +1930,10 @@ was trained or run.
   - `speedup` (retrain time divided by unlearning time).
   - `storage_bytes` for counting stored model states.
   - It reuses the existing byte counter from `algorithms/fedavg.py`.
-- **`evaluation/utility.py`:** `evaluate_three_way` reports results on the
-  global test set, the target client's data, and the other clients' data
-  pooled together.
+- **`evaluation/three_way.py`:** `evaluate_three_way` reports results on
+  the global test set, the target client's data, and the other clients'
+  data pooled together. It lives in its own module because the Week 8
+  verifier pins `evaluation/utility.py` to its `month2-week8` revision.
 
 The full test suite passes: 122 tests, 37 of them new. Run it with
 `~/.venvs/federated-unlearning-mse-ai/bin/python -m unittest discover -s tests -p 'test_*.py'`.
