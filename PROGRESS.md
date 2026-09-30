@@ -1866,3 +1866,79 @@ Gate 1 and Gate 2's self-checks were handled.
 Gate 3 remains open until the student's answers are reviewed. Month 4
 (Machine Unlearning, SISA, full retraining, FedEraser, KD-based FU) remains
 blocked until then.
+
+---
+
+## 2026-09-30 — Gate 3 answers reviewed; Month 4 reading and measurement code ready
+
+### Gate 3: "pass after follow-ups", one item still open
+
+The student's answers to `reports/gate3_self_check.md` went through three
+reviews. After the third, seven of the eight answers were judged solid and
+matched to this repository's own numbers. One follow-up is still required
+before the gate closes:
+
+- **Q4:** the answer says that at α=0.1 each digit sits almost entirely on
+  one or two clients. That holds for seven digits, but not for digits 1, 4
+  and 9, which are spread over three or four clients
+  (`results/month3_week10_mnist_alpha0.1/metrics.json`, `class_histogram`).
+  The claim needs restating so it fits all ten digits.
+
+Optional: write out the payload size in Q8 (101,770 parameters × 4 bytes =
+407,080 bytes).
+
+The self-check's status line has not been changed. The gate stays open, and
+Month 4 algorithm work stays blocked, until Q4 is revised.
+
+### Literature for Months 4–5
+
+New six-question summaries were added for FedEraser, KD-based FU, FFMU, SIFU
+and the FU survey (Romandini et al., TNNLS 2025), with one matrix row each.
+There is also a first draft of the Week 19 gap table,
+`literature/gap_table_draft.md`, marked as not locking the thesis
+contribution.
+
+Every summary was checked against the local PDFs in `articles/` using text
+extraction. Figures could not be inspected. This check removed content that
+had come from web summaries and is not in the papers, most of it in the
+survey note.
+
+The findings that matter most:
+
+- **No method varies the level of data skew.** FedEraser, KD-based FU, FFMU
+  and SISA have no Non-IID experiments. SIFU uses skewed partitions only,
+  with no IID comparison and no α sweep.
+- **The survey supports the research gap.** It calls unlearning under FedAvg
+  variants built for Non-IID data "an unexplored dimension" (Sec. VII-F).
+- **FedEraser's speed-up is about 4×.** This figure leaves out the cost of
+  storing past updates.
+- **KD-based FU reports no timing at all.** It measures forgetting only with
+  backdoor attack success rate.
+- **Neither baseline paper reports seeds.**
+
+The summaries list the settings each paper leaves unstated, which a Week 16
+reproduction will have to choose and document.
+
+### Measurement code for Month 4
+
+This is measurement code only. No unlearning logic was written and nothing
+was trained or run.
+
+- **`evaluation/efficiency.py`:**
+  - A timer that records named phases, so that later, for example,
+    recovery rounds can be timed separately.
+  - `speedup` (retrain time divided by unlearning time).
+  - `storage_bytes` for counting stored model states.
+  - It reuses the existing byte counter from `algorithms/fedavg.py`.
+- **`evaluation/utility.py`:** `evaluate_three_way` reports results on the
+  global test set, the target client's data, and the other clients' data
+  pooled together.
+
+The full test suite passes: 122 tests, 37 of them new. Run it with
+`~/.venvs/federated-unlearning-mse-ai/bin/python -m unittest discover -s tests -p 'test_*.py'`.
+
+### What remains
+
+1. The student revises Gate 3 Q4, then the gate is re-examined.
+2. Month 4, Week 13 (SISA-style delete-and-retrain) starts only after that,
+   with the core logic written by the student.
