@@ -1943,3 +1943,161 @@ The full test suite passes: 122 tests, 37 of them new. Run it with
 1. The student revises Gate 3 Q4, then the gate is re-examined.
 2. Month 4, Week 13 (SISA-style delete-and-retrain) starts only after that,
    with the core logic written by the student.
+
+---
+
+## 2026-09-30 — Gate 3 closed (PASS after follow-ups)
+
+### What was decided
+
+The student's answers in `reports/gate3_self_check.md` were reviewed five
+times by the `gate-examiner` subagent. The final result is **PASS after
+follow-ups**. The result was recorded at the student's request, and a human
+supervisor may re-examine it.
+
+- **Solid (7 of 8):** statistical vs. systems heterogeneity, client drift,
+  the cross-entropy effect on absent classes, FedProx's proximal term,
+  FedProx's negative result scoped to this setup, a variable-epoch
+  experiment design, and communication cost.
+- **Partial (1):** Q4, on why the α-vs-accuracy drop is sharp. Its
+  explanation is plausible but doesn't yet account for the sharpness.
+
+The final Q5 answer was rewritten by the student in their own words, after
+the earlier Q5 text was accidentally deleted.
+
+### Open follow-ups (non-blocking)
+
+1. **Q4:** explain why accuracy drops 0.76 pp from α=1.0 to 0.5 but
+   18.23 pp from 0.5 to 0.1. Work it out from the per-client class
+   histograms, including digits 1, 4 and 9 at α=0.1. This is recommended
+   before the first unlearning experiment on a Non-IID partition.
+2. **Q8 (optional):** write out S = 407,080 bytes.
+
+**Gate 3 status:** CLOSED
+
+### What comes next
+
+**Month 4, Week 13: SISA-style delete-and-retrain.** Train on the full
+dataset, delete a subset, retrain, and measure accuracy and time. The
+student writes the core logic. The measurement code from the previous entry
+(`evaluation/efficiency.py`, `evaluation/three_way.py`) is ready to use.
+
+### Known issue, not caused by this change
+
+`reports/verify_week8_fedavg.py`, and therefore
+`reports/verify_gate2_readiness.py`, fails on `main` too. The Mac's OS
+version changed from macOS 26.5.1 to 26.6.2, and the verifier compares the
+saved runtime snapshot exactly. Python and every package version still
+match. Either re-run Week 8 on the current OS or relax the platform check;
+that decision is open.
+
+---
+
+## 2026-10-06 — Month 4, Week 13 preparation; run not yet performed
+
+### Prepared
+
+- Added a config-driven MNIST full-retraining baseline that trains on the
+  complete training split, removes one deterministic client shard, and
+  retrains from the same initial weights without that shard. Epoch monitoring
+  uses the held-out validation split; the test set is reserved for final
+  evaluation.
+- The runner saves metrics, model tensor schema, and both checkpoints. The
+  verifier reconstructs the partition and recomputes evaluation metrics from
+  the saved checkpoints; no result values are recorded before training.
+- Static preflight passed: the three Python files compile and the JSON config
+  parses. The training run and report verifier have not been executed.
+- This is the exact-retraining reference. It does not implement SISA's
+  shard/slice checkpointing or a Federated Unlearning method.
+
+### Blocked on student
+
+- **What:** explicitly authorize a commit of the intended Gate 3 closure and
+  Week 13 preparation files, then create the configured `month4-week13` tag.
+- **Why:** repository rules reserve commits for the student's explicit
+  `commit`, and experiments/verifiers require a clean worktree and the
+  producing Git tag at `HEAD`.
+- **Files:** `PROGRESS.md`, `README.md`, `reports/gate3_self_check.md`,
+  `configs/month4_week13_mnist_full_retraining.json`,
+  `experiments/unlearning/month4_week13_mnist_full_retraining.py`,
+  `reports/build_month4_week13_report.py`, and
+  `reports/verify_month4_week13_retraining.py`. The untracked `.codex/`
+  agent definitions were left untouched.
+- **What to say next:** `commit`.
+
+No experiment or verifier has been run, so Week 13 results remain pending.
+
+---
+
+## 2026-10-10 — Month 4, Week 13–14 (plan W3–W4): preflight only; lanes not started
+
+### What happened
+
+- Preflight for the milestone "federated retrain gold standard
+  M_retrain^(-A) + noise floor + forgetting metrics" was run by the main
+  session. It stopped at the first check: the worktree is dirty, and the
+  milestone rule is to stop there with one batched commit request.
+- Nothing was built, nothing was run, and no lane (experiment-engineer,
+  lit-scout, reviewer) was started. This entry is the only file change.
+- `notes/changes/` contains no change notes, so none are at L0.
+- Checked what is waiting to be committed: the test suite passes (122 tests,
+  `~/.venvs/federated-unlearning-mse-ai/bin/python -m unittest discover -s tests -p 'test_*.py'`),
+  the three Week 13 Python files compile, and the Week 13 config parses. The
+  Week 13 centralized retraining run and its verifier have still not been
+  executed.
+
+### Draft plan for the milestone (to confirm before the lanes start)
+
+- **Lane A — experiment-engineer.** Three changes, each one concept, under
+  150 lines, with toy-case tests and a change note:
+  1. `exclude_clients` federated retrain runner, config and verifier, giving
+     M_retrain^(-A) from the same initial weights without the target client;
+  2. `evaluation/forgetting.py`: accuracy gap on the three splits,
+     prediction agreement, shared-class vs target-dominant classes;
+  3. noise floor: the gap between two retrains with different seeds.
+  Done means: smoke test passes and t_train is measured. Three notes at L0
+  is the WIP limit, so Lane A does not run ahead into PGA.
+- **Lane B — lit-scout.** Halimi (PGA): verify, six_questions, setup
+  extraction, 3 tutor questions, matrix row. Re-check the existing
+  `literature/federaser_2021_six_questions.md` against the same checklist.
+- **Lane C — reviewer.** Critique of the retrain and noise-floor design, then
+  of the smoke results; Fatal/Major findings become fix tasks.
+
+### Known blockers inside the milestone
+
+- **Canonical runs are not allowed yet.** Every code row in
+  `notes/understanding_map.md` is `?`, including FedAvg aggregation and the
+  Dirichlet partition, which the federated retrain uses. Until those reach
+  L2 the milestone ends at smoke tests, without the retrain-vs-retrain table.
+- **Lane B limit.** `literature/` has 13 six_questions files and
+  `notes/learning_log.md` has no tutor session logged, against a limit of 2
+  papers without a session. Read literally, Lane B may not add Halimi.
+
+## Blocked on student
+
+1. **Commit request (one batch).** Say `commit` (or `commit, ignore .codex`).
+   - Modified: `PROGRESS.md`, `README.md`, `reports/gate3_self_check.md`
+     (your Q5 answer and the recorded review result; not edited by any agent).
+   - New: `Ke_hoach_v3_FU_AI_tutor.md`, `docs/huong_dan_MCP_doc_paper.md`,
+     `notes/understanding_map.md`, `notes/curriculum_from_start.md`,
+     `notes/learning_log.md`, `notes/changes/README.md`,
+     `notes/tutor/README.md`, `prompts/goal_milestone.md`,
+     `prompts/tutor_session.md`,
+     `configs/month4_week13_mnist_full_retraining.json`,
+     `experiments/unlearning/month4_week13_mnist_full_retraining.py`,
+     `reports/build_month4_week13_report.py`,
+     `reports/verify_month4_week13_retraining.py`.
+   - To decide: `.codex/agents/` (4 `.toml` files). Recommended: add `.codex`
+     to `.gitignore`, as is already done for `.claude`, `CLAUDE.md` and
+     `AGENTS.md`; otherwise they are committed with the rest.
+2. **Tutor queue** (paste into `claude --agent tutor`; these unblock the
+   canonical retrain runs and do not depend on the commit):
+   1. FedAvg aggregation (needs L2 for canonical runs, L3 for the defense):
+      `Backfill: buổi 2.2.`
+   2. Dirichlet partition (same requirement): `Backfill: buổi 3.2.`
+   3. Three-way evaluation, utility and efficiency metrics (L2):
+      `Backfill: buổi 4.2.`
+3. **Questions waiting for your answer** (no gate questions are open):
+   1. Confirm or change the draft plan above.
+   2. Lane B limit: count only papers added from now on (Halimi goes ahead),
+      or keep Lane B idle until the existing papers have tutor sessions?

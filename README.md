@@ -69,17 +69,21 @@ Use a config file per run (`configs/`) and write results to `results/` automatic
 
 ## Current milestone
 
-**Gate 3 review** (see plan §9, §15): Weeks 9-12 are technically complete —
+**Month 4, Week 13 — Machine Unlearning (SISA, delete-and-retrain)** is the
+next permitted unit. Gate 3 closed on 2026-09-30 (PASS after follow-ups;
+see [`reports/gate3_self_check.md`](reports/gate3_self_check.md)). The
+proposed method remains blocked by Gate 4.
+
+Month 3 summary (see plan §9, §15): Weeks 9-12 are technically complete —
 [`reports/month3_week9_iid_vs_noniid.md`](reports/month3_week9_iid_vs_noniid.md),
 [`reports/month3_week10_dirichlet_benchmark.md`](reports/month3_week10_dirichlet_benchmark.md),
 [`reports/month3_week11_fedprox.md`](reports/month3_week11_fedprox.md), and
 [`reports/month3_week12_benchmark.md`](reports/month3_week12_benchmark.md)
 establish FedAvg's accuracy across a severity gradient from IID through
 Dirichlet(α=1.0/0.5/0.1) to pathological shards, and the full Week 12
-FedAvg-vs-FedProx benchmark across all four settings. Gate 3 remains open
-because its learning check — [`reports/gate3_self_check.md`](reports/gate3_self_check.md)
-— is not yet reviewed. Every Federated Unlearning method remains blocked by
-Gates 3 and 4.
+FedAvg-vs-FedProx benchmark across all four settings. Its learning check,
+[`reports/gate3_self_check.md`](reports/gate3_self_check.md), was reviewed
+and passed on 2026-09-30.
 
 ### Month 1 breakdown
 
@@ -263,7 +267,7 @@ value, not a separately cross-validated statistic.
 - [x] Week 9: IID vs. Non-IID FedAvg comparison
 - [x] Week 10: Dirichlet(α) partitioning (α = 1.0, 0.5, 0.1)
 - [x] Week 11: FedProx
-- [x] Week 12: FedAvg-vs-FedProx benchmark across IID/Non-IID settings (technically complete; Gate 3 review pending)
+- [x] Week 12: FedAvg-vs-FedProx benchmark across IID/Non-IID settings (complete; Gate 3 passed 2026-09-30)
 
 Week 9 re-read McMahan et al. (2017) and read Kairouz et al. (2019/2021),
 *Advances and Open Problems in Federated Learning*, for the first time
@@ -385,14 +389,14 @@ python experiments/noniid/month3_week12_fedprox_benchmark.py --config configs/mo
 Gate 3's learning check,
 [`reports/gate3_self_check.md`](reports/gate3_self_check.md), asks eight
 questions on statistical vs. systems heterogeneity, client drift mechanics,
-and correctly scoping FedProx's negative result — prepared, not yet
-answered.
+and correctly scoping FedProx's negative result. It was answered by the
+student and passed on 2026-09-30, after follow-ups.
 
 ## Status
 
 - [x] Gate 1 (Month 1): CNN + centralized baseline
 - [x] Gate 2 (Month 2): FedAvg from scratch, multi-client FL
-- [ ] Gate 3 (Month 3): IID/Non-IID + FedProx benchmark
+- [x] Gate 3 (Month 3): IID/Non-IID + FedProx benchmark
 - [ ] Gate 4 (Month 4): FU baseline reproduced, retraining comparison
 - [ ] Gate 5 (Month 5): Research gap + proposed method + preliminary results
 - [ ] Gate 6 (Month 6): Final experiments, thesis, reproducible code

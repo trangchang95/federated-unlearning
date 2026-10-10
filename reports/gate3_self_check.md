@@ -1,8 +1,9 @@
 # Gate 3 Self-Check — Non-IID Federated Learning
 
-**Current status:** awaiting the student's answers. Weeks 9-12's technical
-experiments have passed verification, but Gate 3 is not closed merely
-because the code ran successfully — the plan (§9, §15) requires the student
+**Current status:** reviewed 2026-09-30, PASS after follow-ups (see
+"Review result" below). Weeks 9-12's technical experiments had already
+passed verification, but Gate 3 was not closed merely because the code ran
+successfully — the plan (§9, §15) requires the student
 to explain statistical heterogeneity, client drift, why Non-IID hurts FL,
 and what problem FedProx addresses.
 
@@ -61,6 +62,16 @@ Under severe label skew ($\alpha=0.1$), a client's local dataset is heavily domi
 A moderate label skew can be nearly harmless because each client may still see enough different classes to learn updates that are broadly aligned with the global model. With severe skew, clients see much narrower label distributions, so their local updates move in very different directions (client drift); averaging those conflicting updates can hurt the global model much more.
 This is consistent with Week 10: α=1.0 and α=0.5 stayed close to IID, while α=0.1 caused a much larger accuracy drop
 
+5. What specific problem does FedProx's proximal term (mu/2)\*||w - w\_global||^2 target? Explain what happens to a client's local loss as its local model drifts further from the global model, and why that discourages (but does not prevent) drift.
+
+   **Answer:**
+FedProx adds the proximal term (\frac{\mu}{2}|w-w_{\text{global}}|^2) to the client's local loss to discourage the local model from drifting too far from the global model.
+
+As the client's local weights (w) move farther from (w_{\text{global}}), the distance (|w-w_{\text{global}}|^2) becomes larger, so the client's total local loss increases. This creates a penalty for moving too far away from the global model.
+
+Therefore, the client is encouraged to stay closer to the global model during local training, which reduces client drift but does not completely prevent it. The client can still move away from the global model if doing so sufficiently reduces its task loss. When (\mu=0), the proximal term disappears and FedProx becomes FedAvg.
+
+
 6. The benchmark shows FedProx (μ=0.01) *slightly below* FedAvg at every
    setting, including IID. Explain why this is not evidence that FedProx is
    a bad method in general — what two conditions does Li et al. (2020)'s
@@ -104,14 +115,47 @@ Gate 3 passes only when the student can:
 
 ## Review result
 
-**Review date:** NOT YET REVIEWED
+**Review date:** 2026-09-30
 
-**Result:** NOT YET REVIEWED
+**Result:** PASS (after follow-ups)
 
-**Reviewer notes:** The reviewer will assess the explanations for
-conceptual correctness against the passing standard above. This field is
-not an automated substitute for that review.
+**Reviewed by:** the `gate-examiner` Claude subagent, over five rounds
+(2026-09-29 to 2026-09-30). The result was recorded at the student's
+request. No human supervisor has reviewed it yet; a supervisor may
+re-examine it.
 
-Weeks 9-12 are technically complete and verified. Gate 3 remains open until
-the answers above are reviewed. Month 4 (Machine Unlearning, SISA, full
-retraining, FedEraser, KD-based FU) remains blocked until then.
+**Reviewer notes:** Checked against each item in the passing standard
+above, and against this repository's own results.
+
+- **Solid (7 of 8):** Q1-Q3 and Q5-Q8.
+- **Partial:** Q4, which has no misconception.
+- **Numbers:** every number the answers cite matches `results/` and the
+  Week 9-12 reports.
+- **Corrected during review:**
+  - Q3 had claimed that absent classes receive "no gradient signal". Under
+    softmax cross-entropy their logits are pushed down.
+  - Q4 had claimed that client-size imbalance explains the α=0.1 drop. At
+    α=0.5 the size spread is wider, yet accuracy stays near IID.
+  - Q6 had credited "longer horizons" to Li et al. (2020). The answer now
+    treats the short horizon (R=5) as this project's own limitation.
+- **FedProx's negative result:** correctly scoped. It is not evidence that
+  FedProx is bad in general, because the uniform local epochs used here
+  create no systems heterogeneity.
+
+Open follow-ups, neither of which blocks Month 4:
+
+1. **Q4 (recommended before the first unlearning run on a Non-IID
+   partition):** explain why accuracy falls sharply rather than steadily:
+   0.76 pp from α=1.0 to 0.5, but 18.23 pp from 0.5 to 0.1.
+   - What changes in the per-client `class_histogram` arrays between α=0.5
+     and 0.1 that does not change between 1.0 and 0.5?
+   - Does the mechanism predict anything different for digits 1, 4 and 9,
+     which are spread over 3-4 clients at α=0.1?
+2. **Q8 (optional):** write out S = 101,770 parameters × 4 bytes = 407,080
+   bytes.
+
+**Gate 3 status:** CLOSED
+
+Month 4 (Machine Unlearning, SISA, full retraining, FedEraser, KD-based FU)
+is now the next permitted unit. The proposed method remains blocked by
+Gate 4.
