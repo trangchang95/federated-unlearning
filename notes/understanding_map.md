@@ -4,6 +4,14 @@ Levels: **L0** AI-built · **L1** walked-through · **L2** explain-back · **L3*
 Required before the defense: core (`algorithms/`, `evaluation/forgetting.py`) **L3**; everything else **L2**.
 The tutor updates this file; only levels she has demonstrated are recorded. `?` = not yet assessed.
 
+## Concepts / bức tranh tổng
+| Item | Nguồn | Required | Level | Last checked | Note |
+|---|---|---|---|---|---|
+| 0.1 Đề tài, contribution, pipeline, RQ1-RQ5 | Ke_hoach_v4_FU.md §1-3, README.md | L2 | **L1** | 2026-10-11 | MCQ 7/9 đúng; explain-back chưa làm (đã giao). Misconception: neo mốc so sánh vào M_original thay vì M_retrain^(-A) |
+| Noise floor | v4 §2 #2, §6 | L2 | L1 | 2026-10-11 | tính được NF=|seed1-seed2| đúng; cần phát biểu dạng Δ ≤ NF với mean ± std |
+| 3 split: utility vs forgetting | v4 §3 (RQ3), evaluation/three_way.py | L2 | L1 | 2026-10-11 | đã sai 1 lần: tưởng utility đo trên target split |
+| Over-unlearning / vì sao acc thấp không phải thành công | v4 §2 #2, H4 | L2 | L1 | 2026-10-11 | vừa giảng; chưa explain-back |
+
 ## Code
 | Item | File | Required | Level | Last checked | Note |
 |---|---|---|---|---|---|

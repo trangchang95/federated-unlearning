@@ -157,6 +157,90 @@ guarantee. Directly relevant to this thesis as the calibration-based baseline;
 its behaviour under Dirichlet-type Non-IID is untested, so any Non-IID claim
 here would be a new result.
 
+## Scout check (2026-10-10)
+
+Checked against arXiv v3 (arXiv MCP HTML text, full paper; sections cited by the paper's own
+numbering). Every number and reference in the sections above matched the paper. Additions only:
+
+- Gold standard: the paper calls FedRetrain "the baseline" and says it "provides an upper bound
+  on the prediction performance of the unlearned model" (Sec. IV-A-4). It does not use the term
+  gold standard and does not compare FedEraser against a second retrain.
+- Calibration details for the retrain/noise-floor design: calibration interval Delta-t = 2 and
+  calibration ratio r = E_cali / E_loc = 0.5, both in Sec. IV-A-5 (the paragraph headed
+  "Experiment Environment"); the paper says they were chosen empirically as a trade-off
+  (Sec. III-C). The actual E_cali and E_loc, the number of rounds E, learning rate and batch size
+  are not stated ("the same settings" for all methods, Sec. IV-A-5). At each retained round, the
+  non-target clients train E_cali epochs from the current calibrated model (Sec. III-B-1,
+  Algorithm 1 CaliTrain).
+- What the server stores: each client's update U_k at rounds t_1 = 1, t_(j+1) = t_j + Delta-t,
+  with T = floor(E / Delta-t) retained rounds as printed, plus the round index (Sec. III-A).
+  As printed, the rounds 1, 1 + Delta-t, ... and the count floor(E / Delta-t) differ by one when E
+  is not a multiple of Delta-t; the paper does not address this. Size: not stated and not
+  measured; model sizes are given only as layer types (Table I) and E is not given.
+  Derived here (scout, not in the paper): stored entries = K x T update vectors.
+- r = 1.0 is said to make FedEraser degenerate to FedRetrain (Sec. IV-D).
+- The only dispersion figure in the paper is a standard deviation of 0.0011 for MNIST target
+  accuracy across different calibration ratios (Sec. IV-D). That is spread over r, not over
+  seeds, so it is not a noise floor.
+- P_diss (Eq. 4) compares the original model with the unlearned model on the target data, not
+  the unlearned model with FedRetrain.
+- Additional internal inconsistencies (all from the arXiv v3 text; the 12x item is the one
+  already listed in the older "Weak-evaluation flags" above, restated here with all baselines):
+  - Adult, Sec. IV-D: r = 0.1 takes 10.1 s and is called 10x faster than FedRetrain, and r = 1.0
+    takes 100.1 s. That implies a FedRetrain time of about 100 s, but Table II gives 169 s
+    (1.69e2). Same pattern for MNIST (40.3 s, "9.6x" implies about 387 s versus Table II 1.08e3 s)
+    and Purchase (19.6 s, "8.4x" implies about 165 s versus Table II 375 s). The sweeps in
+    Sec. IV-D seem to use another training setting than Table II; the paper does not say.
+  - Adult, "12x" at Delta-t = 10 (Sec. IV-E, Fig. 5a): the text gives 36.7 s at Delta-t = 1 and
+    19.1 s at Delta-t = 10. No baseline quoted in the text reproduces 12x: 36.7 / 19.1 = 1.9x
+    (relative to Delta-t = 1), 169 / 19.1 = 8.8x (relative to Table II FedRetrain), and
+    100.1 / 19.1 = 5.2x (relative to the Sec. IV-D r = 1.0 time). The paper does not say what the
+    12x is relative to. The r used in the Sec. IV-E sweep: not stated. Separately, 36.7 s at
+    Delta-t = 1 is below Table II's 49.7 s at Delta-t = 2 (with r = 0.5 there), although a smaller
+    Delta-t should take longer at the same r; whether r matches is not stated.
+  - Purchase, Sec. IV-E: the text gives the range 80.1% to 92.1% for the testing data and
+    81.3% to 93.7% for the target data over Delta-t = 1 to 10. The main result at Delta-t = 2 is
+    0.943 on test data (Sec. IV-B-1), which is above the top of the testing range (92.1%); the
+    main target-data result is 0.934 (Sec. IV-B-2), which lies inside the target range. So the
+    inconsistency is for the test split only.
+- Not an inconsistency, but a reading note: the "average difference of only 0.61%" (Sec. IV-B-1)
+  is a gap on test data. Target-data gaps are larger: Purchase 0.952 - 0.934 = 1.8 percentage
+  points (computed here from the Sec. IV-B-2 values; the paper also says 1.8%).
+- Flag for the thesis: no Non-IID, no seeds, forgetting by target accuracy near FedRetrain, and
+  storage not measured (Sec. IV-A; Sec. IV-B-2). The matrix row for this paper already records
+  these; its Table II ratios were recomputed (169/49.7 = 3.40, 1080/223 = 4.84, 375/92.1 = 4.07,
+  3010/751 = 4.01) and are correct.
+
+## For the tutor
+
+1. FedEraser keeps the norm of the stored update and takes only the direction from a fresh
+   calibration update (Eq. 1, Sec. III-B-2). Why can the stored update's direction not be
+   reused (Sec. I, Sec. III-A)?
+   (Open discussion, scout inference, the paper does not address it: does the stored norm
+   itself still carry some of the target client's influence? See the key.)
+2. Sec. III-C gives a Speedup of r^-1 x Delta-t = 4x for r = 0.5, Delta-t = 2, and Table II
+   measures 3.4x to 4.8x. What is the denominator of that Speedup, what is left out of it
+   (original training, storage), and what does Sec. IV-E say happens to forgetting as
+   Delta-t grows?
+3. The paper judges forgetting by accuracy on the target client's data being close to
+   FedRetrain (Fig. 1b, Sec. IV-B-2). Using CLAUDE.md section 9, why is that not enough, and
+   what would you add?
+
+Tutor key (paper references given where the paper says it; otherwise scout inference):
+1. Paper: the retained updates were computed from global models that already contain the target
+   client's influence ("forward coupling", Sec. I; Sec. III-A), so they must be calibrated
+   against the current calibrated model using the non-target clients' data. Open discussion
+   (scout inference): the norm is kept as is, so any influence it carries is not removed; the
+   paper offers no argument or test either way, and the last-layer angle to FedRetrain
+   (3.99 degrees, Fig. 3, Adult only) is the only related evidence.
+2. Denominator: FedRetrain time (Table II), so the Speedup excludes original training and the
+   cost of storing updates; communication time is not stated to be included. Sec. IV-E: target
+   accuracy rises with Delta-t (Adult 83.8% to 84.4%; Purchase 81.3% to 93.7%), which the authors
+   read as less forgetting, so the Speedup trades against forgetting.
+3. Missing: M_retrain^(-A) comparison within the noise floor (two retrains with different
+   seeds), and a Non-IID split. Target accuracy near FedRetrain alone is not enough
+   (CLAUDE.md section 9).
+
 ## Sources
 
 - Local PDF checked via text extraction (pdfplumber); figures not inspected: `articles/5. 2012.13891v3-Federated-Unlearning.pdf` (arXiv v3, 6 May 2021)
@@ -167,3 +251,7 @@ here would be a new result.
 Still unconfirmed: figure content (Figs. 1-6), including the sweep axis ranges; the published IWQoS text.
 
 Source: articles/5. 2012.13891v3-Federated-Unlearning.pdf — local PDF checked via text extraction (pdfplumber); figures not inspected; venue and year verified via arXiv abs page and Crossref (earlier run) — VERIFIED (arXiv v3 text only; published IWQoS text not read)
+
+Revision 2026-10-11: after the reviewer's draft-check, only the new Scout check and For the tutor parts were edited (inconsistency list, section labels, tutor key); the older answers were not touched.
+
+Revision 2026-10-10: no statement in the existing answers was contradicted by the paper, so nothing was corrected. Added "Scout check" and "For the tutor"; re-confirmed arXiv v3 authors/title (arXiv MCP) and the IWQoS title, authors, 25 Jun 2021, pp. 1-10, DOI 10.1109/IWQOS52092.2021.9521274 (Crossref API, fetched directly). Re-read via the arXiv MCP HTML text, not the local PDF; figures still not inspected.

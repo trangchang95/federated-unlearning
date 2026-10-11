@@ -4,8 +4,11 @@ Tutor phải chạy ở **main thread** để hỏi đáp qua lại với bạn.
 
 ```bash
 cd ~/Developer/School/thesis/federated-unlearning
-claude --agent tutor
+claude --agent tutor                 # mặc định: Sonnet
+claude --agent tutor --model opus    # chỉ khi: walkthrough/L3 core logic, rehearsal, mock defense
 ```
+
+Core logic = `algorithms/federated_unlearning.py`, `algorithms/proposed_method.py`, `evaluation/forgetting.py`. Mỗi buổi xong: `/clear`.
 
 Mở một terminal riêng cho tutor, song song với session `/goal` của các lane khác.
 

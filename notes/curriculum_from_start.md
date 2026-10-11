@@ -2,13 +2,13 @@
 
 Mục đích: hiểu đến mức bảo vệ được (L2/L3) mọi thứ đã làm từ Month 1 đến nay, trước khi học tiếp phần unlearning.
 - Mỗi buổi ~45 phút với `claude --agent tutor`. Tổng 16 buổi ≈ 12 h.
-- Đề xuất xếp lịch: W1–W3 làm 4–5 buổi/tuần, trong lúc các lane khác build Week 13–14 (chưa chạy canonical được vì phải chờ mức L2).
+- Đề xuất xếp lịch: W1–W4 làm 4–5 buổi/tuần, trong lúc các lane khác build Week 13–14 (chưa chạy canonical được vì phải chờ mức L2).
 - Câu mở đầu: `Backfill: buổi <mã>.`
 
 Tutor đánh dấu `[x]` khi đạt mức yêu cầu. Kết quả ghi vào `notes/understanding_map.md` và `notes/learning_log.md`.
 
 ## M0 — Bức tranh tổng
-- [ ] **0.1 Đề tài trong 1 trang** — `Ke_hoach_v3_FU_AI_tutor.md` (mục 2–3), `README.md`
+- [ ] **0.1 Đề tài trong 1 trang** — `Ke_hoach_6_thang_...md` mục 2 (mục tiêu), `Ke_hoach_v4_FU.md` mục 1–3, `README.md`
   - Bài tập: vẽ lại pipeline data → partition → FL → yêu cầu xóa → FU → evaluation; nói RQ1–RQ5 bằng lời của mình.
   - Mức yêu cầu: L2.
 
@@ -91,9 +91,9 @@ Tutor đánh dấu `[x]` khi đạt mức yêu cầu. Kết quả ghi vào `note
   - Mức yêu cầu: L2.
 
 ## M6 — Định vị luận văn
-- [ ] **6.1 Contribution và lý do đổi hướng**
-  - Tài liệu: v3 mục 2, 3, 9
-  - Bài tập: rehearsal 2 phút "đề tài của tôi là gì, đóng góp gì, vì sao không làm Option B"; trả lời câu "code này ai viết?".
+- [ ] **6.1 Mục tiêu, contribution và lý do chọn thuật toán**
+  - Tài liệu: v4 mục 1–4 và 8; bản gốc mục 2, 20–21
+  - Bài tập: rehearsal 2 phút "đề tài và 6 mục tiêu là gì; vì sao chọn PGA + FedEraser thay vì KD-FU; proposed method bảo toàn non-target bằng cách nào"; trả lời câu "code này ai viết?".
   - Mức yêu cầu: L2.
 
 ⭐ = mục sẽ được hội đồng hỏi sâu; ưu tiên làm trước nếu thiếu giờ.
