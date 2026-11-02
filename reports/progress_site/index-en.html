@@ -1,4 +1,8 @@
-<meta name="claude:viewport-fit-sides" content="cover">
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Federated Unlearning Progress</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,6 +17,7 @@
   --good:#2f7a4f; --good-bg:#e7f3ea;
   --warn:#9a6b08; --warn-bg:#faf0d8;
   --risk:#b03a2e; --risk-bg:#fbe9e5;
+  --chart-1:#2a78d6; --chart-2:#eb6834; --chart-surface:#fcfcfb;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark){
@@ -24,6 +29,7 @@
     --good:#6bc98f; --good-bg:#17261d;
     --warn:#e0b84a; --warn-bg:#2b2308;
     --risk:#e18277; --risk-bg:#2b1613;
+    --chart-1:#3987e5; --chart-2:#d95926; --chart-surface:#1a1a19;
     color-scheme: dark;
   }
 }
@@ -35,6 +41,7 @@
   --good:#6bc98f; --good-bg:#17261d;
   --warn:#e0b84a; --warn-bg:#2b2308;
   --risk:#e18277; --risk-bg:#2b1613;
+  --chart-1:#3987e5; --chart-2:#d95926; --chart-surface:#1a1a19;
   color-scheme: dark;
 }
 *{box-sizing:border-box}
@@ -177,7 +184,46 @@ footer.foot{color:var(--muted); font-size:.76rem; padding:30px 0 10px; border-to
 .tlHead{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
 .tlHead b{font-family:"Fraunces",serif; font-size:1rem; font-weight:600}
 .tlBody{color:var(--muted); font-size:.86rem; margin-top:4px; max-width:620px}
+
+.tlDetails{margin-top:8px}
+.tlDetails > summary{
+  list-style:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+  font-size:.78rem; font-weight:600; color:var(--accent); padding:3px 0;
+}
+.tlDetails > summary::-webkit-details-marker{display:none}
+.tlDetails > summary::before{content:"+"; font-family:"IBM Plex Mono",monospace; width:13px; text-align:center}
+.tlDetails[open] > summary::before{content:"–"}
+.tlWeeks{margin:10px 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:9px; max-width:640px}
+.tlWeeks li{font-size:.84rem; color:var(--muted); padding-left:13px; border-left:2px solid var(--line)}
+.tlWeeks li b{color:var(--ink); font-weight:600}
+.tlWeeks .num{font-family:"IBM Plex Mono",monospace; color:var(--accent); font-weight:600; margin-right:4px}
+
+.chartLegend{display:flex; gap:18px; font-size:.78rem; color:var(--muted); margin:2px 0 10px}
+.chartLegend .sw{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; vertical-align:middle}
+.chartSvg{width:100%; height:auto; display:block; overflow:visible}
+.gridLine{stroke:var(--line); stroke-width:1}
+.axisLabel{font-size:10.5px; fill:var(--muted); font-family:"IBM Plex Sans",sans-serif}
+.barVal{font-size:10px; font-family:"IBM Plex Mono",monospace; fill:var(--ink)}
+.barRect{cursor:pointer}
+.chartTipBox{
+  position:absolute; background:var(--surface); border:1px solid var(--line); border-radius:7px;
+  padding:7px 10px; font-size:.76rem; color:var(--ink); pointer-events:none; opacity:0;
+  transition:opacity .1s ease; box-shadow:0 6px 18px rgba(0,0,0,.15); z-index:6; white-space:nowrap;
+}
+.chartTipBox b{display:block; font-size:.74rem; color:var(--muted); font-weight:500; margin-bottom:2px}
+.chartWrap{position:relative}
+.tableToggleBtn{
+  all:unset; cursor:pointer; font-size:.76rem; color:var(--accent); font-weight:600;
+  margin-top:6px; display:inline-block;
+}
+.tableToggleBtn:hover{text-decoration:underline}
+table.chartTable{width:100%; border-collapse:collapse; font-size:.82rem; margin-top:10px}
+table.chartTable th,table.chartTable td{padding:6px 9px; border-bottom:1px solid var(--line); text-align:right}
+table.chartTable th:first-child,table.chartTable td:first-child{text-align:left; color:var(--ink)}
+table.chartTable th{color:var(--muted); font-weight:500; font-size:.72rem; text-transform:uppercase; letter-spacing:.02em}
 </style>
+</head>
+<body>
 
 <header class="top">
   <div class="wrap">
@@ -207,24 +253,84 @@ footer.foot{color:var(--muted); font-size:.76rem; padding:30px 0 10px; border-to
         <div class="tlItem">
           <div class="tlHead"><b>Month 1 — Foundations</b><span class="pill good">Done</span></div>
           <p class="tlBody">Python/ML basics, baseline MLP and CNN on MNIST/CIFAR-10, SISA reading, Month 1 report.</p>
+          <details class="tlDetails">
+            <summary>Week-by-week detail</summary>
+            <ul class="tlWeeks">
+              <li><span class="num">W1</span><b>Logistic-regression baseline</b> on MNIST (70/15/15 split) — 92.20% accuracy, 92.09% F1. The "floor" every later model (MLP, CNN, FedAvg…) must beat to prove its improvement is real.</li>
+              <li><span class="num">W2</span>PyTorch fundamentals, <b>128-unit MLP</b> — 96.80% accuracy, 96.77% F1.</li>
+              <li><span class="num">W3</span><b>CNN baseline</b> — MNIST 98.60%, CIFAR-10 71.38% (two datasets of different difficulty, not a model-quality ranking).</li>
+              <li><span class="num">W4</span>SISA (machine unlearning) reading, Month 1 report, Gate 1 evidence audit (exact config reruns to verify the numbers match) — <b>Gate 1 passed</b>.</li>
+            </ul>
+          </details>
         </div>
         <div class="tlItem">
           <div class="tlHead"><b>Month 2 — FedAvg</b><span class="pill good">Done</span></div>
           <p class="tlBody">FedAvg implemented by hand (not using Flower for core results), cross-checked against Flower for reference only, first multi-client comparison with a K=10/E=2 configuration.</p>
+          <details class="tlDetails">
+            <summary>Week-by-week detail</summary>
+            <ul class="tlWeeks">
+              <li><span class="num">W5</span>Read the <b>FedAvg paper (McMahan 2017)</b> through a 6-question framework; learned FL concepts (round, client, aggregation, n<sub>k</sub>/n weighting).</li>
+              <li><span class="num">W6</span><b>FedAvg implemented by hand</b> (no framework).</li>
+              <li><span class="num">W7</span>Used <b>Flower</b> (an existing framework) for a transparent cross-check — reference only; the thesis's core results still come from the hand-written code.</li>
+              <li><span class="num">W8</span><b>First multi-client comparison:</b> Centralized 94.75% vs. hand-written FedAvg 90.99% (5 IID clients, −3.76pp gap) — not a bug, the real cost of distributed training. <b>Gate 2 passed</b> after running 2 more variants, K=10 and E=2.</li>
+            </ul>
+          </details>
         </div>
         <div class="tlItem">
           <div class="tlHead"><b>Month 3 — Non-IID</b><span class="pill good">Done</span></div>
           <p class="tlBody">Dirichlet(α) data partitioning, IID vs. Non-IID comparison, FedProx implemented (did not beat FedAvg in this setup). 7/8 questions reached a solid level; 1 remains partial, non-blocking (detail in the "Open decisions" tab).</p>
+          <details class="tlDetails">
+            <summary>Week-by-week detail</summary>
+            <ul class="tlWeeks">
+              <li><span class="num">W9</span><b>Shard-based Non-IID</b> partitioning (each client sees only 1-2 digits) — accuracy falls from 90.99% (IID) to 64.01% (−26.98pp), clear evidence of "client drift".</li>
+              <li><span class="num">W10</span><b>Dirichlet(α)</b> partitioning — severity rises nonlinearly: α=1.0 (−4.17pp), α=0.5 (−4.93pp), α=0.1 (−23.16pp), against an IID baseline gap of −3.77pp. See the chart below.</li>
+              <li><span class="num">W11</span><b>FedProx</b> implemented — did not beat FedAvg at any swept μ (0.01 / 0.1 / 1.0) under α=0.1; the negative result is reported plainly, with 3 checks ruling out an implementation bug.</li>
+              <li><span class="num">W12</span><b>Closing benchmark:</b> FedProx (μ=0.01) stays slightly below FedAvg at every setting, including IID. Gate 3 self-check drafted (8 questions) — <b>Gate 3 passed after follow-ups</b> (7/8 solid, 1 still open — see the "Open decisions" tab).</li>
+            </ul>
+          </details>
         </div>
         <div class="tlItem current">
           <div class="tlHead"><b>Month 4, Week 13–14 — Retrain &amp; noise floor</b><span class="pill warn">In progress</span></div>
           <p class="tlBody">The thesis's first federated unlearning mechanism: a Retrain runner (M<sub>retrain</sub><sup>(−A)</sup>), a target-client selection method, and a noise floor to measure "how close to retrain". Coded and tested (180 tests pass), the <b style="color:var(--ink)">canonical grid has not run yet</b> — see the next two tabs for detail. A full review of everything covered so far is now complete (from the foundations through Week 14); the three core functions of this stage have been walked through and sit at a "can follow it step by step" understanding, needing to reach "can explain it back unaided" before the canonical grid can run.</p>
+          <details class="tlDetails">
+            <summary>Week-by-week detail</summary>
+            <ul class="tlWeeks">
+              <li><span class="num">W13</span>A simple <b>centralized retrain</b> (not the real gold standard) — a stepping stone before building the proper federated version.</li>
+              <li><span class="num">W14</span><b>Federated retrain</b> + target-client selection (T1/T2/T3) + <b>noise floor</b> + <b>forgetting metrics</b> — full detail in the "Retrain & target client" and "Noise floor" tabs.</li>
+            </ul>
+          </details>
         </div>
         <div class="tlItem next">
           <div class="tlHead"><b>Next — PGA, FedEraser, proposed method</b><span class="pill flat">Not started</span></div>
           <p class="tlBody">The two required baselines (PGA, FedEraser) will be built after the canonical Retrain grid runs; then the thesis's proposed method (conditioning PGA/FedEraser intensity on the target's Non-IID severity).</p>
         </div>
       </div>
+    </div>
+
+    <div class="card">
+      <p class="cardTitle">How Non-IID affects accuracy (Weeks 10–12)</p>
+      <p style="color:var(--muted); font-size:.88rem; margin:0 0 12px">Same data, same model — only the severity changes (the smaller α, the more clients' data differs). This is exactly the motivation for the thesis's proposed method: the stronger the Non-IID skew, the more the unlearning algorithm needs to "know" about it.</p>
+      <div class="chartLegend">
+        <span><span class="sw" style="background:var(--chart-1)"></span>FedAvg</span>
+        <span><span class="sw" style="background:var(--chart-2)"></span>FedProx (μ=0.01)</span>
+      </div>
+      <div class="chartWrap">
+        <svg viewBox="0 0 640 230" class="chartSvg" id="accChart" role="img" aria-label="Chart of FedAvg and FedProx accuracy across Non-IID severity"></svg>
+        <div class="chartTipBox" id="chartTip"></div>
+      </div>
+      <button type="button" class="tableToggleBtn" id="chartTableToggle">View as table</button>
+      <div class="tblwrap" id="chartTable" hidden>
+        <table class="chartTable">
+          <thead><tr><th>Severity</th><th>FedAvg</th><th>FedProx (μ=0.01)</th></tr></thead>
+          <tbody>
+            <tr><td>IID</td><td>90.99%</td><td>90.88%</td></tr>
+            <tr><td>Dirichlet α=1.0</td><td>90.59%</td><td>90.54%</td></tr>
+            <tr><td>Dirichlet α=0.5</td><td>89.83%</td><td>89.72%</td></tr>
+            <tr><td>Dirichlet α=0.1</td><td>71.60%</td><td>71.43%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="sourceNote" style="margin-top:8px">Source: the Gate 3 closing benchmark, Week 12 (<span class="mono">reports/month3_week12_benchmark.md</span>). Severity α=0.1 drops accuracy sharply (−19.4pp vs. IID) while α=1.0/0.5 stay nearly unchanged — matching Hsu et al.'s (2019) own nonlinear finding.</p>
     </div>
 
     <div class="grid2">
@@ -594,5 +700,83 @@ footer.foot{color:var(--muted); font-size:.76rem; padding:30px 0 10px; border-to
     qWrap.appendChild(el);
   });
 
+  // ---------- accuracy chart (FedAvg vs FedProx across Non-IID severity) ----------
+  (function(){
+    var SVGNS = 'http://www.w3.org/2000/svg';
+    var data = [
+      {label:'IID', fedavg:90.99, fedprox:90.88},
+      {label:'α = 1.0', fedavg:90.59, fedprox:90.54},
+      {label:'α = 0.5', fedavg:89.83, fedprox:89.72},
+      {label:'α = 0.1', fedavg:71.60, fedprox:71.43}
+    ];
+    var svg = document.getElementById('accChart');
+    var tip = document.getElementById('chartTip');
+    if(!svg) return;
+    var W = 640, H = 230, padL = 36, padR = 10, padT = 10, padB = 28;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var yMax = 100;
+    function y(v){ return padT + plotH * (1 - v/yMax); }
+    var groupW = plotW / data.length;
+    var barW = Math.min(34, groupW*0.3);
+    var gap = 4;
+
+    function el(tag, attrs){
+      var e = document.createElementNS(SVGNS, tag);
+      for(var k in attrs){ e.setAttribute(k, attrs[k]); }
+      return e;
+    }
+
+    [0,25,50,75,100].forEach(function(v){
+      svg.appendChild(el('line', {x1:padL, x2:W-padR, y1:y(v), y2:y(v), class:'gridLine'}));
+      var t = el('text', {x:padL-8, y:y(v)+3, 'text-anchor':'end', class:'axisLabel'});
+      t.textContent = v+'%';
+      svg.appendChild(t);
+    });
+
+    data.forEach(function(d, i){
+      var cx = padL + groupW*i + groupW/2;
+      var bars = [
+        {val:d.fedavg, color:'var(--chart-1)', x:cx - gap/2 - barW, name:'FedAvg'},
+        {val:d.fedprox, color:'var(--chart-2)', x:cx + gap/2, name:'FedProx (μ=0.01)'}
+      ];
+      bars.forEach(function(b){
+        var h = plotH * (b.val/yMax);
+        var rect = el('rect', {
+          x:b.x, y:y(b.val), width:barW, height:h, rx:3, ry:3,
+          fill:b.color, class:'barRect'
+        });
+        rect.addEventListener('mousemove', function(ev){
+          var wrapBox = svg.parentElement.getBoundingClientRect();
+          tip.innerHTML = '<b>'+d.label+'</b>'+b.name+': '+b.val.toFixed(2)+'%';
+          tip.style.left = (ev.clientX - wrapBox.left + 12)+'px';
+          tip.style.top = (ev.clientY - wrapBox.top - 10)+'px';
+          tip.style.opacity = 1;
+        });
+        rect.addEventListener('mouseleave', function(){ tip.style.opacity = 0; });
+        svg.appendChild(rect);
+        var vt = el('text', {x:b.x+barW/2, y:y(b.val)-5, 'text-anchor':'middle', class:'barVal'});
+        vt.textContent = b.val.toFixed(1);
+        svg.appendChild(vt);
+      });
+      var lbl = el('text', {x:cx, y:H-8, 'text-anchor':'middle', class:'axisLabel'});
+      lbl.textContent = d.label;
+      svg.appendChild(lbl);
+    });
+
+    var toggleBtn = document.getElementById('chartTableToggle');
+    var table = document.getElementById('chartTable');
+    var wrap = svg.parentElement;
+    var legend = wrap.previousElementSibling;
+    toggleBtn.addEventListener('click', function(){
+      var showingTable = !table.hidden;
+      table.hidden = showingTable;
+      wrap.hidden = !showingTable;
+      legend.hidden = !showingTable;
+      toggleBtn.textContent = showingTable ? 'View as table' : 'View as chart';
+    });
+  })();
+
 })();
 </script>
+</body>
+</html>

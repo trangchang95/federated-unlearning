@@ -1,4 +1,8 @@
-<meta name="claude:viewport-fit-sides" content="cover">
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tiến độ Federated Unlearning</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,6 +17,7 @@
   --good:#2f7a4f; --good-bg:#e7f3ea;
   --warn:#9a6b08; --warn-bg:#faf0d8;
   --risk:#b03a2e; --risk-bg:#fbe9e5;
+  --chart-1:#2a78d6; --chart-2:#eb6834; --chart-surface:#fcfcfb;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark){
@@ -24,6 +29,7 @@
     --good:#6bc98f; --good-bg:#17261d;
     --warn:#e0b84a; --warn-bg:#2b2308;
     --risk:#e18277; --risk-bg:#2b1613;
+    --chart-1:#3987e5; --chart-2:#d95926; --chart-surface:#1a1a19;
     color-scheme: dark;
   }
 }
@@ -35,6 +41,7 @@
   --good:#6bc98f; --good-bg:#17261d;
   --warn:#e0b84a; --warn-bg:#2b2308;
   --risk:#e18277; --risk-bg:#2b1613;
+  --chart-1:#3987e5; --chart-2:#d95926; --chart-surface:#1a1a19;
   color-scheme: dark;
 }
 *{box-sizing:border-box}
@@ -177,7 +184,46 @@ footer.foot{color:var(--muted); font-size:.76rem; padding:30px 0 10px; border-to
 .tlHead{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
 .tlHead b{font-family:"Fraunces",serif; font-size:1rem; font-weight:600}
 .tlBody{color:var(--muted); font-size:.86rem; margin-top:4px; max-width:620px}
+
+.tlDetails{margin-top:8px}
+.tlDetails > summary{
+  list-style:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px;
+  font-size:.78rem; font-weight:600; color:var(--accent); padding:3px 0;
+}
+.tlDetails > summary::-webkit-details-marker{display:none}
+.tlDetails > summary::before{content:"+"; font-family:"IBM Plex Mono",monospace; width:13px; text-align:center}
+.tlDetails[open] > summary::before{content:"–"}
+.tlWeeks{margin:10px 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:9px; max-width:640px}
+.tlWeeks li{font-size:.84rem; color:var(--muted); padding-left:13px; border-left:2px solid var(--line)}
+.tlWeeks li b{color:var(--ink); font-weight:600}
+.tlWeeks .num{font-family:"IBM Plex Mono",monospace; color:var(--accent); font-weight:600; margin-right:4px}
+
+.chartLegend{display:flex; gap:18px; font-size:.78rem; color:var(--muted); margin:2px 0 10px}
+.chartLegend .sw{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; vertical-align:middle}
+.chartSvg{width:100%; height:auto; display:block; overflow:visible}
+.gridLine{stroke:var(--line); stroke-width:1}
+.axisLabel{font-size:10.5px; fill:var(--muted); font-family:"IBM Plex Sans",sans-serif}
+.barVal{font-size:10px; font-family:"IBM Plex Mono",monospace; fill:var(--ink)}
+.barRect{cursor:pointer}
+.chartTipBox{
+  position:absolute; background:var(--surface); border:1px solid var(--line); border-radius:7px;
+  padding:7px 10px; font-size:.76rem; color:var(--ink); pointer-events:none; opacity:0;
+  transition:opacity .1s ease; box-shadow:0 6px 18px rgba(0,0,0,.15); z-index:6; white-space:nowrap;
+}
+.chartTipBox b{display:block; font-size:.74rem; color:var(--muted); font-weight:500; margin-bottom:2px}
+.chartWrap{position:relative}
+.tableToggleBtn{
+  all:unset; cursor:pointer; font-size:.76rem; color:var(--accent); font-weight:600;
+  margin-top:6px; display:inline-block;
+}
+.tableToggleBtn:hover{text-decoration:underline}
+table.chartTable{width:100%; border-collapse:collapse; font-size:.82rem; margin-top:10px}
+table.chartTable th,table.chartTable td{padding:6px 9px; border-bottom:1px solid var(--line); text-align:right}
+table.chartTable th:first-child,table.chartTable td:first-child{text-align:left; color:var(--ink)}
+table.chartTable th{color:var(--muted); font-weight:500; font-size:.72rem; text-transform:uppercase; letter-spacing:.02em}
 </style>
+</head>
+<body>
 
 <header class="top">
   <div class="wrap">
@@ -207,24 +253,84 @@ footer.foot{color:var(--muted); font-size:.76rem; padding:30px 0 10px; border-to
         <div class="tlItem">
           <div class="tlHead"><b>Tháng 1 — Nền tảng</b><span class="pill good">Hoàn thành</span></div>
           <p class="tlBody">Python/ML cơ bản, baseline MLP và CNN trên MNIST/CIFAR-10, đọc SISA, báo cáo Tháng 1.</p>
+          <details class="tlDetails">
+            <summary>Chi tiết từng tuần</summary>
+            <ul class="tlWeeks">
+              <li><span class="num">T1</span><b>Baseline logistic regression</b> trên MNIST (split 70/15/15) — accuracy 92,20%, F1 92,09%. Đây là "sàn" mà mọi mô hình sau (MLP, CNN, FedAvg…) phải vượt qua để chứng minh cải tiến là thật.</li>
+              <li><span class="num">T2</span>Nền tảng PyTorch, <b>MLP 128 unit</b> — accuracy 96,80%, F1 96,77%.</li>
+              <li><span class="num">T3</span><b>CNN baseline</b> — MNIST 98,60%, CIFAR-10 71,38% (hai dataset độ khó khác nhau, không dùng để xếp hạng mô hình).</li>
+              <li><span class="num">T4</span>Đọc SISA (machine unlearning), viết báo cáo Tháng 1, audit lại bằng chứng Gate 1 (chạy lại đúng config để xác minh số liệu khớp) — <b>Gate 1 đạt</b>.</li>
+            </ul>
+          </details>
         </div>
         <div class="tlItem">
           <div class="tlHead"><b>Tháng 2 — FedAvg</b><span class="pill good">Hoàn thành</span></div>
           <p class="tlBody">Tự code FedAvg (không dùng Flower cho kết quả chính), đối chiếu với Flower chỉ để tham khảo, so sánh multi-client đầu tiên với cấu hình K=10/E=2.</p>
+          <details class="tlDetails">
+            <summary>Chi tiết từng tuần</summary>
+            <ul class="tlWeeks">
+              <li><span class="num">T5</span>Đọc paper <b>FedAvg (McMahan 2017)</b> theo khung 6 câu hỏi; học khái niệm FL (round, client, aggregation, trọng số theo n<sub>k</sub>/n).</li>
+              <li><span class="num">T6</span><b>Tự code FedAvg từ đầu</b> (không dùng framework có sẵn).</li>
+              <li><span class="num">T7</span>Dùng <b>Flower</b> (framework có sẵn) để đối chiếu minh bạch — chỉ tham khảo, kết quả chính của luận văn vẫn lấy từ code tự viết.</li>
+              <li><span class="num">T8</span><b>So sánh multi-client đầu tiên:</b> Centralized 94,75% vs FedAvg tự code 90,99% (5 client IID, lệch −3,76 điểm %) — không phải lỗi, phản ánh đúng chi phí thật của việc phân tán huấn luyện. <b>Gate 2 đạt</b> sau khi chạy thêm 2 biến thể K=10/E=2.</li>
+            </ul>
+          </details>
         </div>
         <div class="tlItem">
           <div class="tlHead"><b>Tháng 3 — Non-IID</b><span class="pill good">Hoàn thành</span></div>
           <p class="tlBody">Phân chia dữ liệu kiểu Dirichlet(α), so sánh IID vs Non-IID, cài FedProx (không vượt FedAvg trong thiết lập này). 7/8 câu đạt mức tốt; 1 câu còn ở mức chưa đầy đủ, không chặn tiến độ (chi tiết ở tab "Quyết định còn mở").</p>
+          <details class="tlDetails">
+            <summary>Chi tiết từng tuần</summary>
+            <ul class="tlWeeks">
+              <li><span class="num">T9</span>Chia dữ liệu <b>Non-IID kiểu shard</b> (mỗi client chỉ thấy 1-2 chữ số) — accuracy rơi từ 90,99% (IID) xuống 64,01% (−26,98 điểm %), minh chứng rõ hiện tượng "client drift".</li>
+              <li><span class="num">T10</span>Chia kiểu <b>Dirichlet(α)</b> — mức lệch tăng phi tuyến: α=1,0 (−4,17pp), α=0,5 (−4,93pp), α=0,1 (−23,16pp), so với nền IID (−3,77pp). Xem biểu đồ bên dưới.</li>
+              <li><span class="num">T11</span>Cài <b>FedProx</b> — không vượt được FedAvg ở bất kỳ mức μ nào (0,01 / 0,1 / 1,0) trên α=0,1; kết quả âm được báo cáo thẳng, kèm 3 lượt kiểm tra loại trừ khả năng lỗi code.</li>
+              <li><span class="num">T12</span><b>Benchmark chốt:</b> FedProx (μ=0,01) luôn thấp hơn FedAvg một chút ở mọi mức, kể cả IID. Soạn Gate 3 self-check (8 câu) — <b>Gate 3 đạt sau bổ sung</b> (7/8 câu tốt, 1 câu còn mở — xem tab "Quyết định còn mở").</li>
+            </ul>
+          </details>
         </div>
         <div class="tlItem current">
           <div class="tlHead"><b>Tháng 4, Tuần 13–14 — Retrain &amp; noise floor</b><span class="pill warn">Đang làm</span></div>
           <p class="tlBody">Cơ chế unlearning liên-federated đầu tiên: bộ chạy Retrain (M<sub>retrain</sub><sup>(−A)</sup>), cách chọn client mục tiêu, và noise floor để đo "giống retrain đến mức nào". Đã code và test xong (180 test pass), <b style="color:var(--ink)">chưa chạy lưới canonical</b> — xem 2 tab tiếp theo để biết chi tiết. Đã hoàn tất ôn tập toàn bộ nội dung từ nền tảng đến Tuần 14; 3 hàm lõi của giai đoạn này đang ở mức hiểu "đi qua từng bước", cần lên mức "tự giải thích lại được" trước khi chạy lưới canonical.</p>
+          <details class="tlDetails">
+            <summary>Chi tiết từng tuần</summary>
+            <ul class="tlWeeks">
+              <li><span class="num">T13</span><b>Centralized retrain</b> đơn giản (không phải gold standard thật) — bước đệm trước khi dựng bản liên-federated đúng quy trình FedAvg.</li>
+              <li><span class="num">T14</span><b>Retrain liên-federated</b> + chọn client mục tiêu (T1/T2/T3) + <b>noise floor</b> + <b>forgetting metrics</b> — xem đầy đủ ở 2 tab "Retrain &amp; target client" và "Noise floor".</li>
+            </ul>
+          </details>
         </div>
         <div class="tlItem next">
           <div class="tlHead"><b>Kế tiếp — PGA, FedEraser, phương pháp đề xuất</b><span class="pill flat">Chưa bắt đầu</span></div>
           <p class="tlBody">Hai baseline bắt buộc (PGA, FedEraser) sẽ được xây sau khi lưới canonical Retrain chạy xong; sau đó là phương pháp đề xuất của luận văn (chỉnh cường độ PGA/FedEraser theo mức độ lệch Non-IID của target).</p>
         </div>
       </div>
+    </div>
+
+    <div class="card">
+      <p class="cardTitle">Non-IID ảnh hưởng accuracy thế nào (Tuần 10–12)</p>
+      <p style="color:var(--muted); font-size:.88rem; margin:0 0 12px">Cùng dữ liệu, cùng mô hình — chỉ đổi mức độ lệch (α càng nhỏ, dữ liệu giữa các client càng khác nhau). Đây chính là động lực cho phương pháp đề xuất của luận văn: Non-IID càng mạnh, thuật toán unlearning càng cần "biết" điều đó.</p>
+      <div class="chartLegend">
+        <span><span class="sw" style="background:var(--chart-1)"></span>FedAvg</span>
+        <span><span class="sw" style="background:var(--chart-2)"></span>FedProx (μ=0,01)</span>
+      </div>
+      <div class="chartWrap">
+        <svg viewBox="0 0 640 230" class="chartSvg" id="accChart" role="img" aria-label="Biểu đồ accuracy FedAvg và FedProx theo mức độ Non-IID"></svg>
+        <div class="chartTipBox" id="chartTip"></div>
+      </div>
+      <button type="button" class="tableToggleBtn" id="chartTableToggle">Xem dạng bảng</button>
+      <div class="tblwrap" id="chartTable" hidden>
+        <table class="chartTable">
+          <thead><tr><th>Mức độ lệch</th><th>FedAvg</th><th>FedProx (μ=0,01)</th></tr></thead>
+          <tbody>
+            <tr><td>IID</td><td>90,99%</td><td>90,88%</td></tr>
+            <tr><td>Dirichlet α=1,0</td><td>90,59%</td><td>90,54%</td></tr>
+            <tr><td>Dirichlet α=0,5</td><td>89,83%</td><td>89,72%</td></tr>
+            <tr><td>Dirichlet α=0,1</td><td>71,60%</td><td>71,43%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="sourceNote" style="margin-top:8px">Nguồn: benchmark chốt Gate 3, Tuần 12 (<span class="mono">reports/month3_week12_benchmark.md</span>). Mức lệch α=0,1 làm accuracy rơi mạnh (−19,4 điểm % so với IID) trong khi α=1,0/0,5 gần như không đổi — đúng phát hiện phi tuyến của Hsu et al. (2019).</p>
     </div>
 
     <div class="grid2">
@@ -597,5 +703,87 @@ footer.foot{color:var(--muted); font-size:.76rem; padding:30px 0 10px; border-to
     qWrap.appendChild(el);
   });
 
+  // ---------- accuracy chart (FedAvg vs FedProx across Non-IID severity) ----------
+  (function(){
+    var SVGNS = 'http://www.w3.org/2000/svg';
+    var data = [
+      {label:'IID', fedavg:90.99, fedprox:90.88},
+      {label:'α = 1,0', fedavg:90.59, fedprox:90.54},
+      {label:'α = 0,5', fedavg:89.83, fedprox:89.72},
+      {label:'α = 0,1', fedavg:71.60, fedprox:71.43}
+    ];
+    var svg = document.getElementById('accChart');
+    var tip = document.getElementById('chartTip');
+    if(!svg) return;
+    var W = 640, H = 230, padL = 36, padR = 10, padT = 10, padB = 28;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var yMax = 100;
+    function y(v){ return padT + plotH * (1 - v/yMax); }
+    var groupW = plotW / data.length;
+    var barW = Math.min(34, groupW*0.3);
+    var gap = 4;
+
+    function el(tag, attrs){
+      var e = document.createElementNS(SVGNS, tag);
+      for(var k in attrs){ e.setAttribute(k, attrs[k]); }
+      return e;
+    }
+
+    [0,25,50,75,100].forEach(function(v){
+      svg.appendChild(el('line', {x1:padL, x2:W-padR, y1:y(v), y2:y(v), class:'gridLine'}));
+      var t = el('text', {x:padL-8, y:y(v)+3, 'text-anchor':'end', class:'axisLabel'});
+      t.textContent = v+'%';
+      svg.appendChild(t);
+    });
+
+    var accentColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-1').trim() || '#2a78d6';
+    var warmColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-2').trim() || '#eb6834';
+
+    data.forEach(function(d, i){
+      var cx = padL + groupW*i + groupW/2;
+      var bars = [
+        {val:d.fedavg, color:'var(--chart-1)', x:cx - gap/2 - barW, name:'FedAvg'},
+        {val:d.fedprox, color:'var(--chart-2)', x:cx + gap/2, name:'FedProx (μ=0,01)'}
+      ];
+      bars.forEach(function(b){
+        var h = plotH * (b.val/yMax);
+        var rect = el('rect', {
+          x:b.x, y:y(b.val), width:barW, height:h, rx:3, ry:3,
+          fill:b.color, class:'barRect'
+        });
+        rect.addEventListener('mousemove', function(ev){
+          var box = svg.getBoundingClientRect();
+          var wrapBox = svg.parentElement.getBoundingClientRect();
+          tip.innerHTML = '<b>'+d.label+'</b>'+b.name+': '+b.val.toFixed(2).replace('.',',')+'%';
+          tip.style.left = (ev.clientX - wrapBox.left + 12)+'px';
+          tip.style.top = (ev.clientY - wrapBox.top - 10)+'px';
+          tip.style.opacity = 1;
+        });
+        rect.addEventListener('mouseleave', function(){ tip.style.opacity = 0; });
+        svg.appendChild(rect);
+        var vt = el('text', {x:b.x+barW/2, y:y(b.val)-5, 'text-anchor':'middle', class:'barVal'});
+        vt.textContent = b.val.toFixed(1);
+        svg.appendChild(vt);
+      });
+      var lbl = el('text', {x:cx, y:H-8, 'text-anchor':'middle', class:'axisLabel'});
+      lbl.textContent = d.label;
+      svg.appendChild(lbl);
+    });
+
+    var toggleBtn = document.getElementById('chartTableToggle');
+    var table = document.getElementById('chartTable');
+    var wrap = svg.parentElement;
+    var legend = wrap.previousElementSibling;
+    toggleBtn.addEventListener('click', function(){
+      var showingTable = !table.hidden;
+      table.hidden = showingTable;
+      wrap.hidden = !showingTable;
+      legend.hidden = !showingTable;
+      toggleBtn.textContent = showingTable ? 'Xem dạng bảng' : 'Xem dạng biểu đồ';
+    });
+  })();
+
 })();
 </script>
+</body>
+</html>
