@@ -6,777 +6,2016 @@
 <title>Federated Unlearning Progress</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* layout: sticky tab bar at top, one scrollable panel per view, [hidden] toggles panels */
+/* layout: one slide at a time under a sticky section rail; each month is split into week tabs that swap text and chart */
 :root{
-  --bg:#faf7f0; --surface:#ffffff; --surface-2:#f1ece1;
-  --ink:#1c2541; --muted:#5c6378; --line:#e4dccb;
-  --accent:#0f6e64; --accent-ink:#e9fbf6;
-  --warm:#b5590f;
-  --good:#2f7a4f; --good-bg:#e7f3ea;
-  --warn:#9a6b08; --warn-bg:#faf0d8;
-  --risk:#b03a2e; --risk-bg:#fbe9e5;
-  --chart-1:#2a78d6; --chart-2:#eb6834; --chart-surface:#fcfcfb;
-  color-scheme: light;
+  --bg:#f7f6f1; --surface:#fff; --surface-2:#eeece4; --ink:#1c2541; --muted:#585f74; --line:#dfdbcf;
+  --accent:#0f6e64; --accent-soft:#e2f3ef; --warm:#a9500c;
+  --good:#256b43; --good-bg:#e5f2e9; --warn:#855c05; --warn-bg:#f8eed2; --risk:#a5352a; --risk-bg:#fae7e3;
+  --c1:#2a78d6; --c2:#eb6834; --c3:#1baf7a; --c4:#eda100; --band:#dcefe3;
+  --display:"Fraunces",Georgia,serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
 }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#15181f; --surface:#1c212b; --surface-2:#242a36;
-    --ink:#eceaf0; --muted:#9aa0b4; --line:#323a48;
-    --accent:#3fcab8; --accent-ink:#0b1a17;
-    --warm:#e08a4a;
-    --good:#6bc98f; --good-bg:#17261d;
-    --warn:#e0b84a; --warn-bg:#2b2308;
-    --risk:#e18277; --risk-bg:#2b1613;
-    --chart-1:#3987e5; --chart-2:#d95926; --chart-surface:#1a1a19;
-    color-scheme: dark;
-  }
-}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#14171e; --surface:#1c212b; --surface-2:#272d39; --ink:#eceaf0; --muted:#a3a9bb; --line:#343c4a;
+  --accent:#4fd0be; --accent-soft:#17302d; --warm:#e8995f;
+  --good:#7bd19d; --good-bg:#17291f; --warn:#e6c05a; --warn-bg:#2d2509; --risk:#e98e83; --risk-bg:#2e1815;
+  --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --band:#1d3a2a; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#15181f; --surface:#1c212b; --surface-2:#242a36;
-  --ink:#eceaf0; --muted:#9aa0b4; --line:#323a48;
-  --accent:#3fcab8; --accent-ink:#0b1a17;
-  --warm:#e08a4a;
-  --good:#6bc98f; --good-bg:#17261d;
-  --warn:#e0b84a; --warn-bg:#2b2308;
-  --risk:#e18277; --risk-bg:#2b1613;
-  --chart-1:#3987e5; --chart-2:#d95926; --chart-surface:#1a1a19;
-  color-scheme: dark;
-}
+  --bg:#14171e; --surface:#1c212b; --surface-2:#272d39; --ink:#eceaf0; --muted:#a3a9bb; --line:#343c4a;
+  --accent:#4fd0be; --accent-soft:#17302d; --warm:#e8995f;
+  --good:#7bd19d; --good-bg:#17291f; --warn:#e6c05a; --warn-bg:#2d2509; --risk:#e98e83; --risk-bg:#2e1815;
+  --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --band:#1d3a2a; color-scheme:dark}
 *{box-sizing:border-box}
-html,body{margin:0}
-body{
-  background:var(--bg); color:var(--ink);
-  font-family:"IBM Plex Sans",system-ui,sans-serif;
-  font-size:15px; line-height:1.55;
-  padding-left:max(16px, env(safe-area-inset-left,0px));
-  padding-right:max(16px, env(safe-area-inset-right,0px));
-}
-h1,h2,h3{font-family:"Fraunces",Georgia,serif; text-wrap:balance; margin:0; color:var(--ink)}
-code,.mono{font-family:"IBM Plex Mono",monospace}
-a{color:var(--accent)}
-.wrap{max-width:860px; margin:0 auto}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--bg)}
+.wrap{max-width:940px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);font-weight:600;margin:0;text-wrap:balance;line-height:1.2}
+h2{font-size:clamp(1.45rem,4vw,2rem)} h3{font-size:1.1rem}
+p{margin:0} code,.mono{font-family:var(--mono);font-size:.92em} a{color:var(--accent)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 
-/* -- top identity + nav -- */
-header.top{
-  position:sticky; top:env(safe-area-inset-top,0px); z-index:20;
-  background:var(--bg); padding:14px 0 0;
-  border-bottom:1px solid var(--line);
-}
-body::before{
-  content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top,0px);
-  z-index:21; background:var(--bg);
-}
-.titleRow{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; padding-bottom:10px}
-.titleRow h1{font-size:1.35rem; font-weight:600}
-.titleRow .meta{color:var(--muted); font-size:.8rem; white-space:nowrap}
-nav.tabs{display:flex; gap:4px; overflow-x:auto; padding-bottom:0; scrollbar-width:none}
-nav.tabs::-webkit-scrollbar{display:none}
-nav.tabs button{
-  appearance:none; border:none; background:transparent; color:var(--muted);
-  font-family:"IBM Plex Sans",sans-serif; font-size:.82rem; font-weight:500;
-  padding:9px 12px 11px; cursor:pointer; white-space:nowrap; border-bottom:2px solid transparent;
-  border-radius:0;
-}
-nav.tabs button:hover{color:var(--ink)}
-nav.tabs button[aria-selected="true"]{color:var(--accent); border-bottom-color:var(--accent)}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);padding-top:12px;border-bottom:1px solid var(--line)}
+.brand{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}
+.brand b{font:600 1rem var(--display)} .brand span{font-size:.78rem;color:var(--muted);white-space:nowrap}
+.rail{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}.rail::-webkit-scrollbar{display:none}
+.rail button{background:none;border:0;border-bottom:2px solid transparent;padding:7px 10px 9px;color:var(--muted);font-size:.82rem;font-weight:500;white-space:nowrap;cursor:pointer}
+.rail button:hover{color:var(--ink)} .rail button[aria-current="true"]{color:var(--accent);border-color:var(--accent)}
+.progress{height:2px;background:var(--line);margin-top:-1px}.progress i{display:block;height:100%;background:var(--accent);transition:width .2s}
 
-main{padding:22px 0 56px}
-section.view{display:flex; flex-direction:column; gap:22px}
-section.view[hidden]{display:none}
+main{padding:26px 0 24px}
+.slide{display:flex;flex-direction:column;gap:18px}.slide[hidden]{display:none}
+.eyebrow{font:500 .74rem var(--mono);letter-spacing:.04em;color:var(--warm);text-transform:uppercase}
+.lede{color:var(--muted);max-width:68ch;font-size:1rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;min-width:0}
+.card h3{margin-bottom:8px}
+.muted{color:var(--muted)} .small{font-size:.86rem}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:680px){.grid2,.grid3{grid-template-columns:minmax(0,1fr)}}
+ul.clean{margin:0;padding-left:18px} ul.clean li{margin-bottom:5px}
 
-.lede{color:var(--muted); font-size:.95rem; max-width:620px}
-.card{
-  background:var(--surface); border:1px solid var(--line); border-radius:10px;
-  padding:16px 18px;
-}
-.cardTitle{font-family:"Fraunces",serif; font-weight:600; font-size:1.05rem; margin:0 0 8px}
-.grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px}
-@media (max-width:620px){.grid2{grid-template-columns:1fr}}
+.kpi b{display:block;font:600 1.9rem/1.1 var(--display);font-variant-numeric:tabular-nums}
+.kpi span{font-size:.84rem;color:var(--muted)}
+.months{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.months{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:400px){.months{grid-template-columns:minmax(0,1fr)}}
+.mcard{display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:13px 14px;cursor:pointer;min-width:0}
+.mcard:hover{border-color:var(--accent)} .mcard b{font:600 1rem var(--display)} .mcard small{color:var(--muted);font-size:.82rem;line-height:1.4}
+.mcard .go{margin-top:auto;font-size:.76rem;font-weight:600;color:var(--accent)}
+.pill{display:inline-block;align-self:flex-start;font-size:.72rem;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.pill.good{background:var(--good-bg);color:var(--good)}.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.pill.risk{background:var(--risk-bg);color:var(--risk)}.pill.flat{background:var(--surface-2);color:var(--muted)}
 
-.pill{
-  display:inline-flex; align-items:center; gap:5px; font-size:.72rem; font-weight:600;
-  padding:3px 9px; border-radius:99px; letter-spacing:.02em;
-}
-.pill.good{background:var(--good-bg); color:var(--good)}
-.pill.warn{background:var(--warn-bg); color:var(--warn)}
-.pill.risk{background:var(--risk-bg); color:var(--risk)}
-.pill.flat{background:var(--surface-2); color:var(--muted)}
+.weeks{display:flex;gap:6px;flex-wrap:wrap}
+.weeks button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 12px;font-size:.84rem;cursor:pointer;text-align:left;font-weight:500}
+.weeks button:hover{border-color:var(--accent)}
+.weeks button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.weekbody{display:flex;flex-direction:column;gap:12px}
+.seg{display:inline-flex;flex-wrap:wrap;gap:2px;background:var(--surface-2);border-radius:8px;padding:2px}
+.seg button{border:0;background:none;padding:5px 10px;border-radius:6px;font-size:.8rem;cursor:pointer;color:var(--muted);font-weight:500}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.14)}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.ctrls label{font-size:.76rem;color:var(--muted)}
 
-/* decisions / questions as <details> */
-details.item{
-  background:var(--surface); border:1px solid var(--line); border-radius:10px;
-  padding:0; overflow:hidden;
-}
-details.item > summary{
-  list-style:none; cursor:pointer; padding:13px 16px; display:flex; align-items:center;
-  gap:10px; font-weight:500;
-}
-details.item > summary::-webkit-details-marker{display:none}
-details.item > summary::before{
-  content:"+"; font-family:"IBM Plex Mono",monospace; color:var(--accent); font-weight:600;
-  width:16px; text-align:center; flex:none; transition:transform .15s ease;
-}
-details.item[open] > summary::before{content:"–"}
-details.item .body{padding:0 16px 16px; color:var(--muted); font-size:.9rem}
-details.item .body p{margin:0 0 10px}
-details.item .body p:last-child{margin-bottom:0}
-.num{font-family:"IBM Plex Mono",monospace; color:var(--muted); font-size:.78rem; flex:none}
-.qTag{margin-left:auto; flex:none}
-
-.optList{margin:8px 0 0; padding-left:18px}
-.optList li{margin-bottom:4px}
-.askBox{
-  margin-top:10px; padding:9px 12px; background:var(--surface-2); border-radius:7px;
-  border-left:3px solid var(--warm); color:var(--ink); font-size:.88rem;
-}
-.askBox b{color:var(--warm)}
-
-table.lit{width:100%; border-collapse:collapse; font-size:.85rem}
-table.lit th{text-align:left; color:var(--muted); font-weight:500; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; padding:6px 8px; border-bottom:1px solid var(--line)}
-table.lit td{padding:9px 8px; border-bottom:1px solid var(--line); vertical-align:top}
-table.lit tr:last-child td{border-bottom:none}
-.tblwrap{overflow-x:auto}
-
-svg text{font-family:"IBM Plex Sans",sans-serif; fill:var(--ink)}
-.diagram{width:100%; height:auto; display:block}
-.node{fill:var(--surface); stroke:var(--line); stroke-width:1.5; rx:8}
-.node.target{stroke:var(--warm); stroke-width:2}
-.nodeLabel{font-size:12px; font-weight:600}
-.nodeSub{font-size:10.5px; fill:var(--muted)}
-.edge{stroke:var(--muted); stroke-width:1.4; fill:none; marker-end:url(#arrow)}
-.hoverZone{fill:transparent; cursor:pointer}
-.ruleCard{
-  position:absolute; max-width:260px; background:var(--surface); border:1px solid var(--line);
-  border-radius:8px; padding:10px 12px; font-size:.78rem; color:var(--muted); box-shadow:0 6px 18px rgba(0,0,0,.12);
-  pointer-events:none; opacity:0; transition:opacity .12s ease; z-index:5;
-}
-.ruleCard b{color:var(--ink); display:block; margin-bottom:3px; font-size:.82rem}
-.diagramWrap{position:relative}
-
-.floorStrip{position:relative; height:54px; margin:14px 0 6px}
-.floorBand{position:absolute; top:18px; height:18px; background:var(--good-bg); border-radius:4px}
-.floorMark{position:absolute; top:6px; width:2px; height:42px; background:var(--muted)}
-.floorMark .lbl{position:absolute; top:-18px; left:50%; transform:translateX(-50%); font-size:.68rem; color:var(--muted); white-space:nowrap}
-.floorPoint{position:absolute; top:14px; width:11px; height:11px; border-radius:50%; transform:translate(-50%,0); cursor:default}
-.floorPoint.in{background:var(--good)}
-.floorPoint.out{background:var(--risk)}
-.floorAxis{position:relative; height:16px; border-top:1px solid var(--line)}
-.floorAxis span{position:absolute; top:3px; font-size:.68rem; color:var(--muted); transform:translateX(-50%)}
-.legendRow{display:flex; gap:16px; flex-wrap:wrap; font-size:.78rem; color:var(--muted); margin-top:4px}
-.legendRow .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; vertical-align:middle}
-
-.sourceNote{color:var(--muted); font-size:.74rem; font-style:italic; margin-top:4px}
-blockquote.flag{
-  margin:0; padding:10px 14px; background:var(--risk-bg); border-left:3px solid var(--risk);
-  border-radius:0 7px 7px 0; color:var(--ink); font-size:.86rem;
-}
-footer.foot{color:var(--muted); font-size:.76rem; padding:30px 0 10px; border-top:1px solid var(--line); margin-top:10px}
-
-.tl{position:relative; padding-left:22px; margin:0}
-.tl::before{content:""; position:absolute; left:4px; top:4px; bottom:4px; width:2px; background:var(--line)}
-.tlItem{position:relative; padding-bottom:20px}
-.tlItem:last-child{padding-bottom:0}
-.tlItem::before{content:""; position:absolute; left:-22px; top:3px; width:11px; height:11px; border-radius:50%; background:var(--good); border:2px solid var(--bg)}
-.tlItem.current::before{background:var(--warm)}
-.tlItem.next::before{background:var(--line); border-color:var(--bg)}
-.tlHead{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
-.tlHead b{font-family:"Fraunces",serif; font-size:1rem; font-weight:600}
-.tlBody{color:var(--muted); font-size:.86rem; margin-top:4px; max-width:620px}
-
-.tlDetails{margin-top:8px}
-.tlDetails > summary{
-  list-style:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px;
-  font-size:.78rem; font-weight:600; color:var(--accent); padding:3px 0;
-}
-.tlDetails > summary::-webkit-details-marker{display:none}
-.tlDetails > summary::before{content:"+"; font-family:"IBM Plex Mono",monospace; width:13px; text-align:center}
-.tlDetails[open] > summary::before{content:"–"}
-.tlWeeks{margin:10px 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:9px; max-width:640px}
-.tlWeeks li{font-size:.84rem; color:var(--muted); padding-left:13px; border-left:2px solid var(--line)}
-.tlWeeks li b{color:var(--ink); font-weight:600}
-.tlWeeks .num{font-family:"IBM Plex Mono",monospace; color:var(--accent); font-weight:600; margin-right:4px}
-
-.chartLegend{display:flex; gap:18px; font-size:.78rem; color:var(--muted); margin:2px 0 10px}
-.chartLegend .sw{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; vertical-align:middle}
-.chartSvg{width:100%; height:auto; display:block; overflow:visible}
-.gridLine{stroke:var(--line); stroke-width:1}
-.axisLabel{font-size:10.5px; fill:var(--muted); font-family:"IBM Plex Sans",sans-serif}
-.barVal{font-size:10px; font-family:"IBM Plex Mono",monospace; fill:var(--ink)}
-.barRect{cursor:pointer}
-.chartTipBox{
-  position:absolute; background:var(--surface); border:1px solid var(--line); border-radius:7px;
-  padding:7px 10px; font-size:.76rem; color:var(--ink); pointer-events:none; opacity:0;
-  transition:opacity .1s ease; box-shadow:0 6px 18px rgba(0,0,0,.15); z-index:6; white-space:nowrap;
-}
-.chartTipBox b{display:block; font-size:.74rem; color:var(--muted); font-weight:500; margin-bottom:2px}
-.chartWrap{position:relative}
-.tableToggleBtn{
-  all:unset; cursor:pointer; font-size:.76rem; color:var(--accent); font-weight:600;
-  margin-top:6px; display:inline-block;
-}
-.tableToggleBtn:hover{text-decoration:underline}
-table.chartTable{width:100%; border-collapse:collapse; font-size:.82rem; margin-top:10px}
-table.chartTable th,table.chartTable td{padding:6px 9px; border-bottom:1px solid var(--line); text-align:right}
-table.chartTable th:first-child,table.chartTable td:first-child{text-align:left; color:var(--ink)}
-table.chartTable th{color:var(--muted); font-weight:500; font-size:.72rem; text-transform:uppercase; letter-spacing:.02em}
+.chart{position:relative;width:100%;min-width:0}
+.chart svg{display:block;width:100%;overflow:visible;touch-action:pan-y}
+.chart text{font-family:var(--body);font-size:11px;fill:var(--muted)}
+.chart text.v{font-family:var(--mono);font-size:10.5px;fill:var(--ink)}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.tip{position:absolute;z-index:6;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:6px 9px;font-size:.76rem;box-shadow:0 5px 16px rgba(0,0,0,.18);white-space:nowrap;opacity:0;transition:opacity .08s}
+.tip b{display:block;color:var(--muted);font-weight:500}.tip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.78rem;margin-bottom:6px}
+.legend button{background:none;border:0;padding:2px 0;cursor:pointer;color:var(--muted);display:inline-flex;align-items:center}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
+.legend button[aria-pressed="false"]{opacity:.4;text-decoration:line-through}
+.linkbtn{background:none;border:0;padding:4px 0;color:var(--accent);font-size:.76rem;font-weight:600;cursor:pointer;align-self:flex-start}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.84rem}
+th{font-weight:500;color:var(--muted);text-align:left;font-size:.74rem}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.heat{border-spacing:2px;border-collapse:separate;font-variant-numeric:tabular-nums;min-width:520px}
+.heat th,.heat td{border:0;padding:4px 2px;text-align:center;font-size:.72rem}
+.heat td{border-radius:3px;color:var(--ink);cursor:default}
+.src{font-size:.74rem;color:var(--muted);overflow-wrap:anywhere}
+.slide>*,.weekbody>*,.stack>*{min-width:0;max-width:100%}
+.note{background:var(--surface-2);border-radius:8px;padding:10px 13px;font-size:.87rem}
+.note b{color:var(--ink)}
+.note.risk{background:var(--risk-bg)} .note.warn{background:var(--warn-bg)}
+.so{border-left:3px solid var(--accent);padding:2px 0 2px 12px;font-size:.95rem}
+.check{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px;font-size:.9rem}
+.check li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px;align-items:start}
+.check .mark{font:600 .7rem var(--mono);padding:1px 6px;border-radius:4px;margin-top:2px;white-space:nowrap}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+.flow button{flex:1 1 120px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 10px;text-align:left;font-size:.82rem;cursor:pointer;min-width:0}
+.flow button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.flow b{display:block;font-weight:600;margin-bottom:2px}
+details.item{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+details.item>summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;font-weight:500}
+details.item>summary::-webkit-details-marker{display:none}
+details.item>summary .t{flex:1 1 240px;min-width:0}
+details.item>summary .num{font:500 .76rem var(--mono);color:var(--muted)}
+details.item .body{padding:0 14px 14px;display:flex;flex-direction:column;gap:9px;font-size:.9rem;color:var(--muted)}
+details.item .body b{color:var(--ink);font-weight:600}
+.stack{display:flex;flex-direction:column;gap:8px}
+.gantt{min-width:600px;display:flex;flex-direction:column;gap:5px;position:relative;font-size:.78rem}
+.gantt .row{display:grid;grid-template-columns:190px 1fr;gap:8px;align-items:center}
+.gantt .track{position:relative;height:18px;background:var(--surface-2);border-radius:4px}
+.gantt .bar{position:absolute;top:0;bottom:0;border-radius:4px;background:var(--line)}
+.gantt .bar.late{background:var(--c2)} .gantt .bar.now{background:var(--c4)} .gantt .bar.plan{background:var(--c1);opacity:.55}.gantt .bar.buf{background:var(--muted);opacity:.3}
+.gantt .today{position:absolute;top:0;bottom:0;width:2px;background:var(--ink)}
+.demo input[type=range]{width:100%;accent-color:var(--accent)}
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.steps button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 10px;font-size:.8rem;text-align:left;cursor:pointer}
+.steps button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+footer.bar{position:sticky;bottom:0;z-index:10;background:var(--bg);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0 max(10px,env(safe-area-inset-bottom,0px));margin-top:10px}
+footer.bar button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 14px;font-size:.84rem;font-weight:500;cursor:pointer}
+footer.bar button:disabled{opacity:.35;cursor:default}
+footer.bar button.primary{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+footer.bar span{font-size:.76rem;color:var(--muted);text-align:center}
+@media (max-width:680px){.gantt{min-width:0;gap:7px}.gantt .row{grid-template-columns:minmax(0,1fr);gap:2px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-
-<header class="top">
-  <div class="wrap">
-    <div class="titleRow">
-      <h1>Federated Unlearning Progress</h1>
-      <span class="meta">Updated November 2026 · <a href="index.html" style="font-weight:600">VI</a></span>
-    </div>
-    <nav class="tabs" id="tabs">
-      <button data-view="overview">Overview</button>
-      <button data-view="retrain">Retrain &amp; target client</button>
-      <button data-view="noisefloor">Noise floor</button>
-      <button data-view="decisions">13 decisions applied</button>
-      <button data-view="literature">November literature scan</button>
-      <button data-view="questions">Open decisions</button>
-    </nav>
-  </div>
-</header>
-
-<main class="wrap">
-
-  <section class="view" data-view="overview">
-    <p class="lede">This page summarizes the overall progress of the whole thesis — from the MNIST/CIFAR-10 baselines to the thesis's first federated unlearning mechanism — plus the November literature scan results and the open methodological decisions. Switch between sections with the tab bar above; each card can be expanded for detail.</p>
-
-    <div class="card">
-      <p class="cardTitle">Timeline, by month</p>
-      <div class="tl">
-        <div class="tlItem">
-          <div class="tlHead"><b>Month 1 — Foundations</b><span class="pill good">Done</span></div>
-          <p class="tlBody">Python/ML basics, baseline MLP and CNN on MNIST/CIFAR-10, SISA reading, Month 1 report.</p>
-          <details class="tlDetails">
-            <summary>Week-by-week detail</summary>
-            <ul class="tlWeeks">
-              <li><span class="num">W1</span><b>Logistic-regression baseline</b> on MNIST (70/15/15 split) — 92.20% accuracy, 92.09% F1. The "floor" every later model (MLP, CNN, FedAvg…) must beat to prove its improvement is real.</li>
-              <li><span class="num">W2</span>PyTorch fundamentals, <b>128-unit MLP</b> — 96.80% accuracy, 96.77% F1.</li>
-              <li><span class="num">W3</span><b>CNN baseline</b> — MNIST 98.60%, CIFAR-10 71.38% (two datasets of different difficulty, not a model-quality ranking).</li>
-              <li><span class="num">W4</span>SISA (machine unlearning) reading, Month 1 report, Gate 1 evidence audit (exact config reruns to verify the numbers match) — <b>Gate 1 passed</b>.</li>
-            </ul>
-          </details>
-        </div>
-        <div class="tlItem">
-          <div class="tlHead"><b>Month 2 — FedAvg</b><span class="pill good">Done</span></div>
-          <p class="tlBody">FedAvg implemented by hand (not using Flower for core results), cross-checked against Flower for reference only, first multi-client comparison with a K=10/E=2 configuration.</p>
-          <details class="tlDetails">
-            <summary>Week-by-week detail</summary>
-            <ul class="tlWeeks">
-              <li><span class="num">W5</span>Read the <b>FedAvg paper (McMahan 2017)</b> through a 6-question framework; learned FL concepts (round, client, aggregation, n<sub>k</sub>/n weighting).</li>
-              <li><span class="num">W6</span><b>FedAvg implemented by hand</b> (no framework).</li>
-              <li><span class="num">W7</span>Used <b>Flower</b> (an existing framework) for a transparent cross-check — reference only; the thesis's core results still come from the hand-written code.</li>
-              <li><span class="num">W8</span><b>First multi-client comparison:</b> Centralized 94.75% vs. hand-written FedAvg 90.99% (5 IID clients, −3.76pp gap) — not a bug, the real cost of distributed training. <b>Gate 2 passed</b> after running 2 more variants, K=10 and E=2.</li>
-            </ul>
-          </details>
-        </div>
-        <div class="tlItem">
-          <div class="tlHead"><b>Month 3 — Non-IID</b><span class="pill good">Done</span></div>
-          <p class="tlBody">Dirichlet(α) data partitioning, IID vs. Non-IID comparison, FedProx implemented (did not beat FedAvg in this setup). 7/8 questions reached a solid level; 1 remains partial, non-blocking (detail in the "Open decisions" tab).</p>
-          <details class="tlDetails">
-            <summary>Week-by-week detail</summary>
-            <ul class="tlWeeks">
-              <li><span class="num">W9</span><b>Shard-based Non-IID</b> partitioning (each client sees only 1-2 digits) — accuracy falls from 90.99% (IID) to 64.01% (−26.98pp), clear evidence of "client drift".</li>
-              <li><span class="num">W10</span><b>Dirichlet(α)</b> partitioning — severity rises nonlinearly: α=1.0 (−4.17pp), α=0.5 (−4.93pp), α=0.1 (−23.16pp), against an IID baseline gap of −3.77pp. See the chart below.</li>
-              <li><span class="num">W11</span><b>FedProx</b> implemented — did not beat FedAvg at any swept μ (0.01 / 0.1 / 1.0) under α=0.1; the negative result is reported plainly, with 3 checks ruling out an implementation bug.</li>
-              <li><span class="num">W12</span><b>Closing benchmark:</b> FedProx (μ=0.01) stays slightly below FedAvg at every setting, including IID. Gate 3 self-check drafted (8 questions) — <b>Gate 3 passed after follow-ups</b> (7/8 solid, 1 still open — see the "Open decisions" tab).</li>
-            </ul>
-          </details>
-        </div>
-        <div class="tlItem current">
-          <div class="tlHead"><b>Month 4, Week 13–14 — Retrain &amp; noise floor</b><span class="pill warn">In progress</span></div>
-          <p class="tlBody">The thesis's first federated unlearning mechanism: a Retrain runner (M<sub>retrain</sub><sup>(−A)</sup>), a target-client selection method, and a noise floor to measure "how close to retrain". Coded and tested (180 tests pass), the <b style="color:var(--ink)">canonical grid has not run yet</b> — see the next two tabs for detail. A full review of everything covered so far is now complete (from the foundations through Week 14); the three core functions of this stage have been walked through and sit at a "can follow it step by step" understanding, needing to reach "can explain it back unaided" before the canonical grid can run.</p>
-          <details class="tlDetails">
-            <summary>Week-by-week detail</summary>
-            <ul class="tlWeeks">
-              <li><span class="num">W13</span>A simple <b>centralized retrain</b> (not the real gold standard) — a stepping stone before building the proper federated version.</li>
-              <li><span class="num">W14</span><b>Federated retrain</b> + target-client selection (T1/T2/T3) + <b>noise floor</b> + <b>forgetting metrics</b> — full detail in the "Retrain & target client" and "Noise floor" tabs.</li>
-            </ul>
-          </details>
-        </div>
-        <div class="tlItem next">
-          <div class="tlHead"><b>Next — PGA, FedEraser, proposed method</b><span class="pill flat">Not started</span></div>
-          <p class="tlBody">The two required baselines (PGA, FedEraser) will be built after the canonical Retrain grid runs; then the thesis's proposed method (conditioning PGA/FedEraser intensity on the target's Non-IID severity).</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <p class="cardTitle">How Non-IID affects accuracy (Weeks 10–12)</p>
-      <p style="color:var(--muted); font-size:.88rem; margin:0 0 12px">Same data, same model — only the severity changes (the smaller α, the more clients' data differs). This is exactly the motivation for the thesis's proposed method: the stronger the Non-IID skew, the more the unlearning algorithm needs to "know" about it.</p>
-      <div class="chartLegend">
-        <span><span class="sw" style="background:var(--chart-1)"></span>FedAvg</span>
-        <span><span class="sw" style="background:var(--chart-2)"></span>FedProx (μ=0.01)</span>
-      </div>
-      <div class="chartWrap">
-        <svg viewBox="0 0 640 230" class="chartSvg" id="accChart" role="img" aria-label="Chart of FedAvg and FedProx accuracy across Non-IID severity"></svg>
-        <div class="chartTipBox" id="chartTip"></div>
-      </div>
-      <button type="button" class="tableToggleBtn" id="chartTableToggle">View as table</button>
-      <div class="tblwrap" id="chartTable" hidden>
-        <table class="chartTable">
-          <thead><tr><th>Severity</th><th>FedAvg</th><th>FedProx (μ=0.01)</th></tr></thead>
-          <tbody>
-            <tr><td>IID</td><td>90.99%</td><td>90.88%</td></tr>
-            <tr><td>Dirichlet α=1.0</td><td>90.59%</td><td>90.54%</td></tr>
-            <tr><td>Dirichlet α=0.5</td><td>89.83%</td><td>89.72%</td></tr>
-            <tr><td>Dirichlet α=0.1</td><td>71.60%</td><td>71.43%</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <p class="sourceNote" style="margin-top:8px">Source: the Gate 3 closing benchmark, Week 12 (<span class="mono">reports/month3_week12_benchmark.md</span>). Severity α=0.1 drops accuracy sharply (−19.4pp vs. IID) while α=1.0/0.5 stay nearly unchanged — matching Hsu et al.'s (2019) own nonlinear finding.</p>
-    </div>
-
-    <div class="grid2">
-      <div class="card">
-        <p class="cardTitle">Completed at the current stage</p>
-        <ul style="margin:0; padding-left:18px; color:var(--muted); font-size:.9rem">
-          <li>The <b style="color:var(--ink)">federated retrain</b> runner (M and M<sub>retrain</sub><sup>(−A)</sup>) — the gold-standard reference model for every later unlearning comparison.</li>
-          <li>A <b style="color:var(--ink)">target-client selection</b> mechanism with 3 fixed rules (T1/T2/T3), chosen before any result is seen.</li>
-          <li><b style="color:var(--ink)">Noise floor</b> — the thesis's own convention for telling "looks like retrain" apart from "has actually forgotten".</li>
-          <li>13 design decisions applied to the code/config (detail in its own tab).</li>
-          <li>A scan of 5 new papers (November) — none directly threaten the thesis's contribution.</li>
-        </ul>
-      </div>
-      <div class="card">
-        <p class="cardTitle">Not yet done / pending a decision</p>
-        <ul style="margin:0; padding-left:18px; color:var(--muted); font-size:.9rem">
-          <li><b style="color:var(--ink)">PGA</b> and <b style="color:var(--ink)">FedEraser</b> — the two required baselines in the research plan — are not implemented yet; this is the next step once the canonical Retrain grid is done.</li>
-          <li><code>target_selection_rule</code> (T1/T2/T3) is still left blank in the canonical configs — pending a choice of direction.</li>
-          <li>The three core Week 13–14 functions (Retrain, forgetting metrics, noise floor) are only at a "can follow it step by step" understanding — the thesis's own rule requires "can explain it back unaided" before the canonical grid can run.</li>
-          <li>8 open methodological decisions, needed before running the official grid (see "Open decisions" tab).</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="card">
-      <p class="cardTitle">Why Retrain has to come before PGA/FedEraser</p>
-      <p style="color:var(--muted); font-size:.9rem; margin:0">
-        Any claim of the form "method X makes the model forget client A" only means something when compared against
-        M<sub>retrain</sub><sup>(−A)</sup> — a model trained from scratch that never saw A's data.
-        This is the gold standard: without it there is no basis to say whether PGA or FedEraser actually works.
-        That is why Week 13–14 focused on building the Retrain pipeline and a way to measure "how close to retrain"
-        before touching any real unlearning algorithm.
-      </p>
-    </div>
-  </section>
-
-  <section class="view" data-view="retrain" hidden>
-    <p class="lede">Both models are trained from the same starting point (w<sub>0</sub>) and the same seed; the only difference is whether the target client A takes part in training. Hover (or tap) each rule button to see how A is chosen.</p>
-
-    <div class="diagramWrap">
-      <svg viewBox="0 0 760 230" class="diagram" id="retrainDiagram" role="img" aria-label="Diagram comparing M and M retrain excluding A">
-        <defs>
-          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--muted)"></path></marker>
-        </defs>
-        <!-- w0 -->
-        <rect x="20" y="95" width="110" height="46" class="node" rx="8"></rect>
-        <text x="75" y="115" text-anchor="middle" class="nodeLabel">w₀</text>
-        <text x="75" y="130" text-anchor="middle" class="nodeSub">shared init</text>
-
-        <!-- arrows to M and retrain -->
-        <path d="M130,105 C190,70 230,55 270,50" class="edge"></path>
-        <path d="M130,135 C190,170 230,185 270,190" class="edge"></path>
-
-        <!-- M (all clients) -->
-        <rect x="270" y="24" width="190" height="56" class="node"></rect>
-        <text x="365" y="47" text-anchor="middle" class="nodeLabel">M — all 10 clients</text>
-        <text x="365" y="64" text-anchor="middle" class="nodeSub">FedAvg, R rounds, same seed</text>
-
-        <!-- Retrain (exclude A) -->
-        <rect x="270" y="164" width="190" height="56" class="node target"></rect>
-        <text x="365" y="187" text-anchor="middle" class="nodeLabel">M_retrain⁻ᴬ — minus client A</text>
-        <text x="365" y="204" text-anchor="middle" class="nodeSub">remaining 9 clients, same seed</text>
-
-        <!-- arrow to comparison -->
-        <path d="M460,52 C560,80 600,95 630,110" class="edge"></path>
-        <path d="M460,192 C560,160 600,135 630,120" class="edge"></path>
-        <rect x="620" y="94" width="120" height="42" class="node" style="stroke:var(--accent)"></rect>
-        <text x="680" y="112" text-anchor="middle" class="nodeLabel" style="fill:var(--accent)">Compare</text>
-        <text x="680" y="126" text-anchor="middle" class="nodeSub">noise floor</text>
-      </svg>
-
-      <div style="display:flex; gap:10px; margin-top:4px; flex-wrap:wrap">
-        <button type="button" class="ruleBtn" data-rule="t1" style="all:unset; cursor:pointer; font-size:.78rem; padding:6px 11px; border:1px solid var(--line); border-radius:99px; color:var(--muted)">T1 · median size</button>
-        <button type="button" class="ruleBtn" data-rule="t2" style="all:unset; cursor:pointer; font-size:.78rem; padding:6px 11px; border:1px solid var(--line); border-radius:99px; color:var(--muted)">T2 · largest client</button>
-        <button type="button" class="ruleBtn" data-rule="t3" style="all:unset; cursor:pointer; font-size:.78rem; padding:6px 11px; border:1px solid var(--line); border-radius:99px; color:var(--muted)">T3 · highest single-class share</button>
-      </div>
-      <div class="card" id="ruleDetail" style="margin-top:10px">
-        <p class="cardTitle" id="ruleDetailTitle">T1 · median size</p>
-        <p id="ruleDetailText" style="color:var(--muted); font-size:.88rem; margin:0">Sorts clients by (sample count, ID), picks the client at the median position. With 10 clients (an even number), the current rule takes the <b>lower median</b> — a convention not specified in the research plan, pending confirmation.</p>
-      </div>
-    </div>
-
-    <div class="card">
-      <p class="cardTitle">Why choose before training?</p>
-      <p style="color:var(--muted); font-size:.9rem; margin:0">Rules T1/T2/T3 are applied to the <i>data partition</i>, never to the results — avoiding a repeat of an earlier issue when choosing the μ hyperparameter (picking after seeing good results biases the conclusion). Both canonical configs currently leave <code>target_selection_rule: null</code> on purpose; the runner refuses to start as-is — this is one of the points pending confirmation.</p>
-    </div>
-  </section>
-
-  <section class="view" data-view="noisefloor" hidden>
-    <p class="lede">
-      Even two retrains that are otherwise identical (both excluding client A) end up as slightly different models, purely because of a different random seed. That difference is the <b>noise floor</b> — the threshold for calling a model "like retrain" or not.
-    </p>
-
-    <blockquote class="flag">
-      <b style="display:block; margin-bottom:3px">The thesis's own convention — no precedent found in the literature</b>
-      The noise-floor method (comparing every pair among several independent retrains to build a discrimination threshold) is this thesis's own proposal. The full <code>literature_matrix.md</code> and gap table were checked again: no FU paper in the catalog uses this exact approach to set a "looks like retrain" threshold. This is a point that needs confirmation before it becomes the thesis's main criterion.
-    </blockquote>
-
-    <div class="card">
-      <p class="cardTitle">The formula, in words</p>
-      <p style="color:var(--muted); font-size:.9rem">
-        Take 5 retrains excluding A with different seeds (the set 42 plus the 2 extra seeds already used by the main grid, times 2 ways of varying the seed). Compare the accuracy distance between every pair of retrains — that is the "natural spread" even though nothing is wrong. Threshold = mean + 2×standard deviation of those distances. A model M<sub>x</sub> counts as "inside the noise floor" (= looks like retrain, may have actually forgotten A) if its distance from the retrains does not exceed this threshold.
-      </p>
-      <p style="color:var(--muted); font-size:.9rem; margin:0">
-        The thesis runs <b>two floor variants at once</b>: Floor A only varies minibatch order (keeps the same initial weights); Floor B also varies the initial weights. Both are reported side by side, never merged into a single number.
-      </p>
-    </div>
-
-    <div class="card">
-      <p class="cardTitle">Illustrative example (smoke-test data, α = 0.1, not yet official numbers)</p>
-      <div class="floorStrip" id="floorStripA">
-        <div class="floorBand" id="floorBandA"></div>
-      </div>
-      <div class="floorAxis" id="floorAxisA"></div>
-      <p class="sourceNote">Floor A (minibatch order only) — M falls inside the floor on the target-dominant class (not enough data to conclude, N is small).</p>
-
-      <div class="floorStrip" id="floorStripB" style="margin-top:18px">
-        <div class="floorBand" id="floorBandB"></div>
-      </div>
-      <div class="floorAxis" id="floorAxisB"></div>
-      <p class="sourceNote">Floor B (also varies initial weights) — M falls <b>outside</b> the floor on the target-class and shared-class accuracy gap.</p>
-
-      <div class="legendRow">
-        <span><span class="dot" style="background:var(--good)"></span>inside floor (looks like retrain)</span>
-        <span><span class="dot" style="background:var(--risk)"></span>outside floor (clearly different)</span>
-      </div>
-      <p class="sourceNote" style="margin-top:8px">This is smoke-test data (2 rounds, uncommitted worktree) shown only to illustrate how to read the chart — not used for any thesis conclusion.</p>
-    </div>
-  </section>
-
-  <section class="view" data-view="decisions" hidden>
-    <p class="lede">13 points left open from earlier reviews have now been decided and applied to the code/config. Tap each item to see why.</p>
-
-    <div style="display:flex; flex-direction:column; gap:8px" id="decisionsList"></div>
-  </section>
-
-  <section class="view" data-view="literature" hidden>
-    <p class="lede">The monthly literature scan (automated, runs in the background) just completed its first pass: 5 papers published in October 2026 were verified and summarized. Overall verdict: <span class="pill good">none threaten the contribution</span> — but the gap to the closest neighbor is narrowing.</p>
-
-    <div class="tblwrap">
-      <table class="lit">
-        <thead><tr><th>Paper</th><th>Main focus</th><th>Relation to this thesis</th><th>Verdict</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><b>ATONE</b><br><span class="sourceNote">arXiv 2610.22584</span></td>
-            <td>Infers a faulty client from a delayed "symptom", without knowing the target in advance</td>
-            <td>Different problem setup: this thesis assumes the target A is known in advance</td>
-            <td><span class="pill good">No overlap</span></td>
-          </tr>
-          <tr>
-            <td><b>FairKMeans-FU</b><br><span class="sourceNote">arXiv 2610.13717</span></td>
-            <td>Fair unlearning for federated k-means clustering</td>
-            <td>Tabular data, not neural networks; an entirely different algorithm family</td>
-            <td><span class="pill good">No overlap</span></td>
-          </tr>
-          <tr>
-            <td><b>FedZOUL</b><br><span class="sourceNote">arXiv 2610.35211</span></td>
-            <td>Exact unlearning for zeroth-order federated optimization, removing individual samples</td>
-            <td>Removes samples, not whole clients; zeroth-order optimization differs from FedAvg</td>
-            <td><span class="pill good">Weak relevance</span></td>
-          </tr>
-          <tr>
-            <td><b>"Practical FU" (Qiao et al.)</b><br><span class="sourceNote">Alexandria Eng. J. 2026</span></td>
-            <td>Combines a knowledge-distillation anti-forgetting mechanism with a client-deletion mechanism</td>
-            <td>Same problem family (client-level unlearning); does not condition intensity on Non-IID severity</td>
-            <td><span class="pill warn">Watch — closest read this month</span></td>
-          </tr>
-          <tr>
-            <td><b>"Not All Retained Clients Are Equal"</b><br><span class="sourceNote">arXiv 2610.31786, NeurIPS 2026 workshop</span></td>
-            <td>Selects a <i>subset of clients</i> to take part in the retrain (instead of retraining with all remaining clients)</td>
-            <td>Shares the Retrain/FedEraser/GDFA baselines with this thesis; does not use PGA; reports no seeds/variance (not usable for quantitative comparison under this thesis's noise-floor convention)</td>
-            <td><span class="pill warn">Close problem, different mechanism</span></td>
-          </tr>
-          <tr>
-            <td><b>SURE (Split FU)</b><br><span class="sourceNote">arXiv 2610.36465</span></td>
-            <td>Unlearning for split federated learning (a model cut into a client-side and a server-side part)</td>
-            <td>Different system architecture (split FL, not plain FedAvg)</td>
-            <td><span class="pill good">No overlap</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="card">
-      <p class="cardTitle">Closest quantitative neighbor to watch: GDFA</p>
-      <p style="color:var(--muted); font-size:.9rem">
-        An earlier scan (not part of November) verified that <b>GDFA (CVPR 2026)</b> directly benchmarks PGA and SIFU — two methods this thesis also uses — on the same dataset family (MNIST/FMNIST/CIFAR-10/CIFAR-100), the same Dirichlet-α convention, and outperforms both at α = 0.5. However GDFA only tests <b>one α level</b> in its main results table, without sweeping the full IID→0.1 range — exactly the axis this thesis's proposed direction (conditioning intensity on the target's Non-IID severity) aims to exploit.
-      </p>
-      <p style="color:var(--muted); font-size:.9rem; margin:0">
-        Other papers checked earlier — <b>Lethe</b> (a benchmark, not a competing method; its finding reinforces exactly why this thesis needs noise-floor/MIA evidence) and <b>FedCCCU</b> (unlearns at the class-within-client level, not a whole client, with no Non-IID-severity parameter) — do not overlap directly either.
-      </p>
-    </div>
-  </section>
-
-  <section class="view" data-view="questions" hidden>
-    <p class="lede">8 open methodological decisions, needed before running the canonical experiment grid. Each item has brief context, the directions under consideration, and the decision that needs to be made.</p>
-    <div style="display:flex; flex-direction:column; gap:8px" id="questionsList"></div>
-  </section>
-
-  <footer class="foot">
-    Sources: <span class="mono">notes/changes/2026-10-10_*.md</span>, <span class="mono">literature/literature_matrix.md</span>, <span class="mono">literature/gap_table_draft.md</span>, open-decisions list drafted 2026-11-02.
-  </footer>
-</main>
-
-<div class="ruleCard" id="floatTip"></div>
-
-<script>
-(function(){
-  "use strict";
-
-  // ---------- tab navigation ----------
-  var tabs = document.getElementById('tabs');
-  var views = document.querySelectorAll('section.view');
-  var validViews = ['overview','retrain','noisefloor','decisions','literature','questions'];
-
-  function showView(name){
-    if (validViews.indexOf(name) === -1) name = 'overview';
-    views.forEach(function(v){ v.hidden = (v.getAttribute('data-view') !== name); });
-    tabs.querySelectorAll('button').forEach(function(b){
-      b.setAttribute('aria-selected', b.getAttribute('data-view') === name ? 'true':'false');
-    });
-  }
-  tabs.addEventListener('click', function(e){
-    var btn = e.target.closest('button[data-view]');
-    if(!btn) return;
-    var name = btn.getAttribute('data-view');
-    try { history.replaceState(null,'', '#'+name); } catch(e){}
-    showView(name);
-  });
-  var initial = (location.hash || '').replace('#','');
-  showView(initial || 'overview');
-
-  // ---------- target-selection rule explainer ----------
-  var ruleInfo = {
-    t1: {
-      title: "T1 · median size",
-      text: "Sorts clients by (sample count, ID), picks the client at the median position. With 10 clients (an even number), the current rule takes the <b>lower median</b> — a convention not specified in the research plan, pending confirmation."
+<header class="top"><div class="wrap">
+  <div class="brand"><b>Federated Unlearning Progress</b><span id="meta"></span></div>
+  <nav class="rail" id="rail" aria-label="Slides"></nav>
+</div><div class="progress"><i id="prog"></i></div></header>
+<main class="wrap" id="main"></main>
+<div class="wrap"><footer class="bar"><button id="prev"></button><span id="pos"></span><button id="next" class="primary"></button></footer></div>
+<script>const LANG="en",OTHER="vi",D={
+ "m1": {
+  "baselines": [
+   {
+    "id": "lr",
+    "acc": 0.9218,
+    "f1": 0.9207,
+    "dataset": "MNIST"
+   },
+   {
+    "id": "mlp",
+    "acc": 0.9682,
+    "f1": 0.967894,
+    "dataset": "MNIST"
+   },
+   {
+    "id": "cnn",
+    "acc": 0.9849,
+    "f1": 0.984847,
+    "dataset": "MNIST"
+   },
+   {
+    "id": "cifar",
+    "acc": 0.7054,
+    "f1": 0.703508,
+    "dataset": "CIFAR-10"
+   }
+  ],
+  "curves": {
+   "mlp": [
+    {
+     "e": 1,
+     "train": 0.88449,
+     "val": 0.926444
     },
-    t2: {
-      title: "T2 · largest client",
-      text: "Picks the client holding the most training samples; ties go to the lowest ID. This is the 'hardest' case for the system — it removes a large amount of data from the retrain."
+    {
+     "e": 2,
+     "train": 0.941157,
+     "val": 0.946667
     },
-    t3: {
-      title: "T3 · highest single-class share",
-      text: "Picks the client that holds the highest share of some one label (class) across the whole federation — directly tied to the 'target-dominant class' concept the thesis uses to evaluate per-class forgetting."
+    {
+     "e": 3,
+     "train": 0.957118,
+     "val": 0.956556
+    },
+    {
+     "e": 4,
+     "train": 0.966294,
+     "val": 0.959111
+    },
+    {
+     "e": 5,
+     "train": 0.972647,
+     "val": 0.964556
     }
+   ],
+   "cnn": [
+    {
+     "e": 1,
+     "train": 0.854569,
+     "val": 0.961222
+    },
+    {
+     "e": 2,
+     "train": 0.960098,
+     "val": 0.973
+    },
+    {
+     "e": 3,
+     "train": 0.971529,
+     "val": 0.982778
+    },
+    {
+     "e": 4,
+     "train": 0.976059,
+     "val": 0.982333
+    },
+    {
+     "e": 5,
+     "train": 0.979647,
+     "val": 0.985
+    }
+   ],
+   "cifar": [
+    {
+     "e": 1,
+     "train": 0.354933,
+     "val": 0.4786
+    },
+    {
+     "e": 2,
+     "train": 0.468178,
+     "val": 0.5438
+    },
+    {
+     "e": 3,
+     "train": 0.510756,
+     "val": 0.5794
+    },
+    {
+     "e": 4,
+     "train": 0.551022,
+     "val": 0.6136
+    },
+    {
+     "e": 5,
+     "train": 0.583356,
+     "val": 0.6514
+    },
+    {
+     "e": 6,
+     "train": 0.599267,
+     "val": 0.6746
+    },
+    {
+     "e": 7,
+     "train": 0.615644,
+     "val": 0.677
+    },
+    {
+     "e": 8,
+     "train": 0.632,
+     "val": 0.6946
+    },
+    {
+     "e": 9,
+     "train": 0.640511,
+     "val": 0.7056
+    },
+    {
+     "e": 10,
+     "train": 0.651911,
+     "val": 0.7116
+    }
+   ]
+  },
+  "perClass": {
+   "cnn": {
+    "0": 0.994898,
+    "1": 0.991189,
+    "2": 0.979651,
+    "3": 0.988119,
+    "4": 0.976578,
+    "5": 0.980942,
+    "6": 0.980167,
+    "7": 0.994163,
+    "8": 0.986653,
+    "9": 0.975223
+   },
+   "cifar": {
+    "airplane": 0.765,
+    "automobile": 0.879,
+    "bird": 0.52,
+    "cat": 0.532,
+    "deer": 0.606,
+    "dog": 0.616,
+    "frog": 0.849,
+    "horse": 0.802,
+    "ship": 0.744,
+    "truck": 0.741
+   }
+  }
+ },
+ "m2": {
+  "base": {
+   "K": 5,
+   "E": 1,
+   "R": 5,
+   "central": 0.9476,
+   "fedavg": 0.9099,
+   "gap": -0.0377,
+   "bytes": 20354000,
+   "curveC": [
+    {
+     "x": 0,
+     "y": 0.104222
+    },
+    {
+     "x": 1,
+     "y": 0.898333
+    },
+    {
+     "x": 2,
+     "y": 0.916889
+    },
+    {
+     "x": 3,
+     "y": 0.926778
+    },
+    {
+     "x": 4,
+     "y": 0.936778
+    },
+    {
+     "x": 5,
+     "y": 0.942889
+    }
+   ],
+   "curveF": [
+    {
+     "x": 0,
+     "y": 0.104222
+    },
+    {
+     "x": 1,
+     "y": 0.847333
+    },
+    {
+     "x": 2,
+     "y": 0.881222
+    },
+    {
+     "x": 3,
+     "y": 0.892889
+    },
+    {
+     "x": 4,
+     "y": 0.898778
+    },
+    {
+     "x": 5,
+     "y": 0.902778
+    }
+   ],
+   "clients": [
+    0.908,
+    0.915,
+    0.9095,
+    0.9135,
+    0.9035
+   ]
+  },
+  "e2": {
+   "K": 5,
+   "E": 2,
+   "R": 5,
+   "central": 0.9617,
+   "fedavg": 0.9231,
+   "gap": -0.0386,
+   "bytes": 20354000,
+   "curveC": [
+    {
+     "x": 0,
+     "y": 0.104222
+    },
+    {
+     "x": 1,
+     "y": 0.898333
+    },
+    {
+     "x": 2,
+     "y": 0.916889
+    },
+    {
+     "x": 3,
+     "y": 0.926778
+    },
+    {
+     "x": 4,
+     "y": 0.936778
+    },
+    {
+     "x": 5,
+     "y": 0.942889
+    },
+    {
+     "x": 6,
+     "y": 0.948556
+    },
+    {
+     "x": 7,
+     "y": 0.952333
+    },
+    {
+     "x": 8,
+     "y": 0.954333
+    },
+    {
+     "x": 9,
+     "y": 0.957111
+    },
+    {
+     "x": 10,
+     "y": 0.956556
+    }
+   ],
+   "curveF": [
+    {
+     "x": 0,
+     "y": 0.104222
+    },
+    {
+     "x": 2,
+     "y": 0.881333
+    },
+    {
+     "x": 4,
+     "y": 0.897222
+    },
+    {
+     "x": 6,
+     "y": 0.908333
+    },
+    {
+     "x": 8,
+     "y": 0.913778
+    },
+    {
+     "x": 10,
+     "y": 0.919
+    }
+   ],
+   "clients": [
+    0.9185,
+    0.93,
+    0.9215,
+    0.9245,
+    0.921
+   ]
+  },
+  "k10": {
+   "K": 10,
+   "E": 1,
+   "R": 5,
+   "central": 0.9476,
+   "fedavg": 0.8955,
+   "gap": -0.0521,
+   "bytes": 40708000,
+   "curveC": [
+    {
+     "x": 0,
+     "y": 0.104222
+    },
+    {
+     "x": 1,
+     "y": 0.898333
+    },
+    {
+     "x": 2,
+     "y": 0.916889
+    },
+    {
+     "x": 3,
+     "y": 0.926778
+    },
+    {
+     "x": 4,
+     "y": 0.936778
+    },
+    {
+     "x": 5,
+     "y": 0.942889
+    }
+   ],
+   "curveF": [
+    {
+     "x": 0,
+     "y": 0.104222
+    },
+    {
+     "x": 1,
+     "y": 0.782667
+    },
+    {
+     "x": 2,
+     "y": 0.846556
+    },
+    {
+     "x": 3,
+     "y": 0.868556
+    },
+    {
+     "x": 4,
+     "y": 0.880778
+    },
+    {
+     "x": 5,
+     "y": 0.888889
+    }
+   ],
+   "clients": [
+    0.902,
+    0.891,
+    0.912,
+    0.889,
+    0.901,
+    0.879,
+    0.879,
+    0.909,
+    0.89,
+    0.903
+   ]
+  }
+ },
+ "m3": {
+  "settings": {
+   "iid": {
+    "hist": [
+     [
+      1017,
+      1151,
+      980,
+      1019,
+      1008,
+      941,
+      1028,
+      1072,
+      957,
+      1027
+     ],
+     [
+      974,
+      1179,
+      1025,
+      1041,
+      1026,
+      915,
+      950,
+      1067,
+      1011,
+      1012
+     ],
+     [
+      991,
+      1131,
+      1010,
+      1042,
+      999,
+      924,
+      1037,
+      1056,
+      980,
+      1030
+     ],
+     [
+      988,
+      1157,
+      1037,
+      1025,
+      972,
+      919,
+      1013,
+      1038,
+      1025,
+      1026
+     ],
+     [
+      1067,
+      1106,
+      1015,
+      1082,
+      953,
+      947,
+      1008,
+      1057,
+      996,
+      969
+     ]
+    ],
+    "acc": 0.9099,
+    "f1": 0.9086183032669919,
+    "gap": -0.037699999999999956,
+    "curve": [
+     {
+      "x": 1,
+      "y": 0.8546
+     },
+     {
+      "x": 2,
+      "y": 0.8883
+     },
+     {
+      "x": 3,
+      "y": 0.8985
+     },
+     {
+      "x": 4,
+      "y": 0.9045
+     },
+     {
+      "x": 5,
+      "y": 0.9099
+     }
+    ]
+   },
+   "1.0": {
+    "hist": [
+     [
+      1141,
+      2332,
+      258,
+      367,
+      1032,
+      1092,
+      1825,
+      318,
+      84,
+      425
+     ],
+     [
+      1281,
+      606,
+      2078,
+      323,
+      166,
+      1536,
+      2011,
+      1374,
+      1856,
+      1664
+     ],
+     [
+      417,
+      422,
+      651,
+      583,
+      532,
+      1048,
+      385,
+      1765,
+      244,
+      390
+     ],
+     [
+      1405,
+      101,
+      1466,
+      1905,
+      1293,
+      353,
+      561,
+      1211,
+      2404,
+      180
+     ],
+     [
+      793,
+      2263,
+      614,
+      2031,
+      1935,
+      617,
+      254,
+      622,
+      381,
+      2405
+     ]
+    ],
+    "acc": 0.9059,
+    "f1": 0.904419816298301,
+    "gap": -0.04169999999999996,
+    "curve": [
+     {
+      "x": 1,
+      "y": 0.8382
+     },
+     {
+      "x": 2,
+      "y": 0.8828
+     },
+     {
+      "x": 3,
+      "y": 0.8858
+     },
+     {
+      "x": 4,
+      "y": 0.9031
+     },
+     {
+      "x": 5,
+      "y": 0.9059
+     }
+    ]
+   },
+   "0.5": {
+    "hist": [
+     [
+      879,
+      1018,
+      18,
+      396,
+      591,
+      2770,
+      1138,
+      1404,
+      792,
+      222
+     ],
+     [
+      403,
+      1295,
+      1942,
+      2027,
+      146,
+      434,
+      347,
+      1,
+      1,
+      1763
+     ],
+     [
+      712,
+      828,
+      181,
+      227,
+      2,
+      8,
+      3432,
+      0,
+      658,
+      1392
+     ],
+     [
+      2494,
+      471,
+      398,
+      2543,
+      3641,
+      1433,
+      73,
+      2716,
+      1443,
+      1502
+     ],
+     [
+      549,
+      2112,
+      2528,
+      16,
+      578,
+      1,
+      46,
+      1169,
+      2075,
+      185
+     ]
+    ],
+    "acc": 0.8983,
+    "f1": 0.8968219853701587,
+    "gap": -0.04930000000000001,
+    "curve": [
+     {
+      "x": 1,
+      "y": 0.7048
+     },
+     {
+      "x": 2,
+      "y": 0.8406
+     },
+     {
+      "x": 3,
+      "y": 0.8774
+     },
+     {
+      "x": 4,
+      "y": 0.8894
+     },
+     {
+      "x": 5,
+      "y": 0.8983
+     }
+    ]
+   },
+   "0.1": {
+    "hist": [
+     [
+      56,
+      612,
+      0,
+      11,
+      771,
+      4642,
+      28,
+      0,
+      10,
+      1
+     ],
+     [
+      1,
+      1207,
+      1851,
+      5197,
+      765,
+      1,
+      1,
+      0,
+      0,
+      2177
+     ],
+     [
+      20,
+      313,
+      0,
+      1,
+      516,
+      2,
+      5001,
+      4848,
+      4,
+      1320
+     ],
+     [
+      4955,
+      33,
+      5,
+      0,
+      2888,
+      0,
+      6,
+      440,
+      4955,
+      1566
+     ],
+     [
+      5,
+      3559,
+      3211,
+      0,
+      18,
+      1,
+      0,
+      2,
+      0,
+      0
+     ]
+    ],
+    "acc": 0.716,
+    "f1": 0.6680933458065617,
+    "gap": -0.23160000000000003,
+    "curve": [
+     {
+      "x": 1,
+      "y": 0.3187
+     },
+     {
+      "x": 2,
+      "y": 0.4802
+     },
+     {
+      "x": 3,
+      "y": 0.592
+     },
+     {
+      "x": 4,
+      "y": 0.6761
+     },
+     {
+      "x": 5,
+      "y": 0.716
+     }
+    ]
+   },
+   "shards": {
+    "hist": [
+     [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      167,
+      4969,
+      5064
+     ],
+     [
+      0,
+      5100,
+      0,
+      637,
+      4463,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      495,
+      4646,
+      5036,
+      23,
+      0,
+      0
+     ],
+     [
+      5037,
+      63,
+      0,
+      0,
+      0,
+      0,
+      0,
+      5100,
+      0,
+      0
+     ],
+     [
+      0,
+      561,
+      5067,
+      4572,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ]
+    ],
+    "acc": 0.6401,
+    "f1": 0.5779624680285664,
+    "gap": -0.3075,
+    "curve": [
+     {
+      "x": 1,
+      "y": 0.3419
+     },
+     {
+      "x": 2,
+      "y": 0.4105
+     },
+     {
+      "x": 3,
+      "y": 0.5157
+     },
+     {
+      "x": 4,
+      "y": 0.5874
+     },
+     {
+      "x": 5,
+      "y": 0.6401
+     }
+    ]
+   }
+  },
+  "sweep": {
+   "e1": {
+    "0": 0.716,
+    "0.01": 0.7143,
+    "0.1": 0.6965,
+    "1.0": 0.6015
+   },
+   "e5": {
+    "0": 0.7628,
+    "0.01": 0.7533,
+    "0.1": 0.6965,
+    "1.0": 0.573
+   }
+  },
+  "bench": {
+   "iid": {
+    "fedavg": 0.9099,
+    "fedprox": 0.9088
+   },
+   "1.0": {
+    "fedavg": 0.9059,
+    "fedprox": 0.9054
+   },
+   "0.5": {
+    "fedavg": 0.8983,
+    "fedprox": 0.8972
+   },
+   "0.1": {
+    "fedavg": 0.716,
+    "fedprox": 0.7143
+   }
+  },
+  "bytes": 20354000
+ },
+ "m4": {
+  "a01": {
+   "sizes": [
+    653,
+    468,
+    533,
+    244,
+    332,
+    880,
+    629,
+    21,
+    1167,
+    73
+   ],
+   "t1": 1,
+   "t2": 8,
+   "t3": 0,
+   "t3class": 4,
+   "t3share": 0.9892241379310345,
+   "dominant": [
+    2
+   ],
+   "floors": {
+    "A": {
+     "global_test": {
+      "n": 1000,
+      "pairD": [
+       27,
+       50,
+       23
+      ],
+      "pairA": [
+       849,
+       851,
+       932
+      ],
+      "limD": 62.47665732585919,
+      "limA": 782.6267689709127,
+      "mD": [
+       26,
+       1,
+       24
+      ],
+      "mA": [
+       914,
+       844,
+       884
+      ],
+      "pcD": false,
+      "pcA": false
+     },
+     "target_client": {
+      "n": 468,
+      "pairD": [
+       4,
+       8,
+       4
+      ],
+      "pairA": [
+       335,
+       349,
+       402
+      ],
+      "limD": 9.952135486850338,
+      "limA": 291.31761181171083,
+      "mD": [
+       10,
+       6,
+       2
+      ],
+      "mA": [
+       370,
+       343,
+       407
+      ],
+      "pcD": false,
+      "pcA": false
+     },
+     "non_target_clients": {
+      "n": 4532,
+      "pairD": [
+       221,
+       360,
+       139
+      ],
+      "pairA": [
+       3688,
+       3713,
+       4147
+      ],
+      "limD": 463.4367919569201,
+      "limA": 3333.1537780104463,
+      "mD": [
+       153,
+       68,
+       207
+      ],
+      "mA": [
+       4072,
+       3590,
+       3801
+      ],
+      "pcD": false,
+      "pcA": false
+     },
+     "target_client_dominant_classes": {
+      "n": 395,
+      "pairD": [
+       0,
+       0,
+       0
+      ],
+      "pairA": [
+       280,
+       291,
+       341
+      ],
+      "limD": 0.0,
+      "limA": 238.97692717196458,
+      "mD": [
+       0,
+       0,
+       0
+      ],
+      "mA": [
+       312,
+       291,
+       343
+      ],
+      "pcD": false,
+      "pcA": false
+     },
+     "target_client_shared_classes": {
+      "n": 73,
+      "pairD": [
+       4,
+       8,
+       4
+      ],
+      "pairA": [
+       55,
+       58,
+       61
+      ],
+      "limD": 9.952135486850338,
+      "limA": 52.0,
+      "mD": [
+       10,
+       6,
+       2
+      ],
+      "mA": [
+       58,
+       52,
+       64
+      ],
+      "pcD": false,
+      "pcA": false
+     }
+    },
+    "B": {
+     "global_test": {
+      "n": 1000,
+      "pairD": [
+       14,
+       6,
+       8
+      ],
+      "pairA": [
+       689,
+       628,
+       722
+      ],
+      "limD": 17.659997331197864,
+      "limA": 584.2867246802441,
+      "mD": [
+       26,
+       12,
+       20
+      ],
+      "mA": [
+       914,
+       676,
+       600
+      ],
+      "pcD": false,
+      "pcA": false
+     },
+     "target_client": {
+      "n": 468,
+      "pairD": [
+       5,
+       7,
+       2
+      ],
+      "pairA": [
+       188,
+       189,
+       246
+      ],
+      "limD": 9.699889623513833,
+      "limA": 141.2638554811955,
+      "mD": [
+       10,
+       15,
+       17
+      ],
+      "mA": [
+       370,
+       190,
+       190
+      ],
+      "pcD": true,
+      "pcA": false
+     },
+     "non_target_clients": {
+      "n": 4532,
+      "pairD": [
+       107,
+       46,
+       61
+      ],
+      "pairA": [
+       3108,
+       2955,
+       3210
+      ],
+      "limD": 134.90481540928727,
+      "limA": 2834.3056292007946,
+      "mD": [
+       153,
+       46,
+       107
+      ],
+      "mA": [
+       4072,
+       2912,
+       2780
+      ],
+      "pcD": false,
+      "pcA": false
+     },
+     "target_client_dominant_classes": {
+      "n": 395,
+      "pairD": [
+       0,
+       0,
+       0
+      ],
+      "pairA": [
+       142,
+       154,
+       214
+      ],
+      "limD": 0.0,
+      "limA": 92.85079391205636,
+      "mD": [
+       0,
+       0,
+       0
+      ],
+      "mA": [
+       312,
+       151,
+       162
+      ],
+      "pcD": false,
+      "pcA": false
+     },
+     "target_client_shared_classes": {
+      "n": 73,
+      "pairD": [
+       5,
+       7,
+       2
+      ],
+      "pairA": [
+       46,
+       35,
+       32
+      ],
+      "limD": 9.699889623513833,
+      "limA": 22.92443707500268,
+      "mD": [
+       10,
+       15,
+       17
+      ],
+      "mA": [
+       58,
+       39,
+       28
+      ],
+      "pcD": true,
+      "pcA": false
+     }
+    }
+   },
+   "accM": 0.412,
+   "accR": 0.386,
+   "rounds": 2,
+   "train": 5000
+  },
+  "iid": {
+   "sizes": [
+    500,
+    500,
+    500,
+    500,
+    500,
+    500,
+    500,
+    500,
+    500,
+    500
+   ],
+   "t1": 4,
+   "t2": 0,
+   "t3": 5,
+   "t3class": 9,
+   "t3share": 0.13043478260869565,
+   "dominant": [],
+   "floors": {
+    "A": {
+     "global_test": {
+      "n": 1000,
+      "pairD": [
+       11,
+       17,
+       6
+      ],
+      "pairA": [
+       980,
+       968,
+       978
+      ],
+      "limD": 22.348474427905536,
+      "limA": 962.4751323186761,
+      "mD": [
+       21,
+       10,
+       4
+      ],
+      "mA": [
+       955,
+       971,
+       961
+      ],
+      "pcD": false,
+      "pcA": false
+     },
+     "target_client": {
+      "n": 500,
+      "pairD": [
+       6,
+       8,
+       2
+      ],
+      "pairA": [
+       489,
+       484,
+       493
+      ],
+      "limD": 11.443434259941121,
+      "limA": 479.6481671610209,
+      "mD": [
+       14,
+       8,
+       6
+      ],
+      "mA": [
+       478,
+       489,
+       486
+      ],
+      "pcD": false,
+      "pcA": false
+     },
+     "non_target_clients": {
+      "n": 4500,
+      "pairD": [
+       40,
+       26,
+       14
+      ],
+      "pairA": [
+       4424,
+       4400,
+       4428
+      ],
+      "limD": 52.69229506125751,
+      "limA": 4387.045822155732,
+      "mD": [
+       83,
+       43,
+       57
+      ],
+      "mA": [
+       4356,
+       4399,
+       4366
+      ],
+      "pcD": false,
+      "pcA": false
+     },
+     "target_client_dominant_classes": {
+      "n": 0
+     },
+     "target_client_shared_classes": {
+      "n": 500,
+      "pairD": [
+       6,
+       8,
+       2
+      ],
+      "pairA": [
+       489,
+       484,
+       493
+      ],
+      "limD": 11.443434259941121,
+      "limA": 479.6481671610209,
+      "mD": [
+       14,
+       8,
+       6
+      ],
+      "mA": [
+       478,
+       489,
+       486
+      ],
+      "pcD": false,
+      "pcA": false
+     }
+    },
+    "B": {
+     "global_test": {
+      "n": 1000,
+      "pairD": [
+       118,
+       132,
+       14
+      ],
+      "pairA": [
+       600,
+       428,
+       518
+      ],
+      "limD": 216.9340916902896,
+      "limA": 343.2713290054361,
+      "mD": [
+       21,
+       97,
+       111
+      ],
+      "mA": [
+       955,
+       605,
+       436
+      ],
+      "pcD": false,
+      "pcA": false
+     },
+     "target_client": {
+      "n": 500,
+      "pairD": [
+       62,
+       69,
+       7
+      ],
+      "pairA": [
+       283,
+       206,
+       249
+      ],
+      "limD": 113.91170738539859,
+      "limA": 168.82487447370104,
+      "mD": [
+       14,
+       48,
+       55
+      ],
+      "mA": [
+       478,
+       287,
+       211
+      ],
+      "pcD": false,
+      "pcA": false
+     },
+     "non_target_clients": {
+      "n": 4500,
+      "pairD": [
+       533,
+       560,
+       27
+      ],
+      "pairA": [
+       2679,
+       2159,
+       2408
+      ],
+      "limD": 973.8075903446838,
+      "limA": 1895.1782282604972,
+      "mD": [
+       83,
+       450,
+       477
+      ],
+      "mA": [
+       4356,
+       2710,
+       2178
+      ],
+      "pcD": false,
+      "pcA": false
+     },
+     "target_client_dominant_classes": {
+      "n": 0
+     },
+     "target_client_shared_classes": {
+      "n": 500,
+      "pairD": [
+       62,
+       69,
+       7
+      ],
+      "pairA": [
+       283,
+       206,
+       249
+      ],
+      "limD": 113.91170738539859,
+      "limA": 168.82487447370104,
+      "mD": [
+       14,
+       48,
+       55
+      ],
+      "mA": [
+       478,
+       287,
+       211
+      ],
+      "pcD": false,
+      "pcA": false
+     }
+    }
+   },
+   "accM": 0.379,
+   "accR": 0.358,
+   "rounds": 2,
+   "train": 5000
+  },
+  "week13Run": false
+ },
+ "tests": 180
+};</script>
+<script>"use strict";
+const t = (vi, en) => (LANG === "vi" ? vi : en);
+const num = (x, d = 2) => { const s = x.toFixed(d); return LANG === "vi" ? s.replace(".", ",") : s; };
+const pct = (x, d = 2) => num(x * 100, d) + "%";
+const pp = (x, d = 2) => (x < 0 ? "−" : "+") + num(Math.abs(x) * 100, d) + t(" điểm %", " pp");
+const mb = (b) => num(b / 1e6, 1) + " MB";
+const SVG = "http://www.w3.org/2000/svg";
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const S3 = D.m3.settings, M2 = D.m2, M4 = D.m4;
+const SNAME = { iid: "IID", "1.0": "α = " + num(1, 1), "0.5": "α = " + num(0.5, 1), "0.1": "α = " + num(0.1, 1), shards: t("Shard", "Shards") };
+
+/* ---------- chart primitives: redrawn at real pixel width so labels stay legible on phones ---------- */
+const mounts = new Set();
+function mount(host, draw) {
+  const m = { host, draw };
+  mounts.add(m);
+  const go = () => { if (host.clientWidth > 0) { host.innerHTML = ""; draw(host, host.clientWidth); } };
+  let lastW = -1;
+  new ResizeObserver(() => { if (host.clientWidth !== lastW) { lastW = host.clientWidth; go(); } }).observe(host);
+  const first = () => { if (host.isConnected && host.clientWidth > 0 && !host.firstChild) { lastW = host.clientWidth; go(); } };
+  setTimeout(first, 0); requestAnimationFrame(first);
+  return { redraw: go };
+}
+function svgEl(name, attrs, parent, text) {
+  const e = document.createElementNS(SVG, name);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text != null) e.textContent = text;
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function tipper(host) {
+  const tip = el("div", "tip"); host.appendChild(tip);
+  return {
+    show(html, x, y) {
+      tip.innerHTML = html; tip.style.opacity = 1;
+      const w = tip.offsetWidth, W = host.clientWidth;
+      tip.style.left = Math.max(0, Math.min(W - w, x + 12 + w > W ? x - w - 12 : x + 12)) + "px";
+      tip.style.top = Math.max(0, y - 34) + "px";
+    },
+    hide() { tip.style.opacity = 0; },
   };
-  var ruleBtns = document.querySelectorAll('.ruleBtn');
-  var rTitle = document.getElementById('ruleDetailTitle');
-  var rText = document.getElementById('ruleDetailText');
-  ruleBtns.forEach(function(b){
-    b.addEventListener('click', function(){
-      ruleBtns.forEach(function(x){ x.style.background=''; x.style.color='var(--muted)'; x.style.borderColor='var(--line)'; });
-      b.style.background = 'var(--accent-ink)'; b.style.color='var(--accent)'; b.style.borderColor='var(--accent)';
-      var info = ruleInfo[b.getAttribute('data-rule')];
-      rTitle.textContent = info.title;
-      rText.innerHTML = info.text;
+}
+function bars(host, opt) {
+  const legend = opt.series.length > 1 ? el("div", "legend", opt.series.map((s) => `<span><i style="background:${s.color}"></i>${s.name}</span>`).join("")) : null;
+  const box = el("div", "chart");
+  if (legend) host.appendChild(legend);
+  host.appendChild(box);
+  mount(box, (h, W) => {
+    const H = opt.h || 230, L = 34, R = 6, T = 18, B = 34;
+    const s = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, height: H, role: "img", "aria-label": opt.label }, h);
+    const tip = tipper(h), y = (v) => T + (H - T - B) * (1 - v / 100);
+    [0, 25, 50, 75, 100].forEach((v) => {
+      svgEl("line", { x1: L, x2: W - R, y1: y(v), y2: y(v), class: "grid" }, s);
+      svgEl("text", { x: L - 6, y: y(v) + 4, "text-anchor": "end" }, s, v + "%");
     });
-  });
-  ruleBtns[0].click();
-
-  // ---------- noise floor strip (illustrative smoke numbers) ----------
-  function buildStrip(stripId, bandId, axisId, floorLo, floorHi, points, axisMax){
-    var strip = document.getElementById(stripId);
-    var band = document.getElementById(bandId);
-    var axis = document.getElementById(axisId);
-    var w = strip.clientWidth || 600;
-    function x(v){ return (v/axisMax)*w; }
-    band.style.left = x(floorLo)+'px';
-    band.style.width = (x(floorHi)-x(floorLo))+'px';
-    points.forEach(function(p){
-      var pt = document.createElement('div');
-      pt.className = 'floorPoint ' + (p.v <= floorHi ? 'in':'out');
-      pt.style.left = x(p.v)+'px';
-      pt.title = p.label + ': ' + p.v;
-      strip.appendChild(pt);
-      var mark = document.createElement('div');
-      mark.className = 'floorMark';
-      mark.style.left = x(p.v)+'px';
-      mark.innerHTML = '<span class="lbl">'+p.label+'</span>';
-      strip.appendChild(mark);
-    });
-    [0, axisMax*0.5, axisMax].forEach(function(v){
-      var s = document.createElement('span');
-      s.style.left = x(v)+'px';
-      s.textContent = (v*100).toFixed(0)+'%';
-      axis.appendChild(s);
-    });
-  }
-  // illustrative values consistent with the alpha=0.1 smoke note (M outside floor B on target/shared gap only)
-  buildStrip('floorStripA','floorBandA','floorAxisA', 0.02, 0.09, [
-    {label:'M vs retrain (global)', v:0.03},
-    {label:'M vs retrain (target-dominant)', v:0.06}
-  ], 0.14);
-  buildStrip('floorStripB','floorBandB','floorAxisB', 0.02, 0.07, [
-    {label:'M vs retrain (shared-class)', v:0.09},
-    {label:'M vs retrain (target)', v:0.11}
-  ], 0.16);
-
-  // ---------- decisions data ----------
-  var decisions = [
-    {t:"Noise floor uses both ways of varying the seed", b:"Floor A only varies minibatch order (keeps the initial weights); Floor B also varies the initial weights. Both are reported side by side, never merged — each floor answers a different question about the source of noise.", tag:"noise floor"},
-    {t:"Noise-floor seeds = the main grid's own seeds (42/43/44)", b:"No separate seeds were created for the noise floor — it reuses the 3 seeds already in the main grid. Less independent than ideal, recorded as a limitation in the config; saves a number of runs.", tag:"noise floor"},
-    {t:"Threshold = mean + 2×standard deviation, ties count as 'inside the floor'", b:"The thesis's own convention (no precedent in the literature — see the Noise floor tab). Standard deviation is the sample estimator (ddof=1), not the population one.", tag:"noise floor"},
-    {t:"A positive control is reported beside every verdict", b:"Besides saying whether M is 'inside the floor', the page always reports whether M (the original, non-unlearned model) falls OUTSIDE the floor — to show the floor can actually discriminate something, not just a meaninglessly wide threshold.", tag:"noise floor"},
-    {t:"Compared against ALL 5 retrains, not just one reference", b:"Every model is compared against all 5 retrains of each floor; the min–max range and a per-pair flag are both kept. 'Informative' means falling outside the floor against EVERY reference of that floor, not just one.", tag:"noise floor"},
-    {t:"Accuracy gap and agreement are kept separate, no combined verdict", b:"Two models can share the same accuracy yet predict differently on individual examples — agreement captures what the accuracy gap misses. No single combined verdict is produced, since that could hide this distinction.", tag:"noise floor"},
-    {t:"Sample standard deviation (ddof=1); a single pair gives no threshold", b:"Uses the standard unbiased estimator (divides by n−1), not the population formula. With only one retrain pair, the system raises an error instead of silently returning an unreliable number.", tag:"noise floor"},
-    {t:"Target-client selection (T1/T2/T3) is coded, but no rule is chosen yet", b:"All 3 rules are implemented and tested on small (toy) data. Which rule to use for the canonical grid is still left blank (null) on purpose — see the 'Open decisions' tab, item 1.", tag:"target selection"},
-    {t:"Kept R=5 rounds, E=1, B=128, lr=0.1 from earlier months", b:"Convergence has not been separately checked for the Week 14 10-client setup (which excludes the target). This is a recorded limitation, not a bug — see question 4.", tag:"infrastructure"},
-    {t:"Kept the 15% validation split carved off, unused", b:"Kept the same 51,000-example training set as Months 2–3 for comparability across milestones; it is not folded back into training or used for model selection at this stage.", tag:"infrastructure"},
-    {t:"Accepted running entirely on CPU (no GPU/MPS)", b:"To compare 'Speedup' (retrain time / unlearning time) fairly, every method must be timed on the same kind of device. CPU-only is accepted, even though the machine supports MPS, because MPS does not guarantee bit-exact reproducibility.", tag:"infrastructure"},
-    {t:"Kept the current naming for 'non-target clients'", b:"'Non-target' is still the TRAINING data of the remaining clients, not a separate held-out test set — stated explicitly in every result file (<span class=\"mono\">split_definitions</span>) so nobody mistakes it for unseen data.", tag:"reporting"},
-    {t:"Clearly reports how many 'cells' had data when averaging", b:"When a class group (e.g. the target-dominant class) has zero examples, the result is recorded as 'no data' (None), never miscounted as 0. Every average is reported alongside the number of cells that actually contributed, so a result is never judged from very little data by mistake.", tag:"reporting"}
-  ];
-  var decWrap = document.getElementById('decisionsList');
-  decisions.forEach(function(d, i){
-    var el = document.createElement('details');
-    el.className = 'item';
-    el.innerHTML = '<summary><span class="num">'+String(i+1).padStart(2,'0')+'</span><span>'+d.t+'</span><span class="qTag pill flat">'+d.tag+'</span></summary><div class="body"><p>'+d.b+'</p></div>';
-    decWrap.appendChild(el);
-  });
-
-  // ---------- questions data ----------
-  var questions = [
-    {t:"Which target_selection_rule to run for the canonical Week 14 grid?", tag:"decision needed",
-      body:"The three rules T1 (median size) / T2 (largest) / T3 (highest single-class share) are coded, chosen before training (never from results).",
-      opts:["Run all 3 rules as 3 parallel canonical sets — costs 3× the compute, shows the result does not depend on which rule is chosen.","Pick one primary rule (e.g. T3, since it ties directly to the Non-IID axis the thesis wants to highlight) and run the others only at a smaller scale (ablation) if budget allows."],
-      ask:"Run all 3 rules as canonical, or pick one primary rule and treat the others as a robustness check?"},
-    {t:"T1's tie-break convention when the client count is even", tag:"confirmation needed",
-      body:"T1 sorts clients by (sample count, ID) then takes the median; with 10 clients (an even number) this takes the LOWER median, not the average of the two middle values — the research plan does not specify this for the even case.",
-      opts:["Keep the lower median (already coded and tested on small data).","Switch to the upper median or another convention that is more methodologically sound."],
-      ask:"Is the 'lower median' convention for T1 acceptable when the client count is even, or should it change?"},
-    {t:"Noise floor uses only the main grid's own 3 seeds (42/43/44)", tag:"decision needed",
-      body:"Already decided: the noise floor uses 3 retrains with seed 42 (the main seed) plus 2 extra seeds (43, 44) — the same seeds used for other cells in the experiment grid, not independent seeds of their own. Consequence: less independence than ideal.",
-      opts:["Keep as-is (the grid's 3 seeds, no extras).","Allocate extra time/compute budget to run 2-3 independent seeds solely for the noise floor, fully separate from the seeds used for the main cells."],
-      ask:"Is this level of 'reduced independence' acceptable for a Master's thesis, or does it need a separate budget for independent seeds?"},
-    {t:"R=5 rounds has not been convergence-checked for the 10-client setup", tag:"decision needed",
-      body:"The number of training rounds (R=5) was kept from earlier milestones, but convergence has not been separately checked for the Week 14 setup (10 clients, with the target excluded). This is a recorded limitation, not a bug.",
-      opts:["Run the canonical grid now with R=5, check convergence afterward on the results (re-run with a larger R if it did not converge, clearly marked as a re-run).","Run a small convergence check (a few R values) first, then lock in R for the canonical grid."],
-      ask:"Is a convergence check needed before running the canonical grid, or is running first and confirming convergence afterward enough?"},
-    {t:"Citation style for the thesis", tag:"needs institutional guidance",
-      body:"The thesis's evidence rule requires every citation to come from literature_matrix.md, but the presentation style (APA, IEEE, Chicago, …) is still left blank — not yet chosen pending guidance from the institution.",
-      opts:[],
-      ask:"Which citation style does the institution require for this Master's thesis?"},
-    {t:"Is it worth investing time to reproduce KD-FU (optional)?", tag:"decision needed",
-      body:"KD-FU (Wu, Zhu, Mitra 2022) is listed as an optional baseline in the research plan, to run only 'if reproducible' — the paper is an arXiv preprint only (not peer-reviewed), does not publish seeds, and needs unlabeled server-side data, an assumption not currently available in the infrastructure. Time budget: 15–20 hours/week for the whole thesis.",
-      opts:["Drop KD-FU, focus entirely on Retrain + FedEraser + PGA (required) and the proposed method.","Still attempt a small-scale KD-FU reproduction (MNIST only) if time remains after the 3 required baselines are done."],
-      ask:"Should KD-FU be formally dropped from scope, or kept as 'do it if time allows'?"},
-    {t:"Does the gap table still hold up before the gap-analysis gate?", tag:"review needed",
-      body:"The November literature scan (the first run of the new automated scanning process) found several 2025–2026 works very close to the proposed direction: GDFA (CVPR 2026) directly benchmarks PGA and SIFU, outperforming both at α=0.5 but testing only one α level; 'Not All Retained Clients Are Equal' shares 3 baselines but selects a subset of clients instead of conditioning method intensity. Full detail is in the 'November literature scan' tab. Current conclusion (not yet formally confirmed): no paper pre-empts the contribution yet, but the gap is narrowing.",
-      opts:[],
-      ask:"Before investing time building the proposed method, the gap table needs review to confirm the contribution (conditioning PGA/FedEraser intensity on the target's Non-IID severity) is still sufficiently novel."},
-    {t:"Gate 3's question about the sharpness of the accuracy-vs-α change is still 'partial' (non-blocking)", tag:"non-blocking, needs scheduling",
-      body:"Gate 3 is CLOSED — PASSED after follow-up rounds, 7/8 questions reached a solid level. The remaining one: explain why accuracy drops only 0.76 percentage points from α=1.0 to 0.5, but 18.23 points from α=0.5 to 0.1. The current explanation is plausible but does not yet explain the sharpness of this change. The original note suggested completing this before the first Non-IID unlearning experiment — and the Week 14 federated retrain is exactly that experiment.",
-      opts:["Complete this question before running the canonical Week 14 grid.","Leave it in parallel or afterward, as a separate non-blocking item."],
-      ask:"Does this question really need to be completed before running the canonical Week 14 grid, or can it run in parallel/afterward?"}
-  ];
-  var qWrap = document.getElementById('questionsList');
-  questions.forEach(function(q, i){
-    var el = document.createElement('details');
-    el.className = 'item';
-    var optsHtml = q.opts.length ? '<ul class="optList">'+q.opts.map(function(o){return '<li>'+o+'</li>';}).join('')+'</ul>' : '';
-    el.innerHTML =
-      '<summary><span class="num">Q'+(i+1)+'</span><span>'+q.t+'</span><span class="qTag pill warn">'+q.tag+'</span></summary>'+
-      '<div class="body"><p>'+q.body+'</p>'+optsHtml+'<div class="askBox"><b>Decision needed:</b> '+q.ask+'</div></div>';
-    qWrap.appendChild(el);
-  });
-
-  // ---------- accuracy chart (FedAvg vs FedProx across Non-IID severity) ----------
-  (function(){
-    var SVGNS = 'http://www.w3.org/2000/svg';
-    var data = [
-      {label:'IID', fedavg:90.99, fedprox:90.88},
-      {label:'α = 1.0', fedavg:90.59, fedprox:90.54},
-      {label:'α = 0.5', fedavg:89.83, fedprox:89.72},
-      {label:'α = 0.1', fedavg:71.60, fedprox:71.43}
-    ];
-    var svg = document.getElementById('accChart');
-    var tip = document.getElementById('chartTip');
-    if(!svg) return;
-    var W = 640, H = 230, padL = 36, padR = 10, padT = 10, padB = 28;
-    var plotW = W - padL - padR, plotH = H - padT - padB;
-    var yMax = 100;
-    function y(v){ return padT + plotH * (1 - v/yMax); }
-    var groupW = plotW / data.length;
-    var barW = Math.min(34, groupW*0.3);
-    var gap = 4;
-
-    function el(tag, attrs){
-      var e = document.createElementNS(SVGNS, tag);
-      for(var k in attrs){ e.setAttribute(k, attrs[k]); }
-      return e;
-    }
-
-    [0,25,50,75,100].forEach(function(v){
-      svg.appendChild(el('line', {x1:padL, x2:W-padR, y1:y(v), y2:y(v), class:'gridLine'}));
-      var t = el('text', {x:padL-8, y:y(v)+3, 'text-anchor':'end', class:'axisLabel'});
-      t.textContent = v+'%';
-      svg.appendChild(t);
-    });
-
-    data.forEach(function(d, i){
-      var cx = padL + groupW*i + groupW/2;
-      var bars = [
-        {val:d.fedavg, color:'var(--chart-1)', x:cx - gap/2 - barW, name:'FedAvg'},
-        {val:d.fedprox, color:'var(--chart-2)', x:cx + gap/2, name:'FedProx (μ=0.01)'}
-      ];
-      bars.forEach(function(b){
-        var h = plotH * (b.val/yMax);
-        var rect = el('rect', {
-          x:b.x, y:y(b.val), width:barW, height:h, rx:3, ry:3,
-          fill:b.color, class:'barRect'
-        });
-        rect.addEventListener('mousemove', function(ev){
-          var wrapBox = svg.parentElement.getBoundingClientRect();
-          tip.innerHTML = '<b>'+d.label+'</b>'+b.name+': '+b.val.toFixed(2)+'%';
-          tip.style.left = (ev.clientX - wrapBox.left + 12)+'px';
-          tip.style.top = (ev.clientY - wrapBox.top - 10)+'px';
-          tip.style.opacity = 1;
-        });
-        rect.addEventListener('mouseleave', function(){ tip.style.opacity = 0; });
-        svg.appendChild(rect);
-        var vt = el('text', {x:b.x+barW/2, y:y(b.val)-5, 'text-anchor':'middle', class:'barVal'});
-        vt.textContent = b.val.toFixed(1);
-        svg.appendChild(vt);
+    const gw = (W - L - R) / opt.cats.length, n = opt.series.length, bw = Math.min(46, (gw - 10 - 2 * (n - 1)) / n);
+    opt.cats.forEach((c, i) => {
+      const cx = L + gw * i + gw / 2, start = cx - (n * bw + 2 * (n - 1)) / 2;
+      opt.series.forEach((sr, j) => {
+        const v = sr.values[i], x = start + j * (bw + 2), top = y(v * 100), base = y(0), r = Math.min(4, bw / 2);
+        const p = svgEl("path", { d: `M${x},${base}V${top + r}Q${x},${top} ${x + r},${top}H${x + bw - r}Q${x + bw},${top} ${x + bw},${top + r}V${base}Z`, fill: opt.hi && opt.hi !== c ? `color-mix(in srgb,${sr.color} 35%,transparent)` : sr.color }, s);
+        if (bw >= 22 || n === 1) svgEl("text", { x: x + bw / 2, y: top - 5, "text-anchor": "middle", class: "v" }, s, num(v * 100, opt.d == null ? 1 : opt.d));
+        const hit = svgEl("rect", { x: x - 1, y: T, width: bw + 2, height: H - T - B, fill: "transparent" }, s);
+        const show = (e) => { const b = h.getBoundingClientRect(); tip.show(`<b>${c}</b><i style="background:${sr.color}"></i>${sr.name}: ${pct(v)}`, e.clientX - b.left, e.clientY - b.top); };
+        hit.addEventListener("pointermove", show); hit.addEventListener("pointerdown", show); hit.addEventListener("pointerleave", tip.hide);
       });
-      var lbl = el('text', {x:cx, y:H-8, 'text-anchor':'middle', class:'axisLabel'});
-      lbl.textContent = d.label;
-      svg.appendChild(lbl);
+      const lab = svgEl("text", { x: cx, y: H - 14, "text-anchor": "middle" }, s, c);
+      if (opt.hi === c) lab.style.fill = "var(--ink)";
     });
-
-    var toggleBtn = document.getElementById('chartTableToggle');
-    var table = document.getElementById('chartTable');
-    var wrap = svg.parentElement;
-    var legend = wrap.previousElementSibling;
-    toggleBtn.addEventListener('click', function(){
-      var showingTable = !table.hidden;
-      table.hidden = showingTable;
-      wrap.hidden = !showingTable;
-      legend.hidden = !showingTable;
-      toggleBtn.textContent = showingTable ? 'View as table' : 'View as chart';
+  });
+}
+function lines(host, opt) {
+  const on = opt.series.map(() => true);
+  const legend = el("div", "legend");
+  const box = el("div", "chart");
+  host.append(legend, box);
+  let ctrl;
+  opt.series.forEach((sr, i) => {
+    const b = el("button", null, `<i style="background:${sr.color}"></i>${sr.name}`);
+    b.type = "button"; b.setAttribute("aria-pressed", "true");
+    b.onclick = () => { if (on[i] && on.filter(Boolean).length === 1) return; on[i] = !on[i]; b.setAttribute("aria-pressed", on[i]); ctrl.redraw(); };
+    legend.appendChild(b);
+  });
+  ctrl = mount(box, (h, W) => {
+    const H = opt.h || 240, L = 40, R = 12, T = 10, B = 38;
+    const s = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, height: H, role: "img", "aria-label": opt.label }, h);
+    const tip = tipper(h), vis = opt.series.filter((_, i) => on[i]);
+    const xs = [...new Set(vis.flatMap((r) => r.pts.map((p) => p.x)))].sort((a, b) => a - b);
+    const ys = vis.flatMap((r) => r.pts.map((p) => p.y));
+    const lo = Math.floor(Math.min(...ys) * 10) / 10, hi = Math.min(1, Math.ceil(Math.max(...ys) * 10) / 10);
+    const X = (v) => L + (W - L - R) * (v - xs[0]) / (xs[xs.length - 1] - xs[0]), Y = (v) => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+    const step = hi - lo > 0.5 ? 0.2 : 0.1;
+    for (let v = lo; v <= hi + 1e-9; v += step) { svgEl("line", { x1: L, x2: W - R, y1: Y(v), y2: Y(v), class: "grid" }, s); svgEl("text", { x: L - 6, y: Y(v) + 4, "text-anchor": "end" }, s, Math.round(v * 100) + "%"); }
+    xs.forEach((v) => svgEl("text", { x: X(v), y: H - 22, "text-anchor": "middle" }, s, v));
+    svgEl("text", { x: (L + W - R) / 2, y: H - 5, "text-anchor": "middle" }, s, opt.xLabel);
+    vis.forEach((r) => {
+      svgEl("polyline", { points: r.pts.map((p) => `${X(p.x)},${Y(p.y)}`).join(" "), fill: "none", stroke: r.color, "stroke-width": 2, "stroke-linejoin": "round" }, s);
+      r.pts.forEach((p) => svgEl("circle", { cx: X(p.x), cy: Y(p.y), r: 3, fill: r.color, stroke: "var(--surface)", "stroke-width": 1.5 }, s));
     });
-  })();
+    const cross = svgEl("line", { y1: T, y2: H - B, stroke: "var(--muted)", "stroke-width": 1, opacity: 0 }, s);
+    const hit = svgEl("rect", { x: L, y: T, width: W - L - R, height: H - T - B, fill: "transparent" }, s);
+    const move = (e) => {
+      const b = h.getBoundingClientRect(), mx = e.clientX - b.left;
+      const near = xs.reduce((a, c) => (Math.abs(X(c) - mx) < Math.abs(X(a) - mx) ? c : a), xs[0]);
+      cross.setAttribute("x1", X(near)); cross.setAttribute("x2", X(near)); cross.setAttribute("opacity", 0.6);
+      const rows = vis.map((r) => { const p = r.pts.find((q) => q.x === near); return p ? `<div><i style="background:${r.color}"></i>${r.name}: ${pct(p.y)}</div>` : ""; }).join("");
+      tip.show(`<b>${opt.xLabel} ${near}</b>${rows}`, X(near), e.clientY - b.top);
+    };
+    hit.addEventListener("pointermove", move); hit.addEventListener("pointerdown", move);
+    hit.addEventListener("pointerleave", () => { tip.hide(); cross.setAttribute("opacity", 0); });
+  });
+}
+function seg(label, items, cur, onchange) {
+  const w = el("div", "ctrls"); if (label) w.appendChild(el("label", null, label));
+  const g = el("div", "seg"); w.appendChild(g);
+  items.forEach(([k, name]) => {
+    const b = el("button", null, name); b.type = "button"; b.setAttribute("aria-pressed", k === cur);
+    b.onclick = () => { g.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); onchange(k); };
+    g.appendChild(b);
+  });
+  return w;
+}
+function withTable(host, head, rows) {
+  const btn = el("button", "linkbtn", t("Xem dạng bảng", "View as table")); btn.type = "button";
+  const tb = el("div", "scroll", `<table><thead><tr>${head.map((x, i) => `<th class="${i ? "n" : ""}">${x}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((x, i) => `<td class="${i ? "n" : ""}">${x}</td>`).join("")}</tr>`).join("")}</tbody></table>`);
+  tb.hidden = true;
+  btn.onclick = () => { tb.hidden = !tb.hidden; btn.textContent = tb.hidden ? t("Xem dạng bảng", "View as table") : t("Ẩn bảng", "Hide table"); };
+  host.append(btn, tb);
+}
+function heat(hist, sizes) {
+  const max = Math.max(...hist.flat());
+  return `<div class="scroll"><table class="heat"><thead><tr><th>${t("Client", "Client")}</th>${[0,1,2,3,4,5,6,7,8,9].map((d) => `<th>${d}</th>`).join("")}<th>${t("Tổng", "Total")}</th></tr></thead><tbody>${hist.map((r, i) =>
+    `<tr><th>${i}</th>${r.map((v, d) => `<td title="${t("Client", "Client")} ${i}, ${t("chữ số", "digit")} ${d}: ${v}" style="background:color-mix(in srgb,var(--c1) ${v ? Math.max(6, Math.round(85 * Math.sqrt(v / max))) : 0}%,transparent)">${v || "·"}</td>`).join("")}<th>${r.reduce((a, b) => a + b, 0)}</th></tr>`).join("")}</tbody></table></div>`;
+}
+const src = (s) => el("p", "src", t("Nguồn: ", "Source: ") + `<span class="mono">${s}</span>`);
+const seedNote = () => t("Một seed (42), nên chưa có khoảng dao động.", "One seed (42), so no spread is available.");
 
-})();
+/* ---------- week-tab slide ---------- */
+function monthSlide(host, weeks) {
+  const tabs = el("div", "weeks"); tabs.setAttribute("role", "tablist");
+  const body = el("div", "weekbody");
+  host.append(tabs, body);
+  const pick = (i, btn) => {
+    tabs.querySelectorAll("button").forEach((b) => b.setAttribute("aria-selected", b === btn));
+    body.innerHTML = "";
+    const w = weeks[i], card = el("div", "card stack");
+    card.appendChild(el("h3", null, w.title));
+    card.appendChild(el("p", "small muted", w.text));
+    body.appendChild(card);
+    if (w.viz) w.viz(card);
+  };
+  weeks.forEach((w, i) => {
+    const b = el("button", null, w.tab); b.type = "button"; b.setAttribute("role", "tab");
+    b.onclick = () => pick(i, b); tabs.appendChild(b);
+    if (!i) pick(0, b);
+  });
+}
+
+/* ---------- slides ---------- */
+const slides = [];
+const add = (id, name, build) => slides.push({ id, name, build });
+
+add("summary", t("Tổng quan", "Summary"), (s) => {
+  s.innerHTML = `<p class="eyebrow">${t("Tình hình đến 03/11/2026", "Status at 3 Nov 2026")}</p>
+  <h2>${t("Nền tảng federated đã xong và có số liệu. Phần unlearning mới có code đã kiểm thử, chưa có kết quả.", "The federated foundation is finished, with results. Unlearning has tested code but no results yet.")}</h2>
+  <p class="lede">${t("Ba tháng đầu cho thấy Non-IID làm FedAvg giảm mạnh ở mức lệch cao. Tháng 4 dựng mô hình chuẩn để đo việc quên. Bấm vào từng tháng để xem chi tiết theo tuần.", "The first three months show how severe Non-IID skew hurts FedAvg. Month 4 builds the reference model for measuring forgetting. Open any month for its week-by-week detail.")}</p>`;
+  const k = el("div", "grid3");
+  [[pct(M2.base.central), t("MLP tập trung trên MNIST: mốc so sánh", "Centralized MLP on MNIST: the comparison point")],
+   [pct(S3.iid.acc), t("Cùng MLP với FedAvg, 5 client, dữ liệu IID", "The same MLP with FedAvg, 5 clients, IID data")],
+   [pct(S3["0.1"].acc), t("Cùng FedAvg ở Dirichlet α = 0,1 (một seed)", "The same FedAvg at Dirichlet α = 0.1 (one seed)")]].forEach(([a, b]) => k.appendChild(el("div", "card kpi", `<b>${a}</b><span>${b}</span>`)));
+  s.appendChild(k);
+  const m = el("div", "months");
+  [["m1", t("Tháng 1 · Nền tảng", "Month 1 · Foundations"), "good", t("Hoàn thành", "Done"), t("4 baseline tập trung, quy trình chạy lại được", "4 centralized baselines, a rerunnable workflow")],
+   ["m2", t("Tháng 2 · FedAvg", "Month 2 · FedAvg"), "good", t("Hoàn thành", "Done"), t("FedAvg tự viết, đối chiếu Flower, 3 cấu hình", "Hand-written FedAvg, Flower cross-check, 3 configurations")],
+   ["m3", t("Tháng 3 · Non-IID", "Month 3 · Non-IID"), "good", t("Hoàn thành", "Done"), t("5 mức lệch dữ liệu, FedProx so với FedAvg", "5 skew levels, FedProx against FedAvg")],
+   ["m4", t("Tháng 4 · Retrain", "Month 4 · Retrain"), "warn", t("Đang làm", "In progress"), t("Code và test xong, chưa chạy thật", "Code and tests done, no real run yet")]].forEach(([id, a, c, st, b]) => {
+    const x = el("button", "mcard", `<b>${a}</b><span class="pill ${c}">${st}</span><small>${b}</small><span class="go">${t("Xem chi tiết →", "See detail →")}</span>`);
+    x.type = "button"; x.onclick = () => go(id); m.appendChild(x);
+  });
+  s.appendChild(m);
+  const g = el("div", "grid2");
+  g.appendChild(el("div", "card", `<h3>${t("Đã có", "In hand")}</h3><ul class="clean small"><li>${t("Số liệu đã lưu cho toàn bộ thí nghiệm Tháng 1–3.", "Saved results for every Month 1–3 experiment.")}</li><li>${t(`Bộ chạy retrain, chỉ số quên và noise floor, với ${D.tests} test đều đạt.`, `Retrain runner, forgetting metrics and noise floor, with all ${D.tests} tests passing.`)}</li><li>${t("13 quyết định thiết kế đã đưa vào code.", "13 design decisions applied in code.")}</li></ul></div>`));
+  g.appendChild(el("div", "card", `<h3>${t("Còn thiếu", "Still missing")}</h3><ul class="clean small"><li>${t("Chưa có lần chạy retrain chính thức, nên chưa có kết quả về việc quên.", "No official retrain run, so no forgetting result yet.")}</li><li>${t("PGA, FedEraser và phương pháp đề xuất chưa được viết code.", "PGA, FedEraser and the proposed method have no code yet.")}</li><li>${t("Mốc 25/10 còn dang dở, xem trang Lộ trình.", "The 25 Oct milestone is unfinished, see the Roadmap slide.")}</li></ul></div>`));
+  s.appendChild(g);
+});
+
+add("m1", t("Tháng 1", "Month 1"), (s) => {
+  const B = D.m1.baselines, name = { lr: t("Hồi quy logistic", "Logistic regression"), mlp: "MLP", cnn: "CNN", cifar: "CNN (CIFAR-10)" };
+  s.innerHTML = `<p class="eyebrow">${t("Tháng 1 · Tuần 1–4", "Month 1 · Weeks 1–4")}</p><h2>${t("Dựng các mốc tham chiếu tập trung", "Setting the centralized reference points")}</h2><p class="lede">${t("Muốn biết mô hình federated tốt đến đâu thì cần một mốc không phân tán để so sánh.", "Judging a federated model needs a non-distributed reference point to compare with.")}</p>`;
+  const h = el("div"); h.style.display = "contents"; s.appendChild(h);
+  const curve = (c, ids) => lines(c, { label: t("Độ chính xác theo epoch", "Accuracy by epoch"), xLabel: "Epoch", series: ids.flatMap(([id, n, c1, c2]) => [{ name: n + " · " + t("kiểm định", "validation"), color: c1, pts: D.m1.curves[id].map((p) => ({ x: p.e, y: p.val })) }, { name: n + " · " + t("huấn luyện", "training"), color: c2, pts: D.m1.curves[id].map((p) => ({ x: p.e, y: p.train })) }]) });
+  monthSlide(h, [
+    { tab: t("T1 · Logistic", "W1 · Logistic"), title: t(`Mốc sàn: ${pct(B[0].acc)} trên MNIST`, `The floor: ${pct(B[0].acc)} on MNIST`), text: t(`Mô hình tuyến tính đơn giản, chia dữ liệu 70/15/15, F1 ${pct(B[0].f1)}. Mô hình phức tạp hơn mà thấp hơn mức này thì nhiều khả năng có lỗi.`, `A simple linear model with a 70/15/15 split and ${pct(B[0].f1)} F1. A more complex model scoring below this probably has a bug.`), viz: (c) => { bars(c, { label: "MNIST", cats: B.slice(0, 1).map((b) => name[b.id]), series: [{ name: t("Độ chính xác", "Accuracy"), color: "var(--c1)", values: [B[0].acc] }], h: 190 }); c.appendChild(src("results/month1_week1/metrics.json")); } },
+    { tab: t("T2 · MLP", "W2 · MLP"), title: t(`Mạng nơ-ron đầu tiên: ${pct(B[1].acc)}`, `First neural network: ${pct(B[1].acc)}`), text: t("Viết vòng huấn luyện bằng PyTorch với 1 lớp ẩn 128 đơn vị. Đường huấn luyện và kiểm định vẫn đi sát nhau.", "A PyTorch training loop with one 128-unit hidden layer. Training and validation curves stay close together."), viz: (c) => { curve(c, [["mlp", "MLP", "var(--c1)", "var(--c2)"]]); c.appendChild(src("results/month1_week2/metrics.json")); } },
+    { tab: t("T3 · CNN", "W3 · CNN"), title: t(`CNN: ${pct(B[2].acc)} trên MNIST, ${pct(B[3].acc)} trên CIFAR-10`, `CNN: ${pct(B[2].acc)} on MNIST, ${pct(B[3].acc)} on CIFAR-10`), text: t("CIFAR-10 khó hơn nhiều. Bấm đổi tập dữ liệu để xem lớp nào mô hình còn yếu. Hai tập khác độ khó nên không dùng để xếp hạng mô hình.", "CIFAR-10 is much harder. Switch dataset to see which classes the model struggles with. The two tasks differ in difficulty, so this is not a model ranking."), viz: (c) => {
+      const area = el("div", "stack");
+      const show = (k) => { area.innerHTML = ""; const pc = D.m1.perClass[k]; bars(area, { label: t("Độ chính xác theo lớp", "Accuracy by class"), cats: Object.keys(pc), series: [{ name: t("Độ chính xác", "Accuracy"), color: "var(--c1)", values: Object.values(pc) }], d: 0 }); withTable(area, [t("Lớp", "Class"), t("Độ chính xác", "Accuracy")], Object.entries(pc).map(([a, b]) => [a, pct(b, 1)])); curve(area, [[k, k === "cnn" ? "MNIST" : "CIFAR-10", "var(--c1)", "var(--c2)"]]); };
+      c.appendChild(seg(t("Tập dữ liệu", "Dataset"), [["cnn", "MNIST"], ["cifar", "CIFAR-10"]], "cnn", show)); c.appendChild(area); show("cnn"); c.appendChild(src("results/month1_week3_mnist_cnn, results/month1_week3_cifar10_cnn")); } },
+    { tab: t("T4 · Phương pháp", "W4 · Method"), title: t("Tổng hợp baseline và siết quy trình tái lập", "Baselines combined, reproducibility tightened"), text: t("Đọc SISA để có khái niệm machine unlearning. Rà soát phát hiện hai điểm yếu: nhiều file chưa commit, và code tự chọn CPU/GPU theo máy. Cả hai đã được sửa trước khi đóng tháng, và các số liệu được chạy lại theo config. Các thí nghiệm PyTorch cho lại đúng kết quả. Hồi quy logistic còn lệch khoảng 1/10.000 mẫu giữa các lần chạy, không đổi kết luận.", "SISA reading introduced machine unlearning. An audit found two weaknesses: many files were uncommitted, and the code picked CPU or GPU by machine. Both were fixed before closing the month, and results were rerun from config. The PyTorch experiments reproduced exactly. Logistic regression still varies by about 1 in 10,000 samples between runs, which changes no conclusion."), viz: (c) => { bars(c, { label: t("Bốn baseline", "Four baselines"), cats: B.map((b) => name[b.id]), series: [{ name: t("Độ chính xác", "Accuracy"), color: "var(--c1)", values: B.map((b) => b.acc) }] }); withTable(c, [t("Mô hình", "Model"), t("Dữ liệu", "Data"), t("Độ chính xác", "Accuracy"), "F1"], B.map((b) => [name[b.id], b.dataset, pct(b.acc), pct(b.f1)])); c.appendChild(el("p", "src", seedNote())); } },
+  ]);
+  s.appendChild(el("p", "so", t("<b>Kết quả của tháng:</b> có mốc so sánh và quy trình chạy lại được cho các tháng sau.", "<b>Month outcome:</b> reference points and a rerunnable workflow for the months ahead.")));
+});
+
+add("m2", t("Tháng 2", "Month 2"), (s) => {
+  s.innerHTML = `<p class="eyebrow">${t("Tháng 2 · Tuần 5–8", "Month 2 · Weeks 5–8")}</p><h2>${t(`Tự viết FedAvg và đo cái giá của phân tán: ${pp(M2.base.gap)}`, `Hand-writing FedAvg and measuring the cost of distribution: ${pp(M2.base.gap)}`)}</h2><p class="lede">${t("Không dùng framework cho kết quả chính, để kiểm tra được từng bước cập nhật và tổng hợp.", "No framework for core results, so every update and aggregation step can be inspected.")}</p>`;
+  const h = el("div"); h.style.display = "contents"; s.appendChild(h);
+  monthSlide(h, [
+    { tab: t("T5 · Khái niệm", "W5 · Concepts"), title: t("Vì sao FedAvg lấy trung bình theo số mẫu", "Why FedAvg averages by sample count"), text: t("Đọc bài FedAvg (McMahan et al., 2017). Kéo thanh trượt để thấy client nhiều dữ liệu kéo mô hình chung về phía mình. Đây là ví dụ minh họa, không phải kết quả thí nghiệm.", "Read the FedAvg paper (McMahan et al., 2017). Drag the sliders to see a data-rich client pull the global model towards itself. This is an illustration, not an experimental result."), viz: (c) => {
+      const d = el("div", "stack demo"); let n = [100, 200, 700]; const w = [1, 2, 3];
+      const out = el("div", "note");
+      const up = () => { const T = n[0] + n[1] + n[2], v = (n[0] * w[0] + n[1] * w[1] + n[2] * w[2]) / T; out.innerHTML = `${t("Kết quả FedAvg", "FedAvg result")}: <b>${num(v)}</b> · ${t("trung bình không trọng số", "unweighted mean")}: <b>${num(2)}</b>`; };
+      n.forEach((v, i) => { const id = "w" + i, r = el("div", null, `<label class="small" for="${id}">${t("Client", "Client")} ${"ABC"[i]} · ${t("trọng số mô hình", "model weight")} ${w[i]} · <span>${v}</span> ${t("mẫu", "samples")}</label><input id="${id}" type="range" min="10" max="1000" step="10" value="${v}">`); r.querySelector("input").oninput = (e) => { n[i] = +e.target.value; r.querySelector("span").textContent = n[i]; up(); }; d.appendChild(r); });
+      d.appendChild(out); c.appendChild(d); up(); } },
+    { tab: t("T6 · Tự viết", "W6 · Built"), title: t("Một vòng FedAvg trong code", "One FedAvg round in code"), text: t("Tách làm 3 phần: phép trung bình, huấn luyện client và điều phối server. 13 test kiểm tra phần này. Bấm từng bước.", "Split into 3 parts: averaging, client training and server orchestration. 13 tests cover it. Click through the steps."), viz: (c) => {
+      const st = [[t("1. Gửi", "1. Send"), t("Server gửi mô hình chung cho client được chọn. Mỗi client nhận một bản sao, nên mọi client xuất phát từ cùng một điểm.", "The server sends the global model to selected clients. Each gets its own copy, so all start from the same point.")], [t("2. Huấn luyện", "2. Train"), t("Mỗi client chạy SGD trên dữ liệu riêng và dữ liệu không rời khỏi client.", "Each client runs SGD on its own data, which never leaves the client.")], [t("3. Trả về", "3. Return"), t("Client trả tham số mô hình và số mẫu. Mỗi vòng tính một lượt tải xuống và một lượt tải lên.", "Clients return model parameters and a sample count. Each round counts one download and one upload.")], [t("4. Tổng hợp", "4. Aggregate"), t("Server tính trung bình theo n_k/n rồi mới cập nhật mô hình chung.", "The server averages by n_k/n, and only then updates the global model.")]];
+      const g = el("div", "steps"), o = el("div", "note");
+      st.forEach(([a, b], i) => { const x = el("button", null, a); x.type = "button"; x.setAttribute("aria-pressed", !i); x.onclick = () => { g.querySelectorAll("button").forEach((y) => y.setAttribute("aria-pressed", y === x)); o.textContent = b; }; g.appendChild(x); });
+      o.textContent = st[0][1]; c.append(g, o); c.appendChild(src("algorithms/fedavg.py, clients/federated_client.py, server/fedavg_server.py")); } },
+    { tab: t("T7 · Flower", "W7 · Flower"), title: t("Đối chiếu với Flower 1.30", "Cross-check against Flower 1.30"), text: t("Flower chỉ dùng để tham chiếu. Khi nhận cùng dữ liệu đầu vào, phép tổng hợp của Flower và của code tự viết cho cùng kết quả (ví dụ 20/80 mẫu ra 2,6). Bộ kiểm tra có 20 test, gồm 13 test FedAvg và 7 test tương thích Flower.", "Flower is a reference only. Given the same inputs, Flower's aggregation and the hand-written code give the same result (for example 20/80 samples gives 2.6). The suite has 20 tests: 13 for FedAvg and 7 for Flower compatibility."), viz: (c) => { c.appendChild(el("div", "note", t("<b>Một khác biệt đáng ghi lại:</b> với C = 0,3 và 5 client, code tự viết chọn 2 client (làm tròn lên), còn Flower chọn 1 (làm tròn xuống, với min_fit_clients = 1). Cách chọn client có thể đổi tốc độ hội tụ, nên kết quả phải ghi rõ quy tắc này.", "<b>A difference worth recording:</b> with C = 0.3 and 5 clients, the hand-written code selects 2 clients (rounding up) and Flower selects 1 (rounding down, with min_fit_clients = 1). Selection can change convergence, so results must state this rule."))); c.appendChild(src("reports/month2_week7_flower_compatibility.md")); } },
+    { tab: t("T8 · So sánh", "W8 · Comparison"), title: t("FedAvg so với huấn luyện tập trung", "FedAvg against centralized training"), text: t("Cùng mô hình khởi tạo và cùng lượng dữ liệu đã duyệt. Đổi cấu hình để xem chênh lệch thay đổi thế nào.", "Same initial model and the same amount of data processed. Switch configuration to see how the gap changes."), viz: (c) => {
+      const a = el("div", "stack");
+      const show = (k) => { const v = M2[k]; a.innerHTML = `<div class="grid3"><div class="kpi"><b>${pct(v.fedavg)}</b><span>FedAvg</span></div><div class="kpi"><b>${pct(v.central)}</b><span>${t("Tập trung", "Centralized")}</span></div><div class="kpi"><b>${pp(v.gap)}</b><span>${t("Chênh lệch", "Gap")} · ${t("truyền tải", "traffic")} ${mb(v.bytes)}</span></div></div>`; lines(a, { label: t("Độ chính xác kiểm định", "Validation accuracy"), xLabel: t("Số lượt duyệt dữ liệu", "Data passes"), series: [{ name: t("Tập trung", "Centralized"), color: "var(--c1)", pts: v.curveC }, { name: "FedAvg", color: "var(--c2)", pts: v.curveF }] }); const mn = Math.min(...v.clients), mx = Math.max(...v.clients); a.appendChild(el("p", "small muted", t(`Độ chính xác từng client trên phần test riêng: ${pct(mn)} đến ${pct(mx)}.`, `Accuracy per client on its own test subset: ${pct(mn)} to ${pct(mx)}.`))); };
+      c.appendChild(seg(t("Cấu hình", "Configuration"), [["base", "K=5, E=1"], ["e2", "K=5, E=2"], ["k10", "K=10, E=1"]], "base", show)); c.appendChild(a); show("base");
+      withTable(c, [t("Cấu hình", "Configuration"), "FedAvg", t("Tập trung", "Centralized"), t("Chênh lệch", "Gap"), t("Truyền tải", "Traffic")], [["base", "K=5, E=1"], ["e2", "K=5, E=2"], ["k10", "K=10, E=1"]].map(([k, n]) => [n, pct(M2[k].fedavg), pct(M2[k].central), pp(M2[k].gap), mb(M2[k].bytes)]));
+      c.appendChild(src("results/month2_week8_mnist_iid_comparison, _e2_variant, _k10_variant")); c.appendChild(el("p", "src", seedNote())); } },
+  ]);
+  s.appendChild(el("p", "so", t(`<b>Kết quả của tháng:</b> trong các lần chạy một seed này, K = 10 có chênh lệch lớn hơn K = 5, từ ${pp(M2.base.gap)} thành ${pp(M2.k10.gap)}, và lượng truyền tải gấp đôi. E = 2 có chênh lệch gần như cũ (${pp(M2.e2.gap)}) với cùng lượng truyền tải.`, `<b>Month outcome:</b> in these single-seed runs, K = 10 shows a larger gap than K = 5, from ${pp(M2.base.gap)} to ${pp(M2.k10.gap)}, with twice the traffic. E = 2 shows nearly the same gap (${pp(M2.e2.gap)}) with the same traffic.`)));
+});
+
+add("m3", t("Tháng 3", "Month 3"), (s) => {
+  const drop = S3["0.5"].acc - S3["0.1"].acc, soft = S3["1.0"].acc - S3["0.5"].acc;
+  s.innerHTML = `<p class="eyebrow">${t("Tháng 3 · Tuần 9–12", "Month 3 · Weeks 9–12")}</p><h2>${t(`Mức giảm do Non-IID không đều: từ α = 0,5 xuống 0,1 mất ${num(drop * 100)} điểm %`, `Non-IID damage is uneven: α = 0.5 to 0.1 costs ${num(drop * 100)} pp`)}</h2><p class="lede">${t("Đây là lý do luận văn phải đánh giá unlearning theo từng mức lệch, thay vì chỉ một mức.", "This is why the thesis must evaluate unlearning at each skew level, not just one.")}</p>`;
+  const h = el("div"); h.style.display = "contents"; s.appendChild(h);
+  const panel = (c, keys, cur) => {
+    const a = el("div", "stack");
+    const show = (k) => { const v = S3[k]; a.innerHTML = `<div class="grid3"><div class="kpi"><b>${pct(v.acc)}</b><span>${t("FedAvg trên tập test", "FedAvg on the test set")}</span></div><div class="kpi"><b>${pct(v.f1)}</b><span>Macro F1</span></div><div class="kpi"><b>${pp(v.gap)}</b><span>${t("so với tập trung", "against centralized")} (${pct(M2.base.central)})</span></div></div><p class="small muted">${t("Số mẫu của từng chữ số ở mỗi client. Ô càng đậm càng nhiều mẫu, dấu · nghĩa là không có mẫu.", "Samples of each digit at each client. Darker means more samples, and · means none.")}</p>` + heat(v.hist); };
+    c.appendChild(seg(t("Cách chia", "Partition"), keys.map((k) => [k, SNAME[k]]), cur, show)); c.appendChild(a); show(cur);
+  };
+  monthSlide(h, [
+    { tab: t("T9 · Shard", "W9 · Shards"), title: t(`Trường hợp cực đoan: ${pct(S3.iid.acc)} xuống ${pct(S3.shards.acc)}`, `The extreme case: ${pct(S3.iid.acc)} down to ${pct(S3.shards.acc)}`), text: t("Mỗi client nhận 2 shard nên chỉ thấy khoảng 1–2 chữ số. Mỗi client kéo mô hình về một hướng riêng, gọi là client drift. Lượng truyền tải không đổi.", "Each client gets 2 shards, so it sees about 1–2 digits. Each pulls the model its own way, which is called client drift. Traffic does not change."), viz: (c) => { panel(c, ["iid", "shards"], "shards"); c.appendChild(src("results/month3_week9_mnist_iid_vs_noniid/metrics.json")); } },
+    { tab: t("T10 · Dirichlet", "W10 · Dirichlet"), title: t("Điều chỉnh mức lệch bằng Dirichlet(α)", "Tuning the skew with Dirichlet(α)"), text: t("α càng nhỏ, mỗi chữ số càng dồn vào ít client. Ở α = 0,1 nhiều ô trống hẳn: client mất hoàn toàn một số chữ số, không chỉ lệch tỉ lệ.", "The smaller α is, the more each digit concentrates in few clients. At α = 0.1 many cells are empty: clients lose some digits entirely, rather than just seeing skewed proportions."), viz: (c) => { panel(c, ["1.0", "0.5", "0.1"], "0.1"); const k = ["iid", "1.0", "0.5", "0.1", "shards"]; lines(c, { label: t("Độ chính xác test theo vòng", "Test accuracy by round"), xLabel: t("Vòng", "Round"), series: [["iid", "var(--c1)"], ["0.5", "var(--c3)"], ["0.1", "var(--c4)"], ["shards", "var(--c2)"]].map(([x, col]) => ({ name: SNAME[x], color: col, pts: S3[x].curve })) }); withTable(c, [t("Mức lệch", "Skew"), "FedAvg", t("So với tập trung", "Against centralized")], k.map((x) => [SNAME[x], pct(S3[x].acc), pp(S3[x].gap)])); c.appendChild(src("results/month3_week10_mnist_alpha{1.0,0.5,0.1}/metrics.json")); } },
+    { tab: t("T11 · FedProx", "W11 · FedProx"), title: t("FedProx không vượt FedAvg trong thiết lập này", "FedProx did not beat FedAvg in this setup"), text: t(`Ở α = 0,1, cả ba giá trị μ đều không cao hơn FedAvg, ở cả E = 1 và E = 5. Thiết lập chỉ có 5 vòng và các client có cùng số epoch cục bộ, nên kết quả không bác bỏ FedProx nói chung.`, `At α = 0.1, none of the three μ values beat FedAvg, at either E = 1 or E = 5. The setup has only 5 rounds and the same local epochs on every client, so this does not refute FedProx in general.`), viz: (c) => { const a = el("div", "stack"), mu = ["0", "0.01", "0.1", "1.0"], lab = (m) => (m === "0" ? "FedAvg" : "μ = " + num(+m, m === "1.0" ? 1 : m === "0.1" ? 1 : 2)); const show = (e) => { a.innerHTML = ""; bars(a, { label: "FedProx", cats: mu.map(lab), series: [{ name: t("Độ chính xác", "Accuracy"), color: "var(--c1)", values: mu.map((m) => D.m3.sweep[e][m]) }], d: 2 }); }; c.appendChild(seg(t("Số epoch cục bộ", "Local epochs"), [["e1", "E = 1"], ["e5", "E = 5"]], "e1", show)); c.appendChild(a); show("e1"); withTable(c, ["", "E = 1", "E = 5"], mu.map((m) => [lab(m), pct(D.m3.sweep.e1[m]), pct(D.m3.sweep.e5[m])])); c.appendChild(src("results/month3_week11_mnist_fedprox_mu_sweep, _e5")); } },
+    { tab: t("T12 · Benchmark", "W12 · Benchmark"), title: t("FedAvg và FedProx trên 4 mức lệch", "FedAvg and FedProx across 4 skew levels"), text: t(`FedProx (μ = 0,01) thấp hơn FedAvg một chút ở cả 4 mức. Truyền tải như nhau (${mb(D.m3.bytes)}).`, `FedProx (μ = 0.01) sits slightly below FedAvg at all 4 levels. Traffic is identical (${mb(D.m3.bytes)}).`), viz: (c) => { const k = ["iid", "1.0", "0.5", "0.1"]; bars(c, { label: "FedAvg, FedProx", cats: k.map((x) => SNAME[x]), series: [{ name: "FedAvg", color: "var(--c1)", values: k.map((x) => D.m3.bench[x].fedavg) }, { name: "FedProx (μ = " + num(0.01) + ")", color: "var(--c2)", values: k.map((x) => D.m3.bench[x].fedprox) }] }); withTable(c, [t("Mức lệch", "Skew"), "FedAvg", "FedProx"], k.map((x) => [SNAME[x], pct(D.m3.bench[x].fedavg), pct(D.m3.bench[x].fedprox)])); c.appendChild(el("div", "note warn", t("<b>Hạn chế cần nói rõ:</b> μ = 0,01 được chọn vì tốt nhất trên tập test, chỉ ở α = 0,1 và E = 1, nên so sánh có thể hơi thiên vị cho FedProx. Chênh lệch chỉ 0,05–0,17 điểm % trên một seed, nên chưa đủ để nói FedProx kém hơn ở các mức này.", "<b>A limitation to state:</b> μ = 0.01 was chosen as the best on the test set, at α = 0.1 and E = 1 only, so the comparison may slightly favour FedProx. The gaps are just 0.05–0.17 pp on one seed, too small to say FedProx is worse at these levels."))); c.appendChild(src("results/month3_week12_*_fedprox, results/month3_week11_mnist_fedprox_mu_sweep")); } },
+  ]);
+  s.appendChild(el("p", "so", t(`<b>Kết quả của tháng:</b> α từ 1,0 xuống 0,5 chỉ mất ${num(soft * 100)} điểm %, nhưng từ 0,5 xuống 0,1 mất ${num(drop * 100)} điểm %. Đây là một seed, 5 vòng, và không có điểm đo giữa 0,5 và 0,1. Nguyên nhân chưa được giải thích trọn vẹn (mục 9, trang Quyết định).`, `<b>Month outcome:</b> α from 1.0 to 0.5 costs only ${num(soft * 100)} pp, but 0.5 to 0.1 costs ${num(drop * 100)} pp. This is one seed, 5 rounds, with nothing measured between 0.5 and 0.1. The cause is not fully explained yet (item 9, Decisions slide).`)));
+});
+
+add("m4", t("Tháng 4", "Month 4"), (s) => {
+  s.innerHTML = `<p class="eyebrow">${t("Tháng 4 · Tuần 13–14 · đang làm", "Month 4 · Weeks 13–14 · in progress")}</p><h2>${t("Dựng mô hình chuẩn để đo việc quên", "Building the reference for measuring forgetting")}</h2><p class="lede">${t("Muốn nói một phương pháp đã quên client A thì phải so với M_retrain^(−A), mô hình chưa từng thấy dữ liệu của A. Độ chính xác trên A thấp đi chưa đủ làm bằng chứng.", "Claiming a method has forgotten client A requires comparing it with M_retrain^(−A), a model that never saw A's data. Lower accuracy on A alone is not evidence.")}</p>`;
+  const h = el("div"); h.style.display = "contents"; s.appendChild(h);
+  monthSlide(h, [
+    { tab: t("T13 · Retrain tập trung", "W13 · Centralized"), title: t("Retrain tập trung: đã chuẩn bị, chưa chạy", "Centralized retrain: prepared, not run"), text: t("Xóa một phần dữ liệu rồi huấn luyện lại từ cùng trọng số ban đầu. Đây chỉ là mốc tham chiếu đơn giản: mô hình gốc học bằng FedAvg nên mô hình chuẩn cũng phải học bằng FedAvg.", "Remove one data shard and retrain from the same initial weights. This is only a simple reference: the original model learns through FedAvg, so the gold standard must too."), viz: (c) => { c.appendChild(el("div", "note warn", t("<b>Trạng thái:</b> code, config và script kiểm tra đã có. Chưa có thư mục kết quả, nên tuần này chưa có số liệu.", "<b>Status:</b> code, config and verifier exist. There is no results directory, so this week has no numbers yet."))); c.appendChild(src("experiments/unlearning/month4_week13_mnist_full_retraining.py")); } },
+    { tab: t("T14 · Retrain federated", "W14 · Federated"), title: t("M và M_retrain^(−A): chỉ khác nhau ở client A", "M and M_retrain^(−A): differing only by client A"), text: t("Hai mô hình dùng cùng trọng số ban đầu, cùng seed và cùng phân chia dữ liệu. Code chỉ lọc A ra trước khi tạo server, không sửa FedAvg. Quy tắc chọn A chỉ dựa trên phân chia dữ liệu và áp dụng trước khi huấn luyện, không nhìn vào kết quả. Bấm một quy tắc để xem client nào được chọn.", "Both models share initial weights, seed and data partition. The code just filters A out before building the server and leaves FedAvg untouched. The rule for picking A uses only the data partition and applies before training, without looking at results. Click a rule to see which client it picks."), viz: (c) => {
+      const a = el("div", "stack"); let part = "a01", rule = "t1";
+      const rules = { t1: [t("T1 · Trung vị", "T1 · Median"), t("Client có kích thước trung vị. Với số client chẵn, code lấy trung vị thấp hơn.", "The median-sized client. With an even client count, the code takes the lower median.")], t2: [t("T2 · Lớn nhất", "T2 · Largest"), t("Client nhiều mẫu nhất. Nếu hòa thì lấy ID nhỏ nhất.", "The client with the most samples. Ties go to the lowest ID.")], t3: [t("T3 · Chiếm lớp", "T3 · Class share"), t("Client giữ tỉ lệ cao nhất của một chữ số, gắn với khái niệm lớp do target chiếm giữ.", "The client holding the highest share of one digit, which links to target-dominant classes.")] };
+      const draw = () => { a.innerHTML = ""; const v = M4[part], chosen = v[rule], flow = el("div", "flow"); Object.entries(rules).forEach(([k, [n, d]]) => { const b = el("button", null, `<b>${n}</b>${d}`); b.type = "button"; b.setAttribute("aria-pressed", k === rule); b.onclick = () => { rule = k; draw(); }; flow.appendChild(b); }); a.appendChild(flow);
+        const box = el("div", "chart"); a.appendChild(box); const sz = v.sizes, mx = Math.max(...sz);
+        box.innerHTML = `<div class="stack small" style="gap:3px">${sz.map((n, i) => `<div style="display:grid;grid-template-columns:58px 1fr 44px;gap:8px;align-items:center"><span class="${i === chosen ? "" : "muted"}">${t("Client", "Client")} ${i}</span><div style="background:var(--surface-2);border-radius:3px;height:14px"><div style="height:100%;border-radius:3px;width:${Math.max(0.5, 100 * n / mx)}%;background:${i === chosen ? "var(--c2)" : "color-mix(in srgb,var(--c1) 55%,transparent)"}"></div></div><span class="mono" style="text-align:right">${n}</span></div>`).join("")}</div>`;
+        const extra = rule === "t3" ? t(` (giữ ${pct(v.t3share, 1)} số mẫu chữ số ${v.t3class})`, ` (holds ${pct(v.t3share, 1)} of digit ${v.t3class})`) : "";
+        a.appendChild(el("p", "small", t(`Được chọn: <b>client ${chosen}</b>${extra}. Đây là phân chia thử với ${v.train} mẫu, không phải lưới chính thức.`, `Selected: <b>client ${chosen}</b>${extra}. This is a smoke partition of ${v.train} samples, not the official grid.`))); };
+      c.appendChild(seg(t("Phân chia thử", "Smoke partition"), [["a01", SNAME["0.1"]], ["iid", "IID"]], "a01", (k) => { part = k; draw(); })); c.appendChild(a); draw();
+      c.appendChild(src("results/smoke_month4_week14_v3_mnist_*/metrics.json"));
+      c.appendChild(el("div", "note", `<b>${t("Bộ đo đi kèm", "Metrics that come with it")}:</b> ${t("so với retrain trên 3 phần dữ liệu (test chung, target, non-target), và tách target thành lớp dùng chung và lớp do target chiếm giữ (≥ 50%). Dùng hai chỉ số: chênh lệch accuracy và tỉ lệ đồng thuận dự đoán. Tham số mô hình không được so trực tiếp.", "comparison with retrain on 3 data splits (global test, target, non-target), with the target split into shared and target-dominant (≥ 50%) classes. Two measures: accuracy gap and prediction agreement. Model parameters are not compared directly.")}</div>`)); } },
+  ]);
+  const st = el("div", "card"); st.appendChild(el("h3", null, t("Trạng thái Tháng 4", "Month 4 status")));
+  const ok = `<span class="mark" style="background:var(--good-bg);color:var(--good)">${t("XONG", "DONE")}</span>`, no = `<span class="mark" style="background:var(--warn-bg);color:var(--warn)">${t("CHƯA", "NOT YET")}</span>`;
+  const items = [[ok, t(`Bộ chạy retrain, chỉ số quên và noise floor, với ${D.tests} test đều đạt`, `Retrain runner, forgetting metrics and noise floor, with all ${D.tests} tests passing`)], [ok, t("Script kiểm tra nhất quán khớp với kết quả chạy thử trên cả 2 phân chia thử (đếm lại từ checkpoint, không huấn luyện lại)", "A consistency verifier matches the smoke results on both smoke partitions (recounts from checkpoints, no retraining)")], [ok, t("13 quyết định thiết kế đã đưa vào code", "13 design decisions applied in code")], [no, t("Chạy thật Tuần 13", "A real Week 13 run")], [no, t("Chọn quy tắc target cho lưới chính thức (đang để trống có chủ đích)", "A target rule for the official grid (left blank on purpose)")], [no, t("Khóa phiên bản code: lần chạy chính thức yêu cầu worktree sạch, mà thay đổi mới nhất chưa commit", "Locking the code version: official runs require a clean worktree, and the latest changes are uncommitted")], [no, t("Sửa script kiểm tra Tuần 8: đang báo lỗi từ khi cập nhật macOS, vì so khớp chính xác phiên bản hệ điều hành đã lưu (Python và các gói vẫn khớp)", "Fix the Week 8 verifier: failing since a macOS update, as it matches the saved OS version exactly (Python and packages still match)")], [no, t("Rà soát và nắm vững code lõi: điều kiện bắt buộc trước lần chạy chính thức", "Reviewing and fully understanding the core code: a required condition before official runs")]];
+  st.appendChild(el("ul", "check", items.map(([m, x]) => `<li>${m}<span>${x}</span></li>`).join(""))); s.appendChild(st);
+});
+
+add("floor", "Noise floor", (s) => {
+  s.innerHTML = `<p class="eyebrow">${t("Tháng 4 · phương pháp đo", "Month 4 · how forgetting is measured")}</p><h2>${t("Hai lần retrain cũng không giống hệt nhau. Khoảng lệch đó là noise floor.", "Two retrains are not identical either. That spread is the noise floor.")}</h2><p class="lede">${t("Hai lần retrain cùng loại A nhưng khác seed vẫn lệch nhau. Một mô hình chỉ được coi là giống retrain nếu chênh lệch của nó nằm trong khoảng lệch tự nhiên này.", "Two retrains that both exclude A but use different seeds still differ. A model only counts as retrain-like if its gap falls within this natural spread.")}</p>`;
+  s.appendChild(el("div", "note risk", t("<b>Cần xác nhận:</b> ngưỡng trung bình + 2 × độ lệch chuẩn là quy ước riêng của luận văn. Một số bài đã đọc có chạy nhiều seed, nhưng chưa bài nào dùng độ lệch giữa các lần retrain làm ngưỡng, nên chưa tìm được tiền lệ. Ngưỡng này lại chỉ dựa trên 3 cặp retrain có dùng chung mô hình.", "<b>Needs confirmation:</b> the mean + 2 × standard deviation threshold is this thesis's own convention. Some papers read so far run several seeds, but none uses the spread between retrains as a threshold, so no precedent has been found. The threshold also rests on only 3 retrain pairs that share models.")));
+  const g = el("div", "grid2");
+  g.appendChild(el("div", "card", `<h3>${t("Floor A: chỉ đổi thứ tự minibatch", "Floor A: minibatch order only")}</h3><p class="small muted">${t("Giữ nguyên trọng số ban đầu và đổi seed huấn luyện (42, 43, 44).", "Keeps the initial weights and changes the training seed (42, 43, 44).")}</p>`));
+  g.appendChild(el("div", "card", `<h3>${t("Floor B: đổi cả trọng số ban đầu", "Floor B: initial weights too")}</h3><p class="small muted">${t("Đổi cả seed huấn luyện lẫn trọng số ban đầu. Cả hai floor được báo cáo song song, tổng cộng 5 lần retrain.", "Changes both the training seed and the initial weights. Both floors are reported side by side, 5 retrains in total.")}</p>`));
+  s.appendChild(g);
+  const c = el("div", "card stack"); s.appendChild(c);
+  c.appendChild(el("h3", null, t("Thử đọc kết quả chạy thử", "Reading a smoke run")));
+  c.appendChild(el("div", "note warn", t(`<b>Chỉ để kiểm tra code, không phải kết quả luận văn:</b> ${M4.a01.rounds} vòng, ${M4.a01.train} mẫu. Mô hình còn rất yếu (M đạt ${pct(M4.a01.accM, 1)} ở α = 0,1 và ${pct(M4.iid.accM, 1)} ở IID). M ở đây là mô hình gốc chưa unlearn.`, `<b>For checking code only, not a thesis result:</b> ${M4.a01.rounds} rounds, ${M4.a01.train} samples. The models are still very weak (M reaches ${pct(M4.a01.accM, 1)} at α = 0.1 and ${pct(M4.iid.accM, 1)} at IID). M here is the original, non-unlearned model.`)));
+  const ROW = { global_test: t("Test chung", "Global test"), target_client: "Target", non_target_clients: "Non-target", target_client_dominant_classes: t("Lớp target chiếm giữ", "Target-dominant"), target_client_shared_classes: t("Lớp dùng chung", "Shared classes") };
+  let st = { p: "a01", f: "A", m: "D", r: "target_client" };
+  const ctr = el("div", "ctrls"), area = el("div", "stack"); c.append(ctr, area);
+  let rowCtl;
+  const rebuild = () => {
+    area.innerHTML = ""; const rows = M4[st.p].floors[st.f];
+    if (!rows[st.r].n) st.r = "target_client";
+    rowCtl.querySelectorAll("button").forEach((b) => { const has = rows[b.dataset.k].n > 0; b.disabled = !has; b.style.opacity = has ? 1 : 0.35; b.setAttribute("aria-pressed", b.dataset.k === st.r); });
+    const x = rows[st.r], n = x.n, gap = st.m === "D";
+    const pairs = (gap ? x.pairD : x.pairA).map((v) => 100 * v / n), ms = (gap ? x.mD : x.mA).map((v) => 100 * v / n), lim = 100 * (gap ? x.limD : x.limA) / n;
+    const box = el("div", "chart"); area.appendChild(box);
+    mount(box, (h, W) => {
+      const H = 118, L = 8, R = 12, all = [...pairs, ...ms, lim];
+      const a = gap ? 0 : Math.max(0, Math.floor(Math.min(...all) - 3)), b = gap ? Math.max(1, Math.ceil(Math.max(...all) * 1.15)) : 100;
+      const X = (v) => L + (W - L - R) * (v - a) / (b - a), s2 = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, height: H, role: "img", "aria-label": "Noise floor" }, h), tip = tipper(h);
+      const x0 = gap ? X(a) : X(Math.max(a, lim)), x1 = gap ? X(Math.min(b, lim)) : X(b);
+      svgEl("rect", { x: x0, y: 16, width: Math.max(2, x1 - x0), height: 62, fill: "var(--band)", rx: 4 }, s2);
+      svgEl("text", { x: (x0 + x1) / 2, y: 12, "text-anchor": "middle" }, s2, t("trong floor", "inside floor"));
+      svgEl("line", { x1: L, x2: W - R, y1: 78, y2: 78, class: "grid" }, s2);
+      for (let i = 0; i <= 4; i++) { const v = a + (b - a) * i / 4; svgEl("text", { x: X(v), y: 94, "text-anchor": i === 0 ? "start" : i === 4 ? "end" : "middle" }, s2, num(v, 1) + "%"); }
+      const dot = (v, y, fill, label) => { const o = svgEl("circle", { cx: X(v), cy: y, r: 6, fill, stroke: "var(--surface)", "stroke-width": 2 }, s2); const f = (e) => { const r = h.getBoundingClientRect(); tip.show(`${label}: ${num(v)}%`, e.clientX - r.left, e.clientY - r.top); }; o.addEventListener("pointermove", f); o.addEventListener("pointerdown", f); o.addEventListener("pointerleave", tip.hide); };
+      pairs.forEach((v, i) => dot(v, 32, "var(--muted)", t(`Cặp retrain ${i + 1}`, `Retrain pair ${i + 1}`)));
+      ms.forEach((v, i) => dot(v, 60, "var(--c2)", t(`M so với retrain ${i + 1}`, `M against retrain ${i + 1}`)));
+      svgEl("text", { x: L, y: 112 }, s2, gap ? t("Chênh lệch accuracy (trị tuyệt đối)", "Accuracy gap (absolute)") : t("Tỉ lệ đồng thuận dự đoán", "Prediction agreement"));
+    });
+    area.appendChild(el("div", "legend", `<span><i style="background:var(--muted)"></i>${t("Retrain với retrain", "Retrain against retrain")}</span><span><i style="background:var(--c2)"></i>${t("M với retrain", "M against retrain")}</span><span><i style="background:var(--band)"></i>${t("Vùng trong floor", "Inside the floor")}</span>`));
+    const inside = (gap ? x.mD.filter((v) => v <= x.limD) : x.mA.filter((v) => v >= x.limA)).length, pc = gap ? x.pcD : x.pcA;
+    area.appendChild(el("p", "small", t(`M nằm trong floor so với <b>${inside}/3</b> retrain (${n} mẫu). `, `M is inside the floor against <b>${inside}/3</b> retrains (${n} samples). `) + (pc ? t("<b>Trong lần chạy thử này, dòng này phân biệt được:</b> M, vốn chưa quên gì, nằm ngoài floor so với mọi retrain.", "<b>In this smoke run, this row discriminates:</b> M, which has forgotten nothing, is outside the floor against every retrain.") : t("<b>Trong lần chạy thử này, dòng này chưa phân biệt được:</b> M, vốn chưa quên gì, chưa nằm ngoài floor so với mọi retrain, nên nếu một phương pháp lọt vào floor ở dòng này thì vẫn chưa chứng minh được gì.", "<b>In this smoke run, this row does not discriminate:</b> M, which has forgotten nothing, is not outside the floor against every retrain, so a method landing inside the floor here would prove nothing."))));
+  };
+  ctr.appendChild(seg(t("Phân chia", "Partition"), [["a01", SNAME["0.1"]], ["iid", "IID"]], "a01", (k) => { st.p = k; rebuild(); }));
+  ctr.appendChild(seg("Floor", [["A", "A"], ["B", "B"]], "A", (k) => { st.f = k; rebuild(); }));
+  ctr.appendChild(seg(t("Chỉ số", "Measure"), [["D", t("Chênh lệch", "Gap")], ["A", t("Đồng thuận", "Agreement")]], "D", (k) => { st.m = k; rebuild(); }));
+  rowCtl = seg(t("Phần dữ liệu", "Split"), Object.entries(ROW), st.r, (k) => { st.r = k; rebuild(); });
+  rowCtl.querySelectorAll("button").forEach((b, i) => (b.dataset.k = Object.keys(ROW)[i]));
+  ctr.appendChild(rowCtl);
+  rebuild();
+  c.appendChild(src("results/smoke_month4_week14_v3_mnist_*/noise_floor.json"));
+});
+
+add("decisions", t("13 quyết định", "13 decisions"), (s) => {
+  s.innerHTML = `<p class="eyebrow">${t("Tháng 4 · thiết kế", "Month 4 · design")}</p><h2>${t("13 quyết định đã đưa vào code", "13 decisions applied in code")}</h2><p class="lede">${t("Mỗi quyết định có thể mở ra xem lý do. Lọc theo nhóm nếu chỉ cần xem một phần.", "Open any decision for its reason. Filter by group to see just one part.")}</p>`;
+  const G = { floor: "Noise floor", target: t("Chọn target", "Target choice"), run: t("Cấu hình chạy", "Run setup"), rep: t("Báo cáo", "Reporting") };
+  const L = [
+    ["floor", t("Báo cáo song song cả hai floor A và B", "Report floors A and B side by side"), t("Floor chỉ đổi minibatch nhỏ hơn floor đổi cả trọng số ban đầu. Chỉ dùng một floor sẽ che mất lựa chọn này. Cần thêm 4 lần retrain.", "The minibatch-only floor is smaller than the floor that also changes initial weights. Using just one would hide this choice. It needs 4 extra retrains.")],
+    ["floor", t("Seed của floor là seed của lưới (42, 43, 44)", "Floor seeds are the grid's seeds (42, 43, 44)"), t("Tiết kiệm số lần chạy nhưng kém độc lập hơn. Hạn chế này được ghi trong noise_floor.json. Xem mục 3 ở trang Quyết định.", "It saves runs but is less independent. The limitation is recorded in noise_floor.json. See item 3 on the Decisions slide.")],
+    ["floor", t("Ngưỡng: trung bình + 2 × độ lệch chuẩn, hòa tính là trong floor", "Threshold: mean + 2 × standard deviation, ties count as inside"), t("Quy ước riêng của luận văn, đang chờ xác nhận. Không dùng từ “có ý nghĩa thống kê” vì đây không phải kiểm định.", "The thesis's own convention, awaiting confirmation. The term “statistically significant” is not used, as this is not a test.")],
+    ["floor", t("Luôn báo cáo đối chứng dương cạnh mỗi kết luận", "Always report a positive control beside each verdict"), t("Đối chứng là M, mô hình chưa quên gì. Nếu M cũng lọt vào floor thì dòng đó chưa phân biệt được gì.", "The control is M, which has forgotten nothing. If M also lands inside the floor, that row discriminates nothing.")],
+    ["floor", t("So với mọi lần retrain, không chọn một bản tham chiếu", "Compare with every retrain, not one chosen reference"), t("Lưu kết quả từng bản và khoảng min–max. Đối chứng chỉ được coi là phân biệt được khi nằm ngoài floor so với mọi bản của floor đó.", "Each reference and the min–max range are stored. The control only counts as discriminating when outside the floor against every reference of that floor.")],
+    ["floor", t("Chênh lệch accuracy và đồng thuận là hai câu trả lời riêng", "Accuracy gap and agreement stay separate answers"), t("Hai mô hình có thể cùng accuracy mà đúng ở những mẫu khác nhau. Gộp lại sẽ che mất điều này.", "Two models can share an accuracy yet be right on different samples. Combining them would hide that.")],
+    ["floor", t("Độ lệch chuẩn mẫu (ddof = 1)", "Sample standard deviation (ddof = 1)"), t("Dùng ước lượng thông thường. Nếu chỉ có một cặp, code dừng với lỗi thay vì trả về một ngưỡng không đáng tin.", "This is the usual estimator. With only one pair the code stops with an error rather than return an unreliable threshold.")],
+    ["target", t("Target được code chọn từ phân chia dữ liệu", "The target is chosen in code from the partition"), t("Tránh việc sửa tay ID sau khi đã thấy kết quả. Quy tắc áp dụng cho lưới chính thức vẫn chưa chốt, xem mục 1 ở trang Quyết định.", "This prevents editing the ID by hand after seeing results. The rule for the official grid is not settled, see item 1 on the Decisions slide.")],
+    ["run", t("Giữ R = 5, E = 1, B = 128, lr = 0,1", "Keep R = 5, E = 1, B = 128, lr = 0.1"), t("Kế thừa từ các tháng trước để so sánh được, nhưng chưa kiểm tra hội tụ với 10 client. Xem mục 4 ở trang Quyết định.", "Inherited from earlier months for comparability, but not convergence-checked with 10 clients. See item 4 on the Decisions slide.")],
+    ["run", t("Giữ 15% validation, chưa dùng", "Keep the 15% validation split, unused"), t("Giữ nguyên 51.000 mẫu huấn luyện như Tháng 2–3 để so sánh được xuyên suốt.", "This keeps the same 51,000 training samples as Months 2–3, so results stay comparable.")],
+    ["run", t("Đo thời gian trên CPU cho mọi phương pháp", "Time every method on CPU"), t("Speedup chỉ công bằng khi cùng thiết bị. MPS không đảm bảo tái lập chính xác từng bit, và server FedAvg hiện không nhận MPS.", "Speedup is only fair on the same device. MPS does not guarantee bit-exact reproduction, and the FedAvg server currently rejects it.")],
+    ["rep", t("Giữ tên target và non-target, ghi rõ đó là dữ liệu huấn luyện", "Keep target and non-target names, stating they are training data"), t("Chỉ test chung là dữ liệu chưa thấy. Định nghĩa này nằm trong mọi file kết quả để tránh đọc nhầm.", "Only the global test split is unseen data. This definition is in every result file to prevent misreading.")],
+    ["rep", t("Trung bình sẽ kèm số ô có dữ liệu", "Averages will state how many cells had data"), t("Ở IID không có lớp do target chiếm giữ. Ô trống được ghi là không có dữ liệu, không tính thành 0. Hàm đã sẵn sàng, sẽ dùng khi có bảng tổng hợp lưới.", "IID has no target-dominant class. Empty cells are recorded as having no data, not counted as 0. The function is ready for when the grid is aggregated.")],
+  ];
+  const list = el("div", "stack");
+  const show = (g) => { list.innerHTML = ""; L.forEach(([k, a, b], i) => { if (g !== "all" && k !== g) return; list.appendChild(el("details", "item", `<summary><span class="num">${String(i + 1).padStart(2, "0")}</span><span class="t">${a}</span><span class="pill flat">${G[k]}</span></summary><div class="body"><p>${b}</p></div>`)); }); };
+  s.appendChild(seg(t("Nhóm", "Group"), [["all", t("Tất cả", "All")], ...Object.entries(G)], "all", show)); s.appendChild(list); show("all");
+});
+
+add("lit", t("Tài liệu", "Literature"), (s) => {
+  s.innerHTML = `<p class="eyebrow">${t("Rà soát tài liệu · tháng 11", "Literature review · November")}</p><h2>${t("Chưa thấy bài nào trùng 3 ứng viên hiện tại, nhưng khoảng trống đang hẹp lại", "No paper read matches the 3 current candidates, but the gap is narrowing")}</h2><p class="lede">${t("Lượt quét tháng 11 thêm 5 bài. Bảng cũng gồm những bài gần nhất đã đọc trước đó. Đây là đánh giá sơ bộ theo các bài đã đọc, chưa được xác nhận độc lập.", "The November scan added 5 papers. The table also includes the closest papers read earlier. This is a preliminary assessment of the papers read, not independently confirmed.")}</p>`;
+  const C = { close: [t("Gần, cần theo dõi", "Close, watch"), "warn"], part: [t("Chồng lấn một phần", "Partial overlap"), "flat"], far: [t("Khác bài toán", "Different problem"), "good"] };
+  const P = [
+    ["GDFA", "CVPR 2026", t("Đã đọc trước", "Read earlier"), "close", t("Đưa mô hình về vùng phẳng của loss và lọc task vector theo hướng nhất quán, ở mức client và Non-IID.", "Moves the model to a flat loss region and filters task vectors by consistent direction, at client level under Non-IID."), t("So sánh trực tiếp với PGA và SIFU, nhưng bảng chính chỉ dùng α = 0,5. Không quét các mức lệch và bảng không có độ lệch chuẩn.", "Benchmarks PGA and SIFU directly, but its main table uses only α = 0.5. It has no skew sweep and prints no spread.")],
+    ["Not All Retained Clients Are Equal", "arXiv 2610.31786, NeurIPS 2026 workshop", t("Quét tháng 11", "November scan"), "close", t("Chọn tập con client còn lại để tham gia các vòng unlearning.", "Selects a subset of retained clients for the unlearning rounds."), t("Cùng bài toán, có Retrain, FedEraser, GDFA và thử α ∈ {1; 0,1}. Cơ chế là chọn client, không có PGA, không báo cáo seed hay độ dao động.", "Same problem, with Retrain, FedEraser, GDFA and α ∈ {1, 0.1}. Its mechanism is client selection, with no PGA and no seeds or spread reported.")],
+    ["SATA", "arXiv 2510.13606", t("Đã đọc trước", "Read earlier"), "close", t("Unlearning trong một vòng cho dữ liệu lệch mạnh.", "Single-round unlearning for highly skewed data."), t("Mục tiêu chính là giảm số vòng, không phải bảo toàn non-target.", "Its main aim is fewer rounds rather than preserving non-target clients.")],
+    ["Qiao et al.", "Alexandria Eng. J. 2026", t("Đã đọc trước", "Read earlier"), "part", t("Dùng knowledge distillation để chống quên khi học tăng dần và để xóa client.", "Uses knowledge distillation against forgetting in incremental learning and for client deletion."), t("Cùng mức client và Non-IID, nhưng gắn với học tăng dần theo lớp và không điều chỉnh theo mức lệch của target.", "Same client level and Non-IID, but tied to class-incremental learning and not conditioned on the target's skew.")],
+    ["FedCCCU", "arXiv 2510.07022", t("Đã đọc trước", "Read earlier"), "part", t("Ràng buộc giữa các client để giảm ảnh hưởng lên client không liên quan.", "Cross-client constraints to reduce impact on uninvolved clients."), t("Gần về ý tưởng, nhưng quên ở mức lớp trong client và không có tham số mức lệch.", "Close in idea, but it unlearns at class-within-client level with no skew parameter.")],
+    ["Lethe", "arXiv 2608.01094", t("Đã đọc trước", "Read earlier"), "part", t("Benchmark 12 phương pháp FU trên ảnh y tế.", "A benchmark of 12 FU methods on medical images."), t("Không phải phương pháp cạnh tranh, nhưng có thử α ∈ {0,1; 0,5; 1,0} với cả FedEraser và PGA trên một phần tác vụ. Bài cho rằng mức lệch quyết định accuracy đạt được hơn là phương pháp nào được ưu tiên, nên cần theo dõi.", "Not a competing method, but it sweeps α ∈ {0.1, 0.5, 1.0} including FedEraser and PGA on some tasks. It reads skew as determining available accuracy rather than the preferred method, so it needs watching.")],
+    ["ATONE", "arXiv 2610.22584", t("Quét tháng 11", "November scan"), "far", t("Suy ra cần xóa gì từ triệu chứng lỗi trong mạng xe.", "Infers what to remove from fault symptoms in vehicular networks."), t("Luận văn giả định target đã biết trước.", "The thesis assumes a known target.")],
+    ["SURE (Split FU)", "arXiv 2610.36465", t("Quét tháng 11", "November scan"), "far", t("Unlearning cho split federated learning.", "Unlearning for split federated learning."), t("Kiến trúc khác: mô hình bị cắt thành phần client và server.", "A different architecture: the model is cut into client and server parts.")],
+    ["FedZOUL", "arXiv 2610.35211", t("Quét tháng 11", "November scan"), "far", t("Unlearning chính xác cho tối ưu zeroth-order.", "Exact unlearning for zeroth-order optimization."), t("Xóa theo mẫu và không dùng FedAvg.", "It deletes samples and does not use FedAvg.")],
+    ["Federated fair k-means", "arXiv 2610.13717", t("Quét tháng 11", "November scan"), "far", t("Unlearning cho phân cụm k-means công bằng.", "Unlearning for fair k-means clustering."), t("Dữ liệu bảng, không phải mạng nơ-ron.", "Tabular data rather than neural networks.")],
+  ];
+  const list = el("div", "stack");
+  const show = (f) => { list.innerHTML = ""; P.forEach(([n, v, o, c, a, b]) => { if (f !== "all" && f !== c) return; list.appendChild(el("details", "item", `<summary><span class="t">${n} <span class="muted small">· ${v}</span></span><span class="pill ${C[c][1]}">${C[c][0]}</span></summary><div class="body"><p><b>${t("Bài làm gì", "What it does")}:</b> ${a}</p><p><b>${t("So với luận văn", "Against the thesis")}:</b> ${b}</p><p class="src">${o}</p></div>`)); }); };
+  s.appendChild(seg(t("Mức liên quan", "Relevance"), [["all", t("Tất cả", "All")], ...Object.entries(C).map(([k, x]) => [k, x[0]])], "all", show)); s.appendChild(list); show("all");
+  s.appendChild(el("div", "card", `<h3>${t("Phương pháp đề xuất vẫn chưa chốt", "The proposed method is not chosen yet")}</h3><p class="small muted">${t("Hướng chung là thuật toán unlearning có tính đến Non-IID, với 3 ứng viên chưa kiểm chứng. Chọn vào 21/12, dựa trên điểm yếu quan sát được của các baseline.", "The direction is a Non-IID-aware unlearning algorithm, with 3 untested candidates. The choice is due on 21 Dec, based on weaknesses observed in the baselines.")}</p><ul class="clean small muted" style="margin-top:8px"><li>${t("PGA theo mức chiếm giữ lớp: bán kính hoặc trọng số ascent phụ thuộc mức target chiếm giữ từng lớp.", "Class-ownership-aware PGA: projection radius or ascent weight depends on how much the target dominates each class.")}</li><li>${t("Recovery bảo toàn non-target: thêm ràng buộc trên các lớp dùng chung.", "Non-target-preserving recovery: adds constraints on shared classes.")}</li><li>${t("Calibration của FedEraser theo mức lệch: số vòng hoặc tỉ lệ phụ thuộc phân phối lớp của target.", "FedEraser calibration by skew: rounds or ratio depend on the target's class distribution.")}</li></ul></div>`));
+});
+
+add("open", t("Quyết định", "Decisions"), (s) => {
+  s.innerHTML = `<p class="eyebrow">${t("Cần chốt", "To settle")}</p><h2>${t("9 điểm còn mở, 5 điểm nên chốt trước lần chạy chính thức", "9 open points, 5 to settle before the official run")}</h2><p class="lede">${t("Trong 5 điểm đó, code chỉ tự dừng khi chưa có quy tắc target. Bốn điểm còn lại đã có giá trị tạm trong config, nhưng đổi sau khi chạy thì phải chạy lại. Mỗi mục kèm một đề xuất ban đầu để phản biện.", "Of those 5, the code only stops itself when the target rule is missing. The other four have provisional values in config, but changing them after a run means rerunning. Each item includes an initial suggestion to challenge.")}</p>`;
+  const Q = [
+    [1, t("Giữ đủ 3 quy tắc target như thiết kế, hay thu hẹp?", "Keep all 3 target rules as designed, or narrow?"), t("Kế hoạch là ít nhất 3 seed × 3 target. Config chính thức cố ý để trống và cần một bản cho mỗi quy tắc, chưa tạo. Lần chạy tự dừng khi chưa có quy tắc.", "The plan is at least 3 seeds × 3 targets. Official configs are blank on purpose and need one copy per rule, not yet created. A run stops itself without a rule."), [t("Giữ đủ T1, T2, T3: đúng thiết kế, thấy kết quả có phụ thuộc cách chọn không.", "Keep T1, T2, T3: matches the design and shows whether results depend on the choice."), t("Thu hẹp còn 1 quy tắc: nhanh hơn nhưng là thay đổi thiết kế, cần ghi rõ.", "Narrow to 1 rule: faster, but a design change that must be stated.")], t("Giữ đủ 3 quy tắc. Chỉ thu hẹp nếu thời gian chạy đo được thực sự không kham nổi.", "Keep all 3 rules. Narrow only if measured run time proves unworkable.")],
+    [1, t("Ngưỡng noise floor (trung bình + 2 × độ lệch chuẩn) có chấp nhận được không?", "Is the noise-floor threshold (mean + 2 × standard deviation) acceptable?"), t("Chưa tìm được tiền lệ, và ngưỡng chỉ dựa trên 3 cặp phụ thuộc nhau.", "No precedent has been found, and it rests on only 3 dependent pairs."), [t("Giữ c = 2.", "Keep c = 2."), t("Đổi quy tắc, hoặc tăng số lần retrain.", "Change the rule or add more retrains.")], t("Giữ c = 2, trình bày rõ là quy ước và báo cáo thêm kết luận thay đổi ra sao ở c khác.", "Keep c = 2, present it plainly as a convention and also report how conclusions change at other c values.")],
+    [1, t("Dùng lại seed 42, 43, 44 cho floor có đủ không?", "Is reusing seeds 42, 43, 44 for the floor enough?"), t("Các seed này cũng được dùng cho các ô khác của lưới, nên floor kém độc lập hơn lý tưởng.", "These seeds also serve other grid cells, so the floor is less independent than ideal."), [t("Giữ nguyên và ghi rõ hạn chế.", "Keep them and state the limitation."), t("Thêm 2–3 seed riêng cho floor.", "Add 2–3 floor-only seeds.")], t("Giữ nguyên ở lượt đầu, chỉ thêm seed nếu kết luận nằm sát ngưỡng.", "Keep them for the first pass and add seeds only if conclusions sit near the threshold.")],
+    [1, t("Có cần kiểm tra hội tụ của R = 5 trước khi chạy không?", "Should R = 5 be convergence-checked before running?"), t("R = 5 kế thừa từ cấu hình trước, chưa kiểm tra với 10 client. Mô hình chạy thử 2 vòng rất yếu nên nhiều dòng chưa phân biệt được.", "R = 5 is inherited and unchecked with 10 clients. Smoke models after 2 rounds are very weak, so many rows cannot discriminate."), [t("Chạy ngay rồi kiểm tra sau.", "Run now and check afterwards."), t("Thử vài giá trị R trước.", "Try a few R values first.")], t("Thử vài giá trị R trước, vì đổi R sau đó buộc phải chạy lại toàn bộ lưới.", "Try a few R values first, since changing R later forces a full grid rerun.")],
+    [1, t("Trung vị thấp hơn cho T1 khi số client chẵn có ổn không?", "Is the lower median for T1 with an even client count acceptable?"), t("Kế hoạch không quy định trường hợp này, nên code tự chọn và có ghi rõ.", "The plan does not cover this case, so the code makes a documented choice."), [t("Giữ trung vị thấp hơn.", "Keep the lower median."), t("Đổi sang trung vị cao hơn.", "Switch to the upper median.")], t("Giữ nguyên, vì quy tắc chỉ cần chọn ra đúng một client một cách cố định.", "Keep it, since the rule only needs to pick exactly one client consistently.")],
+    [0, t("Dùng chuẩn trích dẫn nào?", "Which citation style?"), t("Chưa chọn, cần theo quy định của trường hoặc khoa.", "Not chosen yet, as it should follow the school or faculty rule."), [], t("Hỏi quy định rồi áp dụng từ các chương viết đầu tiên.", "Check the rule and apply it from the first chapters written.")],
+    [0, t("Có giữ KD-FU trong phạm vi không?", "Should KD-FU stay in scope?"), t("Baseline tùy chọn: chỉ là bản arXiv, cần dữ liệu không nhãn ở server, và cách đo phải thiết kế lại.", "An optional baseline: arXiv only, needs unlabeled server data, and its evaluation would need redesigning."), [t("Bỏ hẳn.", "Drop it."), t("Thử trên MNIST nếu còn thời gian.", "Try it on MNIST if time remains.")], t("Bỏ khỏi cam kết, vì lịch đang chật.", "Remove it from the commitments, as the schedule is already tight.")],
+    [0, t("Khoảng trống nghiên cứu có còn đủ mới không?", "Is the research gap still novel enough?"), t("Các bài 2025–2026 đang tiến gần. GDFA là bài gần nhất về số liệu.", "2025–2026 papers are moving closer. GDFA is the nearest quantitatively."), [], t("Rà lại bảng khoảng trống trước 21/12, trước khi chốt phương pháp đề xuất.", "Review the gap table before 21 Dec, ahead of choosing the proposed method.")],
+    [0, t("Khi nào giải thích mức giảm không đều theo α?", "When should the uneven drop across α be explained?"), t(`Accuracy giảm ${num((S3["1.0"].acc - S3["0.5"].acc) * 100)} điểm % rồi ${num((S3["0.5"].acc - S3["0.1"].acc) * 100)} điểm % (bước α không đều, một seed, không có điểm đo giữa 0,5 và 0,1). Cách giải thích hiện tại chưa nói được vì sao chênh như vậy.`, `Accuracy drops ${num((S3["1.0"].acc - S3["0.5"].acc) * 100)} pp, then ${num((S3["0.5"].acc - S3["0.1"].acc) * 100)} pp (unequal α steps, one seed, nothing measured between 0.5 and 0.1). The current explanation does not account for this difference.`), [], t("Làm trước lần chạy Non-IID đầu tiên, vì nó giúp diễn giải kết quả ở α = 0,1. Không cản việc chạy.", "Do it before the first Non-IID run, as it helps interpret α = 0.1 results. It does not block the run.")],
+  ];
+  const list = el("div", "stack");
+  const show = (f) => { list.innerHTML = ""; Q.forEach(([bl, q, ctx, op, sug], i) => { if (f === "b" && !bl) return; const d = el("details", "item", `<summary><span class="num">${i + 1}</span><span class="t">${q}</span><span class="pill ${bl ? "risk" : "flat"}">${bl ? t("Chốt trước khi chạy", "Settle before run") : t("Không chặn", "Non-blocking")}</span></summary><div class="body"><p>${ctx}</p>${op.length ? `<ul class="clean">${op.map((o) => `<li>${o}</li>`).join("")}</ul>` : ""}<div class="note"><b>${t("Đề xuất", "Suggestion")}:</b> ${sug}</div></div>`); list.appendChild(d); }); };
+  s.appendChild(seg(t("Hiển thị", "Show"), [["all", t("Tất cả", "All")], ["b", t("Chỉ mục cần chốt trước", "Before-run only")]], "all", show)); s.appendChild(list); show("all");
+  const first = list.querySelector("details"); if (first) first.open = true;
+});
+
+add("road", t("Lộ trình", "Roadmap"), (s) => {
+  s.innerHTML = `<p class="eyebrow">${t("Lộ trình đến khi nộp", "Road to submission")}</p><h2>${t("Mốc 25/10 còn dang dở và FedEraser chưa có code. Việc cần làm ngay là khép lại mốc này.", "The 25 Oct milestone is unfinished and FedEraser has no code. The priority is closing that milestone.")}</h2><p class="lede">${t("Code Retrain đã xong, nhưng chưa commit và Tuần 13 chưa chạy. FedEraser (26/10–08/11) có thể viết song song. Lưới so sánh từ 23/11 mới cần kết quả Retrain chính thức, nên đó là mốc phải giữ.", "The Retrain code is finished, but it is uncommitted and Week 13 has not run. FedEraser (26 Oct–8 Nov) can be built in parallel. The comparison from 23 Nov is what needs official Retrain results, so that is the date to protect.")}</p>`;
+  const start = Date.UTC(2026, 9, 12), end = Date.UTC(2027, 3, 12), now = Date.UTC(2026, 10, 3), P = (d) => 100 * (d - start) / (end - start), U = (m, d) => Date.UTC(m >= 9 ? 2026 : 2027, m, d);
+  const I = [[t("Retrain, noise floor, chỉ số quên", "Retrain, noise floor, metrics"), [9, 12], [9, 26], "late", t("Dang dở: code xong, chưa commit, Tuần 13 chưa chạy", "Unfinished: coded, uncommitted, Week 13 not run")], ["FedEraser", [9, 26], [10, 9], "now", t("Đang ở cửa sổ này, chưa có code", "In this window, no code yet")], ["PGA", [10, 9], [10, 23], "plan", ""], [t("So sánh 3 baseline, MNIST × 4 mức α", "Compare 3 baselines, MNIST × 4 α levels"), [10, 23], [11, 7], "plan", ""], [t("Đọc thêm, phân loại phương pháp", "Further reading, taxonomy"), [11, 7], [11, 21], "plan", ""], [t("Bảng khoảng trống, chốt phương pháp", "Gap table, choose the method"), [11, 21], [11, 28], "plan", ""], [t("Xây phương pháp đề xuất", "Build the proposed method"), [11, 28], [0, 25], "plan", ""], [t("Lưới benchmark cuối", "Final benchmark grid"), [0, 25], [1, 8], "plan", ""], [t("Dự phòng Tết", "Tết buffer"), [1, 8], [1, 15], "buf", ""], [t("MIA, ablation", "MIA, ablation"), [1, 15], [2, 1], "plan", ""], [t("Viết luận văn", "Write the thesis"), [2, 1], [2, 22], "plan", ""], [t("Slide, demo, tập dượt", "Slides, demo, rehearsal"), [2, 22], [3, 5], "plan", ""], [t("Dự phòng và nộp", "Buffer and submit"), [3, 5], [3, 12], "buf", ""]];
+  const fmt = ([m, d]) => t(`${d}/${m + 1}`, `${d} ${["Jan", "Feb", "Mar", "Apr", "", "", "", "", "", "Oct", "Nov", "Dec"][m]}`);
+  const c = el("div", "card"), sc = el("div", "scroll"), g = el("div", "gantt");
+  I.forEach(([n, a, b, cl, note]) => { const x = P(U(...a)), w = P(U(...b)) - x; g.appendChild(el("div", "row", `<span>${n}</span><div class="track" title="${fmt(a)} – ${fmt(b)}${note ? " · " + note : ""}"><div class="bar ${cl}" style="left:${x}%;width:${w}%"></div><div class="today" style="left:${P(now)}%"></div></div>`)); });
+  sc.appendChild(g); c.appendChild(sc);
+  c.appendChild(el("div", "legend", `<span><i style="background:var(--c2)"></i>${t("Còn dang dở", "Unfinished")}</span><span><i style="background:var(--c4)"></i>${t("Cửa sổ hiện tại", "Current window")}</span><span><i style="background:var(--c1);opacity:.55"></i>${t("Theo kế hoạch", "Planned")}</span><span><i style="background:var(--ink);width:2px"></i>${t("Hôm nay, 03/11", "Today, 3 Nov")}</span>`)); c.lastChild.style.marginTop = "10px";
+  s.appendChild(c);
+  const n = el("div", "grid2");
+  n.appendChild(el("div", "card", `<h3>${t("Việc kế tiếp, theo thứ tự", "Next, in order")}</h3><ol class="small" style="margin:0;padding-left:18px"><li>${t("Chốt 5 điểm cần quyết trước khi chạy.", "Settle the 5 before-run points.")}</li><li>${t("Khóa phiên bản code, chạy Tuần 13, rồi chạy lưới Retrain chính thức trước 23/11.", "Lock the code version, run Week 13, then run the official Retrain grid before 23 Nov.")}</li><li>${t("Song song: xây FedEraser, đo lượng lưu trữ.", "In parallel: build FedEraser and measure its storage.")}</li><li>${t("Xây PGA, rồi so sánh 3 baseline.", "Build PGA, then compare the 3 baselines.")}</li></ol></div>`));
+  n.appendChild(el("div", "card", `<h3>${t("Rủi ro chính", "Main risks")}</h3><ul class="clean small"><li>${t("Mốc 25/10 và FedEraser kéo dài sẽ thu hẹp thời gian xây baseline trước khi phải chốt phương pháp vào 21/12.", "If the 25 Oct milestone and FedEraser run long, there is less time to build baselines before the method choice on 21 Dec.")}</li><li>${t("Khoảng trống nghiên cứu có thể hẹp thêm, nên lượt quét tài liệu vẫn chạy hàng tháng.", "The research gap may narrow further, so the literature scan keeps running monthly.")}</li><li>${t("Noise floor có thể không phân biệt được ở một số dòng, ngay cả khi mô hình đã huấn luyện đủ.", "The noise floor may fail to discriminate on some rows, even with properly trained models.")}</li></ul></div>`));
+  s.appendChild(n);
+});
+
+/* ---------- navigation ---------- */
+const main = document.getElementById("main"), rail = document.getElementById("rail");
+let cur = 0;
+slides.forEach((sl, i) => {
+  sl.node = el("section", "slide"); sl.node.hidden = true; sl.node.id = "s-" + sl.id; main.appendChild(sl.node);
+  const b = el("button", null, sl.name); b.type = "button"; b.onclick = () => go(i); rail.appendChild(b); sl.btn = b;
+});
+function go(k, keepScroll) {
+  const i = typeof k === "number" ? k : slides.findIndex((x) => x.id === k);
+  if (i < 0) return;
+  cur = i; const sl = slides[i];
+  slides.forEach((x, j) => { x.node.hidden = j !== i; x.btn.setAttribute("aria-current", j === i); });
+  if (!sl.done) { sl.build(sl.node); sl.done = true; }
+  sl.btn.scrollIntoView({ block: "nearest", inline: "center" });
+  document.getElementById("prog").style.width = (100 * (i + 1) / slides.length) + "%";
+  document.getElementById("pos").textContent = `${i + 1} / ${slides.length}`;
+  document.getElementById("prev").disabled = i === 0;
+  const nx = document.getElementById("next"); nx.disabled = i === slides.length - 1;
+  nx.textContent = i < slides.length - 1 ? t("Tiếp: ", "Next: ") + slides[i + 1].name + " →" : t("Hết", "End");
+  document.getElementById("prev").textContent = "← " + t("Trước", "Back");
+  try { history.replaceState(null, "", "#" + sl.id); } catch (e) {}
+  if (!keepScroll) window.scrollTo(0, 0);
+}
+document.getElementById("prev").onclick = () => go(cur - 1);
+document.getElementById("next").onclick = () => go(cur + 1);
+document.addEventListener("keydown", (e) => {
+  if (e.target.matches("input,textarea,select")) return;
+  if (e.key === "ArrowRight" && cur < slides.length - 1) go(cur + 1);
+  if (e.key === "ArrowLeft" && cur > 0) go(cur - 1);
+});
+window.addEventListener("hashchange", () => go(location.hash.slice(1), true));
+document.getElementById("meta").innerHTML = `${t("Tháng 11/2026", "November 2026")} · <a href="${OTHER === "en" ? "index-en.html" : "index.html"}${location.hash}" onclick="this.href=this.href.split('#')[0]+location.hash">${OTHER.toUpperCase()}</a>`;
+const startId = location.hash.slice(1);
+go(slides.some((x) => x.id === startId) ? startId : 0, true);
 </script>
 </body>
 </html>

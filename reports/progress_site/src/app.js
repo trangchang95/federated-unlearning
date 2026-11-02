@@ -1,0 +1,432 @@
+"use strict";
+const t = (vi, en) => (LANG === "vi" ? vi : en);
+const num = (x, d = 2) => { const s = x.toFixed(d); return LANG === "vi" ? s.replace(".", ",") : s; };
+const pct = (x, d = 2) => num(x * 100, d) + "%";
+const pp = (x, d = 2) => (x < 0 ? "−" : "+") + num(Math.abs(x) * 100, d) + t(" điểm %", " pp");
+const mb = (b) => num(b / 1e6, 1) + " MB";
+const SVG = "http://www.w3.org/2000/svg";
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const S3 = D.m3.settings, M2 = D.m2, M4 = D.m4;
+const SNAME = { iid: "IID", "1.0": "α = " + num(1, 1), "0.5": "α = " + num(0.5, 1), "0.1": "α = " + num(0.1, 1), shards: t("Shard", "Shards") };
+
+/* ---------- chart primitives: redrawn at real pixel width so labels stay legible on phones ---------- */
+const mounts = new Set();
+function mount(host, draw) {
+  const m = { host, draw };
+  mounts.add(m);
+  const go = () => { if (host.clientWidth > 0) { host.innerHTML = ""; draw(host, host.clientWidth); } };
+  let lastW = -1;
+  new ResizeObserver(() => { if (host.clientWidth !== lastW) { lastW = host.clientWidth; go(); } }).observe(host);
+  const first = () => { if (host.isConnected && host.clientWidth > 0 && !host.firstChild) { lastW = host.clientWidth; go(); } };
+  setTimeout(first, 0); requestAnimationFrame(first);
+  return { redraw: go };
+}
+function svgEl(name, attrs, parent, text) {
+  const e = document.createElementNS(SVG, name);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text != null) e.textContent = text;
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function tipper(host) {
+  const tip = el("div", "tip"); host.appendChild(tip);
+  return {
+    show(html, x, y) {
+      tip.innerHTML = html; tip.style.opacity = 1;
+      const w = tip.offsetWidth, W = host.clientWidth;
+      tip.style.left = Math.max(0, Math.min(W - w, x + 12 + w > W ? x - w - 12 : x + 12)) + "px";
+      tip.style.top = Math.max(0, y - 34) + "px";
+    },
+    hide() { tip.style.opacity = 0; },
+  };
+}
+function bars(host, opt) {
+  const legend = opt.series.length > 1 ? el("div", "legend", opt.series.map((s) => `<span><i style="background:${s.color}"></i>${s.name}</span>`).join("")) : null;
+  const box = el("div", "chart");
+  if (legend) host.appendChild(legend);
+  host.appendChild(box);
+  mount(box, (h, W) => {
+    const H = opt.h || 230, L = 34, R = 6, T = 18, B = 34;
+    const s = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, height: H, role: "img", "aria-label": opt.label }, h);
+    const tip = tipper(h), y = (v) => T + (H - T - B) * (1 - v / 100);
+    [0, 25, 50, 75, 100].forEach((v) => {
+      svgEl("line", { x1: L, x2: W - R, y1: y(v), y2: y(v), class: "grid" }, s);
+      svgEl("text", { x: L - 6, y: y(v) + 4, "text-anchor": "end" }, s, v + "%");
+    });
+    const gw = (W - L - R) / opt.cats.length, n = opt.series.length, bw = Math.min(46, (gw - 10 - 2 * (n - 1)) / n);
+    opt.cats.forEach((c, i) => {
+      const cx = L + gw * i + gw / 2, start = cx - (n * bw + 2 * (n - 1)) / 2;
+      opt.series.forEach((sr, j) => {
+        const v = sr.values[i], x = start + j * (bw + 2), top = y(v * 100), base = y(0), r = Math.min(4, bw / 2);
+        const p = svgEl("path", { d: `M${x},${base}V${top + r}Q${x},${top} ${x + r},${top}H${x + bw - r}Q${x + bw},${top} ${x + bw},${top + r}V${base}Z`, fill: opt.hi && opt.hi !== c ? `color-mix(in srgb,${sr.color} 35%,transparent)` : sr.color }, s);
+        if (bw >= 22 || n === 1) svgEl("text", { x: x + bw / 2, y: top - 5, "text-anchor": "middle", class: "v" }, s, num(v * 100, opt.d == null ? 1 : opt.d));
+        const hit = svgEl("rect", { x: x - 1, y: T, width: bw + 2, height: H - T - B, fill: "transparent" }, s);
+        const show = (e) => { const b = h.getBoundingClientRect(); tip.show(`<b>${c}</b><i style="background:${sr.color}"></i>${sr.name}: ${pct(v)}`, e.clientX - b.left, e.clientY - b.top); };
+        hit.addEventListener("pointermove", show); hit.addEventListener("pointerdown", show); hit.addEventListener("pointerleave", tip.hide);
+      });
+      const lab = svgEl("text", { x: cx, y: H - 14, "text-anchor": "middle" }, s, c);
+      if (opt.hi === c) lab.style.fill = "var(--ink)";
+    });
+  });
+}
+function lines(host, opt) {
+  const on = opt.series.map(() => true);
+  const legend = el("div", "legend");
+  const box = el("div", "chart");
+  host.append(legend, box);
+  let ctrl;
+  opt.series.forEach((sr, i) => {
+    const b = el("button", null, `<i style="background:${sr.color}"></i>${sr.name}`);
+    b.type = "button"; b.setAttribute("aria-pressed", "true");
+    b.onclick = () => { if (on[i] && on.filter(Boolean).length === 1) return; on[i] = !on[i]; b.setAttribute("aria-pressed", on[i]); ctrl.redraw(); };
+    legend.appendChild(b);
+  });
+  ctrl = mount(box, (h, W) => {
+    const H = opt.h || 240, L = 40, R = 12, T = 10, B = 38;
+    const s = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, height: H, role: "img", "aria-label": opt.label }, h);
+    const tip = tipper(h), vis = opt.series.filter((_, i) => on[i]);
+    const xs = [...new Set(vis.flatMap((r) => r.pts.map((p) => p.x)))].sort((a, b) => a - b);
+    const ys = vis.flatMap((r) => r.pts.map((p) => p.y));
+    const lo = Math.floor(Math.min(...ys) * 10) / 10, hi = Math.min(1, Math.ceil(Math.max(...ys) * 10) / 10);
+    const X = (v) => L + (W - L - R) * (v - xs[0]) / (xs[xs.length - 1] - xs[0]), Y = (v) => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+    const step = hi - lo > 0.5 ? 0.2 : 0.1;
+    for (let v = lo; v <= hi + 1e-9; v += step) { svgEl("line", { x1: L, x2: W - R, y1: Y(v), y2: Y(v), class: "grid" }, s); svgEl("text", { x: L - 6, y: Y(v) + 4, "text-anchor": "end" }, s, Math.round(v * 100) + "%"); }
+    xs.forEach((v) => svgEl("text", { x: X(v), y: H - 22, "text-anchor": "middle" }, s, v));
+    svgEl("text", { x: (L + W - R) / 2, y: H - 5, "text-anchor": "middle" }, s, opt.xLabel);
+    vis.forEach((r) => {
+      svgEl("polyline", { points: r.pts.map((p) => `${X(p.x)},${Y(p.y)}`).join(" "), fill: "none", stroke: r.color, "stroke-width": 2, "stroke-linejoin": "round" }, s);
+      r.pts.forEach((p) => svgEl("circle", { cx: X(p.x), cy: Y(p.y), r: 3, fill: r.color, stroke: "var(--surface)", "stroke-width": 1.5 }, s));
+    });
+    const cross = svgEl("line", { y1: T, y2: H - B, stroke: "var(--muted)", "stroke-width": 1, opacity: 0 }, s);
+    const hit = svgEl("rect", { x: L, y: T, width: W - L - R, height: H - T - B, fill: "transparent" }, s);
+    const move = (e) => {
+      const b = h.getBoundingClientRect(), mx = e.clientX - b.left;
+      const near = xs.reduce((a, c) => (Math.abs(X(c) - mx) < Math.abs(X(a) - mx) ? c : a), xs[0]);
+      cross.setAttribute("x1", X(near)); cross.setAttribute("x2", X(near)); cross.setAttribute("opacity", 0.6);
+      const rows = vis.map((r) => { const p = r.pts.find((q) => q.x === near); return p ? `<div><i style="background:${r.color}"></i>${r.name}: ${pct(p.y)}</div>` : ""; }).join("");
+      tip.show(`<b>${opt.xLabel} ${near}</b>${rows}`, X(near), e.clientY - b.top);
+    };
+    hit.addEventListener("pointermove", move); hit.addEventListener("pointerdown", move);
+    hit.addEventListener("pointerleave", () => { tip.hide(); cross.setAttribute("opacity", 0); });
+  });
+}
+function seg(label, items, cur, onchange) {
+  const w = el("div", "ctrls"); if (label) w.appendChild(el("label", null, label));
+  const g = el("div", "seg"); w.appendChild(g);
+  items.forEach(([k, name]) => {
+    const b = el("button", null, name); b.type = "button"; b.setAttribute("aria-pressed", k === cur);
+    b.onclick = () => { g.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", x === b)); onchange(k); };
+    g.appendChild(b);
+  });
+  return w;
+}
+function withTable(host, head, rows) {
+  const btn = el("button", "linkbtn", t("Xem dạng bảng", "View as table")); btn.type = "button";
+  const tb = el("div", "scroll", `<table><thead><tr>${head.map((x, i) => `<th class="${i ? "n" : ""}">${x}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((x, i) => `<td class="${i ? "n" : ""}">${x}</td>`).join("")}</tr>`).join("")}</tbody></table>`);
+  tb.hidden = true;
+  btn.onclick = () => { tb.hidden = !tb.hidden; btn.textContent = tb.hidden ? t("Xem dạng bảng", "View as table") : t("Ẩn bảng", "Hide table"); };
+  host.append(btn, tb);
+}
+function heat(hist, sizes) {
+  const max = Math.max(...hist.flat());
+  return `<div class="scroll"><table class="heat"><thead><tr><th>${t("Client", "Client")}</th>${[0,1,2,3,4,5,6,7,8,9].map((d) => `<th>${d}</th>`).join("")}<th>${t("Tổng", "Total")}</th></tr></thead><tbody>${hist.map((r, i) =>
+    `<tr><th>${i}</th>${r.map((v, d) => `<td title="${t("Client", "Client")} ${i}, ${t("chữ số", "digit")} ${d}: ${v}" style="background:color-mix(in srgb,var(--c1) ${v ? Math.max(6, Math.round(85 * Math.sqrt(v / max))) : 0}%,transparent)">${v || "·"}</td>`).join("")}<th>${r.reduce((a, b) => a + b, 0)}</th></tr>`).join("")}</tbody></table></div>`;
+}
+const src = (s) => el("p", "src", t("Nguồn: ", "Source: ") + `<span class="mono">${s}</span>`);
+const seedNote = () => t("Một seed (42), nên chưa có khoảng dao động.", "One seed (42), so no spread is available.");
+
+/* ---------- week-tab slide ---------- */
+function monthSlide(host, weeks) {
+  const tabs = el("div", "weeks"); tabs.setAttribute("role", "tablist");
+  const body = el("div", "weekbody");
+  host.append(tabs, body);
+  const pick = (i, btn) => {
+    tabs.querySelectorAll("button").forEach((b) => b.setAttribute("aria-selected", b === btn));
+    body.innerHTML = "";
+    const w = weeks[i], card = el("div", "card stack");
+    card.appendChild(el("h3", null, w.title));
+    card.appendChild(el("p", "small muted", w.text));
+    body.appendChild(card);
+    if (w.viz) w.viz(card);
+  };
+  weeks.forEach((w, i) => {
+    const b = el("button", null, w.tab); b.type = "button"; b.setAttribute("role", "tab");
+    b.onclick = () => pick(i, b); tabs.appendChild(b);
+    if (!i) pick(0, b);
+  });
+}
+
+/* ---------- slides ---------- */
+const slides = [];
+const add = (id, name, build) => slides.push({ id, name, build });
+
+add("summary", t("Tổng quan", "Summary"), (s) => {
+  s.innerHTML = `<p class="eyebrow">${t("Tình hình đến 03/11/2026", "Status at 3 Nov 2026")}</p>
+  <h2>${t("Nền tảng federated đã xong và có số liệu. Phần unlearning mới có code đã kiểm thử, chưa có kết quả.", "The federated foundation is finished, with results. Unlearning has tested code but no results yet.")}</h2>
+  <p class="lede">${t("Ba tháng đầu cho thấy Non-IID làm FedAvg giảm mạnh ở mức lệch cao. Tháng 4 dựng mô hình chuẩn để đo việc quên. Bấm vào từng tháng để xem chi tiết theo tuần.", "The first three months show how severe Non-IID skew hurts FedAvg. Month 4 builds the reference model for measuring forgetting. Open any month for its week-by-week detail.")}</p>`;
+  const k = el("div", "grid3");
+  [[pct(M2.base.central), t("MLP tập trung trên MNIST: mốc so sánh", "Centralized MLP on MNIST: the comparison point")],
+   [pct(S3.iid.acc), t("Cùng MLP với FedAvg, 5 client, dữ liệu IID", "The same MLP with FedAvg, 5 clients, IID data")],
+   [pct(S3["0.1"].acc), t("Cùng FedAvg ở Dirichlet α = 0,1 (một seed)", "The same FedAvg at Dirichlet α = 0.1 (one seed)")]].forEach(([a, b]) => k.appendChild(el("div", "card kpi", `<b>${a}</b><span>${b}</span>`)));
+  s.appendChild(k);
+  const m = el("div", "months");
+  [["m1", t("Tháng 1 · Nền tảng", "Month 1 · Foundations"), "good", t("Hoàn thành", "Done"), t("4 baseline tập trung, quy trình chạy lại được", "4 centralized baselines, a rerunnable workflow")],
+   ["m2", t("Tháng 2 · FedAvg", "Month 2 · FedAvg"), "good", t("Hoàn thành", "Done"), t("FedAvg tự viết, đối chiếu Flower, 3 cấu hình", "Hand-written FedAvg, Flower cross-check, 3 configurations")],
+   ["m3", t("Tháng 3 · Non-IID", "Month 3 · Non-IID"), "good", t("Hoàn thành", "Done"), t("5 mức lệch dữ liệu, FedProx so với FedAvg", "5 skew levels, FedProx against FedAvg")],
+   ["m4", t("Tháng 4 · Retrain", "Month 4 · Retrain"), "warn", t("Đang làm", "In progress"), t("Code và test xong, chưa chạy thật", "Code and tests done, no real run yet")]].forEach(([id, a, c, st, b]) => {
+    const x = el("button", "mcard", `<b>${a}</b><span class="pill ${c}">${st}</span><small>${b}</small><span class="go">${t("Xem chi tiết →", "See detail →")}</span>`);
+    x.type = "button"; x.onclick = () => go(id); m.appendChild(x);
+  });
+  s.appendChild(m);
+  const g = el("div", "grid2");
+  g.appendChild(el("div", "card", `<h3>${t("Đã có", "In hand")}</h3><ul class="clean small"><li>${t("Số liệu đã lưu cho toàn bộ thí nghiệm Tháng 1–3.", "Saved results for every Month 1–3 experiment.")}</li><li>${t(`Bộ chạy retrain, chỉ số quên và noise floor, với ${D.tests} test đều đạt.`, `Retrain runner, forgetting metrics and noise floor, with all ${D.tests} tests passing.`)}</li><li>${t("13 quyết định thiết kế đã đưa vào code.", "13 design decisions applied in code.")}</li></ul></div>`));
+  g.appendChild(el("div", "card", `<h3>${t("Còn thiếu", "Still missing")}</h3><ul class="clean small"><li>${t("Chưa có lần chạy retrain chính thức, nên chưa có kết quả về việc quên.", "No official retrain run, so no forgetting result yet.")}</li><li>${t("PGA, FedEraser và phương pháp đề xuất chưa được viết code.", "PGA, FedEraser and the proposed method have no code yet.")}</li><li>${t("Mốc 25/10 còn dang dở, xem trang Lộ trình.", "The 25 Oct milestone is unfinished, see the Roadmap slide.")}</li></ul></div>`));
+  s.appendChild(g);
+});
+
+add("m1", t("Tháng 1", "Month 1"), (s) => {
+  const B = D.m1.baselines, name = { lr: t("Hồi quy logistic", "Logistic regression"), mlp: "MLP", cnn: "CNN", cifar: "CNN (CIFAR-10)" };
+  s.innerHTML = `<p class="eyebrow">${t("Tháng 1 · Tuần 1–4", "Month 1 · Weeks 1–4")}</p><h2>${t("Dựng các mốc tham chiếu tập trung", "Setting the centralized reference points")}</h2><p class="lede">${t("Muốn biết mô hình federated tốt đến đâu thì cần một mốc không phân tán để so sánh.", "Judging a federated model needs a non-distributed reference point to compare with.")}</p>`;
+  const h = el("div"); h.style.display = "contents"; s.appendChild(h);
+  const curve = (c, ids) => lines(c, { label: t("Độ chính xác theo epoch", "Accuracy by epoch"), xLabel: "Epoch", series: ids.flatMap(([id, n, c1, c2]) => [{ name: n + " · " + t("kiểm định", "validation"), color: c1, pts: D.m1.curves[id].map((p) => ({ x: p.e, y: p.val })) }, { name: n + " · " + t("huấn luyện", "training"), color: c2, pts: D.m1.curves[id].map((p) => ({ x: p.e, y: p.train })) }]) });
+  monthSlide(h, [
+    { tab: t("T1 · Logistic", "W1 · Logistic"), title: t(`Mốc sàn: ${pct(B[0].acc)} trên MNIST`, `The floor: ${pct(B[0].acc)} on MNIST`), text: t(`Mô hình tuyến tính đơn giản, chia dữ liệu 70/15/15, F1 ${pct(B[0].f1)}. Mô hình phức tạp hơn mà thấp hơn mức này thì nhiều khả năng có lỗi.`, `A simple linear model with a 70/15/15 split and ${pct(B[0].f1)} F1. A more complex model scoring below this probably has a bug.`), viz: (c) => { bars(c, { label: "MNIST", cats: B.slice(0, 1).map((b) => name[b.id]), series: [{ name: t("Độ chính xác", "Accuracy"), color: "var(--c1)", values: [B[0].acc] }], h: 190 }); c.appendChild(src("results/month1_week1/metrics.json")); } },
+    { tab: t("T2 · MLP", "W2 · MLP"), title: t(`Mạng nơ-ron đầu tiên: ${pct(B[1].acc)}`, `First neural network: ${pct(B[1].acc)}`), text: t("Viết vòng huấn luyện bằng PyTorch với 1 lớp ẩn 128 đơn vị. Đường huấn luyện và kiểm định vẫn đi sát nhau.", "A PyTorch training loop with one 128-unit hidden layer. Training and validation curves stay close together."), viz: (c) => { curve(c, [["mlp", "MLP", "var(--c1)", "var(--c2)"]]); c.appendChild(src("results/month1_week2/metrics.json")); } },
+    { tab: t("T3 · CNN", "W3 · CNN"), title: t(`CNN: ${pct(B[2].acc)} trên MNIST, ${pct(B[3].acc)} trên CIFAR-10`, `CNN: ${pct(B[2].acc)} on MNIST, ${pct(B[3].acc)} on CIFAR-10`), text: t("CIFAR-10 khó hơn nhiều. Bấm đổi tập dữ liệu để xem lớp nào mô hình còn yếu. Hai tập khác độ khó nên không dùng để xếp hạng mô hình.", "CIFAR-10 is much harder. Switch dataset to see which classes the model struggles with. The two tasks differ in difficulty, so this is not a model ranking."), viz: (c) => {
+      const area = el("div", "stack");
+      const show = (k) => { area.innerHTML = ""; const pc = D.m1.perClass[k]; bars(area, { label: t("Độ chính xác theo lớp", "Accuracy by class"), cats: Object.keys(pc), series: [{ name: t("Độ chính xác", "Accuracy"), color: "var(--c1)", values: Object.values(pc) }], d: 0 }); withTable(area, [t("Lớp", "Class"), t("Độ chính xác", "Accuracy")], Object.entries(pc).map(([a, b]) => [a, pct(b, 1)])); curve(area, [[k, k === "cnn" ? "MNIST" : "CIFAR-10", "var(--c1)", "var(--c2)"]]); };
+      c.appendChild(seg(t("Tập dữ liệu", "Dataset"), [["cnn", "MNIST"], ["cifar", "CIFAR-10"]], "cnn", show)); c.appendChild(area); show("cnn"); c.appendChild(src("results/month1_week3_mnist_cnn, results/month1_week3_cifar10_cnn")); } },
+    { tab: t("T4 · Phương pháp", "W4 · Method"), title: t("Tổng hợp baseline và siết quy trình tái lập", "Baselines combined, reproducibility tightened"), text: t("Đọc SISA để có khái niệm machine unlearning. Rà soát phát hiện hai điểm yếu: nhiều file chưa commit, và code tự chọn CPU/GPU theo máy. Cả hai đã được sửa trước khi đóng tháng, và các số liệu được chạy lại theo config. Các thí nghiệm PyTorch cho lại đúng kết quả. Hồi quy logistic còn lệch khoảng 1/10.000 mẫu giữa các lần chạy, không đổi kết luận.", "SISA reading introduced machine unlearning. An audit found two weaknesses: many files were uncommitted, and the code picked CPU or GPU by machine. Both were fixed before closing the month, and results were rerun from config. The PyTorch experiments reproduced exactly. Logistic regression still varies by about 1 in 10,000 samples between runs, which changes no conclusion."), viz: (c) => { bars(c, { label: t("Bốn baseline", "Four baselines"), cats: B.map((b) => name[b.id]), series: [{ name: t("Độ chính xác", "Accuracy"), color: "var(--c1)", values: B.map((b) => b.acc) }] }); withTable(c, [t("Mô hình", "Model"), t("Dữ liệu", "Data"), t("Độ chính xác", "Accuracy"), "F1"], B.map((b) => [name[b.id], b.dataset, pct(b.acc), pct(b.f1)])); c.appendChild(el("p", "src", seedNote())); } },
+  ]);
+  s.appendChild(el("p", "so", t("<b>Kết quả của tháng:</b> có mốc so sánh và quy trình chạy lại được cho các tháng sau.", "<b>Month outcome:</b> reference points and a rerunnable workflow for the months ahead.")));
+});
+
+add("m2", t("Tháng 2", "Month 2"), (s) => {
+  s.innerHTML = `<p class="eyebrow">${t("Tháng 2 · Tuần 5–8", "Month 2 · Weeks 5–8")}</p><h2>${t(`Tự viết FedAvg và đo cái giá của phân tán: ${pp(M2.base.gap)}`, `Hand-writing FedAvg and measuring the cost of distribution: ${pp(M2.base.gap)}`)}</h2><p class="lede">${t("Không dùng framework cho kết quả chính, để kiểm tra được từng bước cập nhật và tổng hợp.", "No framework for core results, so every update and aggregation step can be inspected.")}</p>`;
+  const h = el("div"); h.style.display = "contents"; s.appendChild(h);
+  monthSlide(h, [
+    { tab: t("T5 · Khái niệm", "W5 · Concepts"), title: t("Vì sao FedAvg lấy trung bình theo số mẫu", "Why FedAvg averages by sample count"), text: t("Đọc bài FedAvg (McMahan et al., 2017). Kéo thanh trượt để thấy client nhiều dữ liệu kéo mô hình chung về phía mình. Đây là ví dụ minh họa, không phải kết quả thí nghiệm.", "Read the FedAvg paper (McMahan et al., 2017). Drag the sliders to see a data-rich client pull the global model towards itself. This is an illustration, not an experimental result."), viz: (c) => {
+      const d = el("div", "stack demo"); let n = [100, 200, 700]; const w = [1, 2, 3];
+      const out = el("div", "note");
+      const up = () => { const T = n[0] + n[1] + n[2], v = (n[0] * w[0] + n[1] * w[1] + n[2] * w[2]) / T; out.innerHTML = `${t("Kết quả FedAvg", "FedAvg result")}: <b>${num(v)}</b> · ${t("trung bình không trọng số", "unweighted mean")}: <b>${num(2)}</b>`; };
+      n.forEach((v, i) => { const id = "w" + i, r = el("div", null, `<label class="small" for="${id}">${t("Client", "Client")} ${"ABC"[i]} · ${t("trọng số mô hình", "model weight")} ${w[i]} · <span>${v}</span> ${t("mẫu", "samples")}</label><input id="${id}" type="range" min="10" max="1000" step="10" value="${v}">`); r.querySelector("input").oninput = (e) => { n[i] = +e.target.value; r.querySelector("span").textContent = n[i]; up(); }; d.appendChild(r); });
+      d.appendChild(out); c.appendChild(d); up(); } },
+    { tab: t("T6 · Tự viết", "W6 · Built"), title: t("Một vòng FedAvg trong code", "One FedAvg round in code"), text: t("Tách làm 3 phần: phép trung bình, huấn luyện client và điều phối server. 13 test kiểm tra phần này. Bấm từng bước.", "Split into 3 parts: averaging, client training and server orchestration. 13 tests cover it. Click through the steps."), viz: (c) => {
+      const st = [[t("1. Gửi", "1. Send"), t("Server gửi mô hình chung cho client được chọn. Mỗi client nhận một bản sao, nên mọi client xuất phát từ cùng một điểm.", "The server sends the global model to selected clients. Each gets its own copy, so all start from the same point.")], [t("2. Huấn luyện", "2. Train"), t("Mỗi client chạy SGD trên dữ liệu riêng và dữ liệu không rời khỏi client.", "Each client runs SGD on its own data, which never leaves the client.")], [t("3. Trả về", "3. Return"), t("Client trả tham số mô hình và số mẫu. Mỗi vòng tính một lượt tải xuống và một lượt tải lên.", "Clients return model parameters and a sample count. Each round counts one download and one upload.")], [t("4. Tổng hợp", "4. Aggregate"), t("Server tính trung bình theo n_k/n rồi mới cập nhật mô hình chung.", "The server averages by n_k/n, and only then updates the global model.")]];
+      const g = el("div", "steps"), o = el("div", "note");
+      st.forEach(([a, b], i) => { const x = el("button", null, a); x.type = "button"; x.setAttribute("aria-pressed", !i); x.onclick = () => { g.querySelectorAll("button").forEach((y) => y.setAttribute("aria-pressed", y === x)); o.textContent = b; }; g.appendChild(x); });
+      o.textContent = st[0][1]; c.append(g, o); c.appendChild(src("algorithms/fedavg.py, clients/federated_client.py, server/fedavg_server.py")); } },
+    { tab: t("T7 · Flower", "W7 · Flower"), title: t("Đối chiếu với Flower 1.30", "Cross-check against Flower 1.30"), text: t("Flower chỉ dùng để tham chiếu. Khi nhận cùng dữ liệu đầu vào, phép tổng hợp của Flower và của code tự viết cho cùng kết quả (ví dụ 20/80 mẫu ra 2,6). Bộ kiểm tra có 20 test, gồm 13 test FedAvg và 7 test tương thích Flower.", "Flower is a reference only. Given the same inputs, Flower's aggregation and the hand-written code give the same result (for example 20/80 samples gives 2.6). The suite has 20 tests: 13 for FedAvg and 7 for Flower compatibility."), viz: (c) => { c.appendChild(el("div", "note", t("<b>Một khác biệt đáng ghi lại:</b> với C = 0,3 và 5 client, code tự viết chọn 2 client (làm tròn lên), còn Flower chọn 1 (làm tròn xuống, với min_fit_clients = 1). Cách chọn client có thể đổi tốc độ hội tụ, nên kết quả phải ghi rõ quy tắc này.", "<b>A difference worth recording:</b> with C = 0.3 and 5 clients, the hand-written code selects 2 clients (rounding up) and Flower selects 1 (rounding down, with min_fit_clients = 1). Selection can change convergence, so results must state this rule."))); c.appendChild(src("reports/month2_week7_flower_compatibility.md")); } },
+    { tab: t("T8 · So sánh", "W8 · Comparison"), title: t("FedAvg so với huấn luyện tập trung", "FedAvg against centralized training"), text: t("Cùng mô hình khởi tạo và cùng lượng dữ liệu đã duyệt. Đổi cấu hình để xem chênh lệch thay đổi thế nào.", "Same initial model and the same amount of data processed. Switch configuration to see how the gap changes."), viz: (c) => {
+      const a = el("div", "stack");
+      const show = (k) => { const v = M2[k]; a.innerHTML = `<div class="grid3"><div class="kpi"><b>${pct(v.fedavg)}</b><span>FedAvg</span></div><div class="kpi"><b>${pct(v.central)}</b><span>${t("Tập trung", "Centralized")}</span></div><div class="kpi"><b>${pp(v.gap)}</b><span>${t("Chênh lệch", "Gap")} · ${t("truyền tải", "traffic")} ${mb(v.bytes)}</span></div></div>`; lines(a, { label: t("Độ chính xác kiểm định", "Validation accuracy"), xLabel: t("Số lượt duyệt dữ liệu", "Data passes"), series: [{ name: t("Tập trung", "Centralized"), color: "var(--c1)", pts: v.curveC }, { name: "FedAvg", color: "var(--c2)", pts: v.curveF }] }); const mn = Math.min(...v.clients), mx = Math.max(...v.clients); a.appendChild(el("p", "small muted", t(`Độ chính xác từng client trên phần test riêng: ${pct(mn)} đến ${pct(mx)}.`, `Accuracy per client on its own test subset: ${pct(mn)} to ${pct(mx)}.`))); };
+      c.appendChild(seg(t("Cấu hình", "Configuration"), [["base", "K=5, E=1"], ["e2", "K=5, E=2"], ["k10", "K=10, E=1"]], "base", show)); c.appendChild(a); show("base");
+      withTable(c, [t("Cấu hình", "Configuration"), "FedAvg", t("Tập trung", "Centralized"), t("Chênh lệch", "Gap"), t("Truyền tải", "Traffic")], [["base", "K=5, E=1"], ["e2", "K=5, E=2"], ["k10", "K=10, E=1"]].map(([k, n]) => [n, pct(M2[k].fedavg), pct(M2[k].central), pp(M2[k].gap), mb(M2[k].bytes)]));
+      c.appendChild(src("results/month2_week8_mnist_iid_comparison, _e2_variant, _k10_variant")); c.appendChild(el("p", "src", seedNote())); } },
+  ]);
+  s.appendChild(el("p", "so", t(`<b>Kết quả của tháng:</b> trong các lần chạy một seed này, K = 10 có chênh lệch lớn hơn K = 5, từ ${pp(M2.base.gap)} thành ${pp(M2.k10.gap)}, và lượng truyền tải gấp đôi. E = 2 có chênh lệch gần như cũ (${pp(M2.e2.gap)}) với cùng lượng truyền tải.`, `<b>Month outcome:</b> in these single-seed runs, K = 10 shows a larger gap than K = 5, from ${pp(M2.base.gap)} to ${pp(M2.k10.gap)}, with twice the traffic. E = 2 shows nearly the same gap (${pp(M2.e2.gap)}) with the same traffic.`)));
+});
+
+add("m3", t("Tháng 3", "Month 3"), (s) => {
+  const drop = S3["0.5"].acc - S3["0.1"].acc, soft = S3["1.0"].acc - S3["0.5"].acc;
+  s.innerHTML = `<p class="eyebrow">${t("Tháng 3 · Tuần 9–12", "Month 3 · Weeks 9–12")}</p><h2>${t(`Mức giảm do Non-IID không đều: từ α = 0,5 xuống 0,1 mất ${num(drop * 100)} điểm %`, `Non-IID damage is uneven: α = 0.5 to 0.1 costs ${num(drop * 100)} pp`)}</h2><p class="lede">${t("Đây là lý do luận văn phải đánh giá unlearning theo từng mức lệch, thay vì chỉ một mức.", "This is why the thesis must evaluate unlearning at each skew level, not just one.")}</p>`;
+  const h = el("div"); h.style.display = "contents"; s.appendChild(h);
+  const panel = (c, keys, cur) => {
+    const a = el("div", "stack");
+    const show = (k) => { const v = S3[k]; a.innerHTML = `<div class="grid3"><div class="kpi"><b>${pct(v.acc)}</b><span>${t("FedAvg trên tập test", "FedAvg on the test set")}</span></div><div class="kpi"><b>${pct(v.f1)}</b><span>Macro F1</span></div><div class="kpi"><b>${pp(v.gap)}</b><span>${t("so với tập trung", "against centralized")} (${pct(M2.base.central)})</span></div></div><p class="small muted">${t("Số mẫu của từng chữ số ở mỗi client. Ô càng đậm càng nhiều mẫu, dấu · nghĩa là không có mẫu.", "Samples of each digit at each client. Darker means more samples, and · means none.")}</p>` + heat(v.hist); };
+    c.appendChild(seg(t("Cách chia", "Partition"), keys.map((k) => [k, SNAME[k]]), cur, show)); c.appendChild(a); show(cur);
+  };
+  monthSlide(h, [
+    { tab: t("T9 · Shard", "W9 · Shards"), title: t(`Trường hợp cực đoan: ${pct(S3.iid.acc)} xuống ${pct(S3.shards.acc)}`, `The extreme case: ${pct(S3.iid.acc)} down to ${pct(S3.shards.acc)}`), text: t("Mỗi client nhận 2 shard nên chỉ thấy khoảng 1–2 chữ số. Mỗi client kéo mô hình về một hướng riêng, gọi là client drift. Lượng truyền tải không đổi.", "Each client gets 2 shards, so it sees about 1–2 digits. Each pulls the model its own way, which is called client drift. Traffic does not change."), viz: (c) => { panel(c, ["iid", "shards"], "shards"); c.appendChild(src("results/month3_week9_mnist_iid_vs_noniid/metrics.json")); } },
+    { tab: t("T10 · Dirichlet", "W10 · Dirichlet"), title: t("Điều chỉnh mức lệch bằng Dirichlet(α)", "Tuning the skew with Dirichlet(α)"), text: t("α càng nhỏ, mỗi chữ số càng dồn vào ít client. Ở α = 0,1 nhiều ô trống hẳn: client mất hoàn toàn một số chữ số, không chỉ lệch tỉ lệ.", "The smaller α is, the more each digit concentrates in few clients. At α = 0.1 many cells are empty: clients lose some digits entirely, rather than just seeing skewed proportions."), viz: (c) => { panel(c, ["1.0", "0.5", "0.1"], "0.1"); const k = ["iid", "1.0", "0.5", "0.1", "shards"]; lines(c, { label: t("Độ chính xác test theo vòng", "Test accuracy by round"), xLabel: t("Vòng", "Round"), series: [["iid", "var(--c1)"], ["0.5", "var(--c3)"], ["0.1", "var(--c4)"], ["shards", "var(--c2)"]].map(([x, col]) => ({ name: SNAME[x], color: col, pts: S3[x].curve })) }); withTable(c, [t("Mức lệch", "Skew"), "FedAvg", t("So với tập trung", "Against centralized")], k.map((x) => [SNAME[x], pct(S3[x].acc), pp(S3[x].gap)])); c.appendChild(src("results/month3_week10_mnist_alpha{1.0,0.5,0.1}/metrics.json")); } },
+    { tab: t("T11 · FedProx", "W11 · FedProx"), title: t("FedProx không vượt FedAvg trong thiết lập này", "FedProx did not beat FedAvg in this setup"), text: t(`Ở α = 0,1, cả ba giá trị μ đều không cao hơn FedAvg, ở cả E = 1 và E = 5. Thiết lập chỉ có 5 vòng và các client có cùng số epoch cục bộ, nên kết quả không bác bỏ FedProx nói chung.`, `At α = 0.1, none of the three μ values beat FedAvg, at either E = 1 or E = 5. The setup has only 5 rounds and the same local epochs on every client, so this does not refute FedProx in general.`), viz: (c) => { const a = el("div", "stack"), mu = ["0", "0.01", "0.1", "1.0"], lab = (m) => (m === "0" ? "FedAvg" : "μ = " + num(+m, m === "1.0" ? 1 : m === "0.1" ? 1 : 2)); const show = (e) => { a.innerHTML = ""; bars(a, { label: "FedProx", cats: mu.map(lab), series: [{ name: t("Độ chính xác", "Accuracy"), color: "var(--c1)", values: mu.map((m) => D.m3.sweep[e][m]) }], d: 2 }); }; c.appendChild(seg(t("Số epoch cục bộ", "Local epochs"), [["e1", "E = 1"], ["e5", "E = 5"]], "e1", show)); c.appendChild(a); show("e1"); withTable(c, ["", "E = 1", "E = 5"], mu.map((m) => [lab(m), pct(D.m3.sweep.e1[m]), pct(D.m3.sweep.e5[m])])); c.appendChild(src("results/month3_week11_mnist_fedprox_mu_sweep, _e5")); } },
+    { tab: t("T12 · Benchmark", "W12 · Benchmark"), title: t("FedAvg và FedProx trên 4 mức lệch", "FedAvg and FedProx across 4 skew levels"), text: t(`FedProx (μ = 0,01) thấp hơn FedAvg một chút ở cả 4 mức. Truyền tải như nhau (${mb(D.m3.bytes)}).`, `FedProx (μ = 0.01) sits slightly below FedAvg at all 4 levels. Traffic is identical (${mb(D.m3.bytes)}).`), viz: (c) => { const k = ["iid", "1.0", "0.5", "0.1"]; bars(c, { label: "FedAvg, FedProx", cats: k.map((x) => SNAME[x]), series: [{ name: "FedAvg", color: "var(--c1)", values: k.map((x) => D.m3.bench[x].fedavg) }, { name: "FedProx (μ = " + num(0.01) + ")", color: "var(--c2)", values: k.map((x) => D.m3.bench[x].fedprox) }] }); withTable(c, [t("Mức lệch", "Skew"), "FedAvg", "FedProx"], k.map((x) => [SNAME[x], pct(D.m3.bench[x].fedavg), pct(D.m3.bench[x].fedprox)])); c.appendChild(el("div", "note warn", t("<b>Hạn chế cần nói rõ:</b> μ = 0,01 được chọn vì tốt nhất trên tập test, chỉ ở α = 0,1 và E = 1, nên so sánh có thể hơi thiên vị cho FedProx. Chênh lệch chỉ 0,05–0,17 điểm % trên một seed, nên chưa đủ để nói FedProx kém hơn ở các mức này.", "<b>A limitation to state:</b> μ = 0.01 was chosen as the best on the test set, at α = 0.1 and E = 1 only, so the comparison may slightly favour FedProx. The gaps are just 0.05–0.17 pp on one seed, too small to say FedProx is worse at these levels."))); c.appendChild(src("results/month3_week12_*_fedprox, results/month3_week11_mnist_fedprox_mu_sweep")); } },
+  ]);
+  s.appendChild(el("p", "so", t(`<b>Kết quả của tháng:</b> α từ 1,0 xuống 0,5 chỉ mất ${num(soft * 100)} điểm %, nhưng từ 0,5 xuống 0,1 mất ${num(drop * 100)} điểm %. Đây là một seed, 5 vòng, và không có điểm đo giữa 0,5 và 0,1. Nguyên nhân chưa được giải thích trọn vẹn (mục 9, trang Quyết định).`, `<b>Month outcome:</b> α from 1.0 to 0.5 costs only ${num(soft * 100)} pp, but 0.5 to 0.1 costs ${num(drop * 100)} pp. This is one seed, 5 rounds, with nothing measured between 0.5 and 0.1. The cause is not fully explained yet (item 9, Decisions slide).`)));
+});
+
+add("m4", t("Tháng 4", "Month 4"), (s) => {
+  s.innerHTML = `<p class="eyebrow">${t("Tháng 4 · Tuần 13–14 · đang làm", "Month 4 · Weeks 13–14 · in progress")}</p><h2>${t("Dựng mô hình chuẩn để đo việc quên", "Building the reference for measuring forgetting")}</h2><p class="lede">${t("Muốn nói một phương pháp đã quên client A thì phải so với M_retrain^(−A), mô hình chưa từng thấy dữ liệu của A. Độ chính xác trên A thấp đi chưa đủ làm bằng chứng.", "Claiming a method has forgotten client A requires comparing it with M_retrain^(−A), a model that never saw A's data. Lower accuracy on A alone is not evidence.")}</p>`;
+  const h = el("div"); h.style.display = "contents"; s.appendChild(h);
+  monthSlide(h, [
+    { tab: t("T13 · Retrain tập trung", "W13 · Centralized"), title: t("Retrain tập trung: đã chuẩn bị, chưa chạy", "Centralized retrain: prepared, not run"), text: t("Xóa một phần dữ liệu rồi huấn luyện lại từ cùng trọng số ban đầu. Đây chỉ là mốc tham chiếu đơn giản: mô hình gốc học bằng FedAvg nên mô hình chuẩn cũng phải học bằng FedAvg.", "Remove one data shard and retrain from the same initial weights. This is only a simple reference: the original model learns through FedAvg, so the gold standard must too."), viz: (c) => { c.appendChild(el("div", "note warn", t("<b>Trạng thái:</b> code, config và script kiểm tra đã có. Chưa có thư mục kết quả, nên tuần này chưa có số liệu.", "<b>Status:</b> code, config and verifier exist. There is no results directory, so this week has no numbers yet."))); c.appendChild(src("experiments/unlearning/month4_week13_mnist_full_retraining.py")); } },
+    { tab: t("T14 · Retrain federated", "W14 · Federated"), title: t("M và M_retrain^(−A): chỉ khác nhau ở client A", "M and M_retrain^(−A): differing only by client A"), text: t("Hai mô hình dùng cùng trọng số ban đầu, cùng seed và cùng phân chia dữ liệu. Code chỉ lọc A ra trước khi tạo server, không sửa FedAvg. Quy tắc chọn A chỉ dựa trên phân chia dữ liệu và áp dụng trước khi huấn luyện, không nhìn vào kết quả. Bấm một quy tắc để xem client nào được chọn.", "Both models share initial weights, seed and data partition. The code just filters A out before building the server and leaves FedAvg untouched. The rule for picking A uses only the data partition and applies before training, without looking at results. Click a rule to see which client it picks."), viz: (c) => {
+      const a = el("div", "stack"); let part = "a01", rule = "t1";
+      const rules = { t1: [t("T1 · Trung vị", "T1 · Median"), t("Client có kích thước trung vị. Với số client chẵn, code lấy trung vị thấp hơn.", "The median-sized client. With an even client count, the code takes the lower median.")], t2: [t("T2 · Lớn nhất", "T2 · Largest"), t("Client nhiều mẫu nhất. Nếu hòa thì lấy ID nhỏ nhất.", "The client with the most samples. Ties go to the lowest ID.")], t3: [t("T3 · Chiếm lớp", "T3 · Class share"), t("Client giữ tỉ lệ cao nhất của một chữ số, gắn với khái niệm lớp do target chiếm giữ.", "The client holding the highest share of one digit, which links to target-dominant classes.")] };
+      const draw = () => { a.innerHTML = ""; const v = M4[part], chosen = v[rule], flow = el("div", "flow"); Object.entries(rules).forEach(([k, [n, d]]) => { const b = el("button", null, `<b>${n}</b>${d}`); b.type = "button"; b.setAttribute("aria-pressed", k === rule); b.onclick = () => { rule = k; draw(); }; flow.appendChild(b); }); a.appendChild(flow);
+        const box = el("div", "chart"); a.appendChild(box); const sz = v.sizes, mx = Math.max(...sz);
+        box.innerHTML = `<div class="stack small" style="gap:3px">${sz.map((n, i) => `<div style="display:grid;grid-template-columns:58px 1fr 44px;gap:8px;align-items:center"><span class="${i === chosen ? "" : "muted"}">${t("Client", "Client")} ${i}</span><div style="background:var(--surface-2);border-radius:3px;height:14px"><div style="height:100%;border-radius:3px;width:${Math.max(0.5, 100 * n / mx)}%;background:${i === chosen ? "var(--c2)" : "color-mix(in srgb,var(--c1) 55%,transparent)"}"></div></div><span class="mono" style="text-align:right">${n}</span></div>`).join("")}</div>`;
+        const extra = rule === "t3" ? t(` (giữ ${pct(v.t3share, 1)} số mẫu chữ số ${v.t3class})`, ` (holds ${pct(v.t3share, 1)} of digit ${v.t3class})`) : "";
+        a.appendChild(el("p", "small", t(`Được chọn: <b>client ${chosen}</b>${extra}. Đây là phân chia thử với ${v.train} mẫu, không phải lưới chính thức.`, `Selected: <b>client ${chosen}</b>${extra}. This is a smoke partition of ${v.train} samples, not the official grid.`))); };
+      c.appendChild(seg(t("Phân chia thử", "Smoke partition"), [["a01", SNAME["0.1"]], ["iid", "IID"]], "a01", (k) => { part = k; draw(); })); c.appendChild(a); draw();
+      c.appendChild(src("results/smoke_month4_week14_v3_mnist_*/metrics.json"));
+      c.appendChild(el("div", "note", `<b>${t("Bộ đo đi kèm", "Metrics that come with it")}:</b> ${t("so với retrain trên 3 phần dữ liệu (test chung, target, non-target), và tách target thành lớp dùng chung và lớp do target chiếm giữ (≥ 50%). Dùng hai chỉ số: chênh lệch accuracy và tỉ lệ đồng thuận dự đoán. Tham số mô hình không được so trực tiếp.", "comparison with retrain on 3 data splits (global test, target, non-target), with the target split into shared and target-dominant (≥ 50%) classes. Two measures: accuracy gap and prediction agreement. Model parameters are not compared directly.")}</div>`)); } },
+  ]);
+  const st = el("div", "card"); st.appendChild(el("h3", null, t("Trạng thái Tháng 4", "Month 4 status")));
+  const ok = `<span class="mark" style="background:var(--good-bg);color:var(--good)">${t("XONG", "DONE")}</span>`, no = `<span class="mark" style="background:var(--warn-bg);color:var(--warn)">${t("CHƯA", "NOT YET")}</span>`;
+  const items = [[ok, t(`Bộ chạy retrain, chỉ số quên và noise floor, với ${D.tests} test đều đạt`, `Retrain runner, forgetting metrics and noise floor, with all ${D.tests} tests passing`)], [ok, t("Script kiểm tra nhất quán khớp với kết quả chạy thử trên cả 2 phân chia thử (đếm lại từ checkpoint, không huấn luyện lại)", "A consistency verifier matches the smoke results on both smoke partitions (recounts from checkpoints, no retraining)")], [ok, t("13 quyết định thiết kế đã đưa vào code", "13 design decisions applied in code")], [no, t("Chạy thật Tuần 13", "A real Week 13 run")], [no, t("Chọn quy tắc target cho lưới chính thức (đang để trống có chủ đích)", "A target rule for the official grid (left blank on purpose)")], [no, t("Khóa phiên bản code: lần chạy chính thức yêu cầu worktree sạch, mà thay đổi mới nhất chưa commit", "Locking the code version: official runs require a clean worktree, and the latest changes are uncommitted")], [no, t("Sửa script kiểm tra Tuần 8: đang báo lỗi từ khi cập nhật macOS, vì so khớp chính xác phiên bản hệ điều hành đã lưu (Python và các gói vẫn khớp)", "Fix the Week 8 verifier: failing since a macOS update, as it matches the saved OS version exactly (Python and packages still match)")], [no, t("Rà soát và nắm vững code lõi: điều kiện bắt buộc trước lần chạy chính thức", "Reviewing and fully understanding the core code: a required condition before official runs")]];
+  st.appendChild(el("ul", "check", items.map(([m, x]) => `<li>${m}<span>${x}</span></li>`).join(""))); s.appendChild(st);
+});
+
+add("floor", "Noise floor", (s) => {
+  s.innerHTML = `<p class="eyebrow">${t("Tháng 4 · phương pháp đo", "Month 4 · how forgetting is measured")}</p><h2>${t("Hai lần retrain cũng không giống hệt nhau. Khoảng lệch đó là noise floor.", "Two retrains are not identical either. That spread is the noise floor.")}</h2><p class="lede">${t("Hai lần retrain cùng loại A nhưng khác seed vẫn lệch nhau. Một mô hình chỉ được coi là giống retrain nếu chênh lệch của nó nằm trong khoảng lệch tự nhiên này.", "Two retrains that both exclude A but use different seeds still differ. A model only counts as retrain-like if its gap falls within this natural spread.")}</p>`;
+  s.appendChild(el("div", "note risk", t("<b>Cần xác nhận:</b> ngưỡng trung bình + 2 × độ lệch chuẩn là quy ước riêng của luận văn. Một số bài đã đọc có chạy nhiều seed, nhưng chưa bài nào dùng độ lệch giữa các lần retrain làm ngưỡng, nên chưa tìm được tiền lệ. Ngưỡng này lại chỉ dựa trên 3 cặp retrain có dùng chung mô hình.", "<b>Needs confirmation:</b> the mean + 2 × standard deviation threshold is this thesis's own convention. Some papers read so far run several seeds, but none uses the spread between retrains as a threshold, so no precedent has been found. The threshold also rests on only 3 retrain pairs that share models.")));
+  const g = el("div", "grid2");
+  g.appendChild(el("div", "card", `<h3>${t("Floor A: chỉ đổi thứ tự minibatch", "Floor A: minibatch order only")}</h3><p class="small muted">${t("Giữ nguyên trọng số ban đầu và đổi seed huấn luyện (42, 43, 44).", "Keeps the initial weights and changes the training seed (42, 43, 44).")}</p>`));
+  g.appendChild(el("div", "card", `<h3>${t("Floor B: đổi cả trọng số ban đầu", "Floor B: initial weights too")}</h3><p class="small muted">${t("Đổi cả seed huấn luyện lẫn trọng số ban đầu. Cả hai floor được báo cáo song song, tổng cộng 5 lần retrain.", "Changes both the training seed and the initial weights. Both floors are reported side by side, 5 retrains in total.")}</p>`));
+  s.appendChild(g);
+  const c = el("div", "card stack"); s.appendChild(c);
+  c.appendChild(el("h3", null, t("Thử đọc kết quả chạy thử", "Reading a smoke run")));
+  c.appendChild(el("div", "note warn", t(`<b>Chỉ để kiểm tra code, không phải kết quả luận văn:</b> ${M4.a01.rounds} vòng, ${M4.a01.train} mẫu. Mô hình còn rất yếu (M đạt ${pct(M4.a01.accM, 1)} ở α = 0,1 và ${pct(M4.iid.accM, 1)} ở IID). M ở đây là mô hình gốc chưa unlearn.`, `<b>For checking code only, not a thesis result:</b> ${M4.a01.rounds} rounds, ${M4.a01.train} samples. The models are still very weak (M reaches ${pct(M4.a01.accM, 1)} at α = 0.1 and ${pct(M4.iid.accM, 1)} at IID). M here is the original, non-unlearned model.`)));
+  const ROW = { global_test: t("Test chung", "Global test"), target_client: "Target", non_target_clients: "Non-target", target_client_dominant_classes: t("Lớp target chiếm giữ", "Target-dominant"), target_client_shared_classes: t("Lớp dùng chung", "Shared classes") };
+  let st = { p: "a01", f: "A", m: "D", r: "target_client" };
+  const ctr = el("div", "ctrls"), area = el("div", "stack"); c.append(ctr, area);
+  let rowCtl;
+  const rebuild = () => {
+    area.innerHTML = ""; const rows = M4[st.p].floors[st.f];
+    if (!rows[st.r].n) st.r = "target_client";
+    rowCtl.querySelectorAll("button").forEach((b) => { const has = rows[b.dataset.k].n > 0; b.disabled = !has; b.style.opacity = has ? 1 : 0.35; b.setAttribute("aria-pressed", b.dataset.k === st.r); });
+    const x = rows[st.r], n = x.n, gap = st.m === "D";
+    const pairs = (gap ? x.pairD : x.pairA).map((v) => 100 * v / n), ms = (gap ? x.mD : x.mA).map((v) => 100 * v / n), lim = 100 * (gap ? x.limD : x.limA) / n;
+    const box = el("div", "chart"); area.appendChild(box);
+    mount(box, (h, W) => {
+      const H = 118, L = 8, R = 12, all = [...pairs, ...ms, lim];
+      const a = gap ? 0 : Math.max(0, Math.floor(Math.min(...all) - 3)), b = gap ? Math.max(1, Math.ceil(Math.max(...all) * 1.15)) : 100;
+      const X = (v) => L + (W - L - R) * (v - a) / (b - a), s2 = svgEl("svg", { viewBox: `0 0 ${W} ${H}`, height: H, role: "img", "aria-label": "Noise floor" }, h), tip = tipper(h);
+      const x0 = gap ? X(a) : X(Math.max(a, lim)), x1 = gap ? X(Math.min(b, lim)) : X(b);
+      svgEl("rect", { x: x0, y: 16, width: Math.max(2, x1 - x0), height: 62, fill: "var(--band)", rx: 4 }, s2);
+      svgEl("text", { x: (x0 + x1) / 2, y: 12, "text-anchor": "middle" }, s2, t("trong floor", "inside floor"));
+      svgEl("line", { x1: L, x2: W - R, y1: 78, y2: 78, class: "grid" }, s2);
+      for (let i = 0; i <= 4; i++) { const v = a + (b - a) * i / 4; svgEl("text", { x: X(v), y: 94, "text-anchor": i === 0 ? "start" : i === 4 ? "end" : "middle" }, s2, num(v, 1) + "%"); }
+      const dot = (v, y, fill, label) => { const o = svgEl("circle", { cx: X(v), cy: y, r: 6, fill, stroke: "var(--surface)", "stroke-width": 2 }, s2); const f = (e) => { const r = h.getBoundingClientRect(); tip.show(`${label}: ${num(v)}%`, e.clientX - r.left, e.clientY - r.top); }; o.addEventListener("pointermove", f); o.addEventListener("pointerdown", f); o.addEventListener("pointerleave", tip.hide); };
+      pairs.forEach((v, i) => dot(v, 32, "var(--muted)", t(`Cặp retrain ${i + 1}`, `Retrain pair ${i + 1}`)));
+      ms.forEach((v, i) => dot(v, 60, "var(--c2)", t(`M so với retrain ${i + 1}`, `M against retrain ${i + 1}`)));
+      svgEl("text", { x: L, y: 112 }, s2, gap ? t("Chênh lệch accuracy (trị tuyệt đối)", "Accuracy gap (absolute)") : t("Tỉ lệ đồng thuận dự đoán", "Prediction agreement"));
+    });
+    area.appendChild(el("div", "legend", `<span><i style="background:var(--muted)"></i>${t("Retrain với retrain", "Retrain against retrain")}</span><span><i style="background:var(--c2)"></i>${t("M với retrain", "M against retrain")}</span><span><i style="background:var(--band)"></i>${t("Vùng trong floor", "Inside the floor")}</span>`));
+    const inside = (gap ? x.mD.filter((v) => v <= x.limD) : x.mA.filter((v) => v >= x.limA)).length, pc = gap ? x.pcD : x.pcA;
+    area.appendChild(el("p", "small", t(`M nằm trong floor so với <b>${inside}/3</b> retrain (${n} mẫu). `, `M is inside the floor against <b>${inside}/3</b> retrains (${n} samples). `) + (pc ? t("<b>Trong lần chạy thử này, dòng này phân biệt được:</b> M, vốn chưa quên gì, nằm ngoài floor so với mọi retrain.", "<b>In this smoke run, this row discriminates:</b> M, which has forgotten nothing, is outside the floor against every retrain.") : t("<b>Trong lần chạy thử này, dòng này chưa phân biệt được:</b> M, vốn chưa quên gì, chưa nằm ngoài floor so với mọi retrain, nên nếu một phương pháp lọt vào floor ở dòng này thì vẫn chưa chứng minh được gì.", "<b>In this smoke run, this row does not discriminate:</b> M, which has forgotten nothing, is not outside the floor against every retrain, so a method landing inside the floor here would prove nothing."))));
+  };
+  ctr.appendChild(seg(t("Phân chia", "Partition"), [["a01", SNAME["0.1"]], ["iid", "IID"]], "a01", (k) => { st.p = k; rebuild(); }));
+  ctr.appendChild(seg("Floor", [["A", "A"], ["B", "B"]], "A", (k) => { st.f = k; rebuild(); }));
+  ctr.appendChild(seg(t("Chỉ số", "Measure"), [["D", t("Chênh lệch", "Gap")], ["A", t("Đồng thuận", "Agreement")]], "D", (k) => { st.m = k; rebuild(); }));
+  rowCtl = seg(t("Phần dữ liệu", "Split"), Object.entries(ROW), st.r, (k) => { st.r = k; rebuild(); });
+  rowCtl.querySelectorAll("button").forEach((b, i) => (b.dataset.k = Object.keys(ROW)[i]));
+  ctr.appendChild(rowCtl);
+  rebuild();
+  c.appendChild(src("results/smoke_month4_week14_v3_mnist_*/noise_floor.json"));
+});
+
+add("decisions", t("13 quyết định", "13 decisions"), (s) => {
+  s.innerHTML = `<p class="eyebrow">${t("Tháng 4 · thiết kế", "Month 4 · design")}</p><h2>${t("13 quyết định đã đưa vào code", "13 decisions applied in code")}</h2><p class="lede">${t("Mỗi quyết định có thể mở ra xem lý do. Lọc theo nhóm nếu chỉ cần xem một phần.", "Open any decision for its reason. Filter by group to see just one part.")}</p>`;
+  const G = { floor: "Noise floor", target: t("Chọn target", "Target choice"), run: t("Cấu hình chạy", "Run setup"), rep: t("Báo cáo", "Reporting") };
+  const L = [
+    ["floor", t("Báo cáo song song cả hai floor A và B", "Report floors A and B side by side"), t("Floor chỉ đổi minibatch nhỏ hơn floor đổi cả trọng số ban đầu. Chỉ dùng một floor sẽ che mất lựa chọn này. Cần thêm 4 lần retrain.", "The minibatch-only floor is smaller than the floor that also changes initial weights. Using just one would hide this choice. It needs 4 extra retrains.")],
+    ["floor", t("Seed của floor là seed của lưới (42, 43, 44)", "Floor seeds are the grid's seeds (42, 43, 44)"), t("Tiết kiệm số lần chạy nhưng kém độc lập hơn. Hạn chế này được ghi trong noise_floor.json. Xem mục 3 ở trang Quyết định.", "It saves runs but is less independent. The limitation is recorded in noise_floor.json. See item 3 on the Decisions slide.")],
+    ["floor", t("Ngưỡng: trung bình + 2 × độ lệch chuẩn, hòa tính là trong floor", "Threshold: mean + 2 × standard deviation, ties count as inside"), t("Quy ước riêng của luận văn, đang chờ xác nhận. Không dùng từ “có ý nghĩa thống kê” vì đây không phải kiểm định.", "The thesis's own convention, awaiting confirmation. The term “statistically significant” is not used, as this is not a test.")],
+    ["floor", t("Luôn báo cáo đối chứng dương cạnh mỗi kết luận", "Always report a positive control beside each verdict"), t("Đối chứng là M, mô hình chưa quên gì. Nếu M cũng lọt vào floor thì dòng đó chưa phân biệt được gì.", "The control is M, which has forgotten nothing. If M also lands inside the floor, that row discriminates nothing.")],
+    ["floor", t("So với mọi lần retrain, không chọn một bản tham chiếu", "Compare with every retrain, not one chosen reference"), t("Lưu kết quả từng bản và khoảng min–max. Đối chứng chỉ được coi là phân biệt được khi nằm ngoài floor so với mọi bản của floor đó.", "Each reference and the min–max range are stored. The control only counts as discriminating when outside the floor against every reference of that floor.")],
+    ["floor", t("Chênh lệch accuracy và đồng thuận là hai câu trả lời riêng", "Accuracy gap and agreement stay separate answers"), t("Hai mô hình có thể cùng accuracy mà đúng ở những mẫu khác nhau. Gộp lại sẽ che mất điều này.", "Two models can share an accuracy yet be right on different samples. Combining them would hide that.")],
+    ["floor", t("Độ lệch chuẩn mẫu (ddof = 1)", "Sample standard deviation (ddof = 1)"), t("Dùng ước lượng thông thường. Nếu chỉ có một cặp, code dừng với lỗi thay vì trả về một ngưỡng không đáng tin.", "This is the usual estimator. With only one pair the code stops with an error rather than return an unreliable threshold.")],
+    ["target", t("Target được code chọn từ phân chia dữ liệu", "The target is chosen in code from the partition"), t("Tránh việc sửa tay ID sau khi đã thấy kết quả. Quy tắc áp dụng cho lưới chính thức vẫn chưa chốt, xem mục 1 ở trang Quyết định.", "This prevents editing the ID by hand after seeing results. The rule for the official grid is not settled, see item 1 on the Decisions slide.")],
+    ["run", t("Giữ R = 5, E = 1, B = 128, lr = 0,1", "Keep R = 5, E = 1, B = 128, lr = 0.1"), t("Kế thừa từ các tháng trước để so sánh được, nhưng chưa kiểm tra hội tụ với 10 client. Xem mục 4 ở trang Quyết định.", "Inherited from earlier months for comparability, but not convergence-checked with 10 clients. See item 4 on the Decisions slide.")],
+    ["run", t("Giữ 15% validation, chưa dùng", "Keep the 15% validation split, unused"), t("Giữ nguyên 51.000 mẫu huấn luyện như Tháng 2–3 để so sánh được xuyên suốt.", "This keeps the same 51,000 training samples as Months 2–3, so results stay comparable.")],
+    ["run", t("Đo thời gian trên CPU cho mọi phương pháp", "Time every method on CPU"), t("Speedup chỉ công bằng khi cùng thiết bị. MPS không đảm bảo tái lập chính xác từng bit, và server FedAvg hiện không nhận MPS.", "Speedup is only fair on the same device. MPS does not guarantee bit-exact reproduction, and the FedAvg server currently rejects it.")],
+    ["rep", t("Giữ tên target và non-target, ghi rõ đó là dữ liệu huấn luyện", "Keep target and non-target names, stating they are training data"), t("Chỉ test chung là dữ liệu chưa thấy. Định nghĩa này nằm trong mọi file kết quả để tránh đọc nhầm.", "Only the global test split is unseen data. This definition is in every result file to prevent misreading.")],
+    ["rep", t("Trung bình sẽ kèm số ô có dữ liệu", "Averages will state how many cells had data"), t("Ở IID không có lớp do target chiếm giữ. Ô trống được ghi là không có dữ liệu, không tính thành 0. Hàm đã sẵn sàng, sẽ dùng khi có bảng tổng hợp lưới.", "IID has no target-dominant class. Empty cells are recorded as having no data, not counted as 0. The function is ready for when the grid is aggregated.")],
+  ];
+  const list = el("div", "stack");
+  const show = (g) => { list.innerHTML = ""; L.forEach(([k, a, b], i) => { if (g !== "all" && k !== g) return; list.appendChild(el("details", "item", `<summary><span class="num">${String(i + 1).padStart(2, "0")}</span><span class="t">${a}</span><span class="pill flat">${G[k]}</span></summary><div class="body"><p>${b}</p></div>`)); }); };
+  s.appendChild(seg(t("Nhóm", "Group"), [["all", t("Tất cả", "All")], ...Object.entries(G)], "all", show)); s.appendChild(list); show("all");
+});
+
+add("lit", t("Tài liệu", "Literature"), (s) => {
+  s.innerHTML = `<p class="eyebrow">${t("Rà soát tài liệu · tháng 11", "Literature review · November")}</p><h2>${t("Chưa thấy bài nào trùng 3 ứng viên hiện tại, nhưng khoảng trống đang hẹp lại", "No paper read matches the 3 current candidates, but the gap is narrowing")}</h2><p class="lede">${t("Lượt quét tháng 11 thêm 5 bài. Bảng cũng gồm những bài gần nhất đã đọc trước đó. Đây là đánh giá sơ bộ theo các bài đã đọc, chưa được xác nhận độc lập.", "The November scan added 5 papers. The table also includes the closest papers read earlier. This is a preliminary assessment of the papers read, not independently confirmed.")}</p>`;
+  const C = { close: [t("Gần, cần theo dõi", "Close, watch"), "warn"], part: [t("Chồng lấn một phần", "Partial overlap"), "flat"], far: [t("Khác bài toán", "Different problem"), "good"] };
+  const P = [
+    ["GDFA", "CVPR 2026", t("Đã đọc trước", "Read earlier"), "close", t("Đưa mô hình về vùng phẳng của loss và lọc task vector theo hướng nhất quán, ở mức client và Non-IID.", "Moves the model to a flat loss region and filters task vectors by consistent direction, at client level under Non-IID."), t("So sánh trực tiếp với PGA và SIFU, nhưng bảng chính chỉ dùng α = 0,5. Không quét các mức lệch và bảng không có độ lệch chuẩn.", "Benchmarks PGA and SIFU directly, but its main table uses only α = 0.5. It has no skew sweep and prints no spread.")],
+    ["Not All Retained Clients Are Equal", "arXiv 2610.31786, NeurIPS 2026 workshop", t("Quét tháng 11", "November scan"), "close", t("Chọn tập con client còn lại để tham gia các vòng unlearning.", "Selects a subset of retained clients for the unlearning rounds."), t("Cùng bài toán, có Retrain, FedEraser, GDFA và thử α ∈ {1; 0,1}. Cơ chế là chọn client, không có PGA, không báo cáo seed hay độ dao động.", "Same problem, with Retrain, FedEraser, GDFA and α ∈ {1, 0.1}. Its mechanism is client selection, with no PGA and no seeds or spread reported.")],
+    ["SATA", "arXiv 2510.13606", t("Đã đọc trước", "Read earlier"), "close", t("Unlearning trong một vòng cho dữ liệu lệch mạnh.", "Single-round unlearning for highly skewed data."), t("Mục tiêu chính là giảm số vòng, không phải bảo toàn non-target.", "Its main aim is fewer rounds rather than preserving non-target clients.")],
+    ["Qiao et al.", "Alexandria Eng. J. 2026", t("Đã đọc trước", "Read earlier"), "part", t("Dùng knowledge distillation để chống quên khi học tăng dần và để xóa client.", "Uses knowledge distillation against forgetting in incremental learning and for client deletion."), t("Cùng mức client và Non-IID, nhưng gắn với học tăng dần theo lớp và không điều chỉnh theo mức lệch của target.", "Same client level and Non-IID, but tied to class-incremental learning and not conditioned on the target's skew.")],
+    ["FedCCCU", "arXiv 2510.07022", t("Đã đọc trước", "Read earlier"), "part", t("Ràng buộc giữa các client để giảm ảnh hưởng lên client không liên quan.", "Cross-client constraints to reduce impact on uninvolved clients."), t("Gần về ý tưởng, nhưng quên ở mức lớp trong client và không có tham số mức lệch.", "Close in idea, but it unlearns at class-within-client level with no skew parameter.")],
+    ["Lethe", "arXiv 2608.01094", t("Đã đọc trước", "Read earlier"), "part", t("Benchmark 12 phương pháp FU trên ảnh y tế.", "A benchmark of 12 FU methods on medical images."), t("Không phải phương pháp cạnh tranh, nhưng có thử α ∈ {0,1; 0,5; 1,0} với cả FedEraser và PGA trên một phần tác vụ. Bài cho rằng mức lệch quyết định accuracy đạt được hơn là phương pháp nào được ưu tiên, nên cần theo dõi.", "Not a competing method, but it sweeps α ∈ {0.1, 0.5, 1.0} including FedEraser and PGA on some tasks. It reads skew as determining available accuracy rather than the preferred method, so it needs watching.")],
+    ["ATONE", "arXiv 2610.22584", t("Quét tháng 11", "November scan"), "far", t("Suy ra cần xóa gì từ triệu chứng lỗi trong mạng xe.", "Infers what to remove from fault symptoms in vehicular networks."), t("Luận văn giả định target đã biết trước.", "The thesis assumes a known target.")],
+    ["SURE (Split FU)", "arXiv 2610.36465", t("Quét tháng 11", "November scan"), "far", t("Unlearning cho split federated learning.", "Unlearning for split federated learning."), t("Kiến trúc khác: mô hình bị cắt thành phần client và server.", "A different architecture: the model is cut into client and server parts.")],
+    ["FedZOUL", "arXiv 2610.35211", t("Quét tháng 11", "November scan"), "far", t("Unlearning chính xác cho tối ưu zeroth-order.", "Exact unlearning for zeroth-order optimization."), t("Xóa theo mẫu và không dùng FedAvg.", "It deletes samples and does not use FedAvg.")],
+    ["Federated fair k-means", "arXiv 2610.13717", t("Quét tháng 11", "November scan"), "far", t("Unlearning cho phân cụm k-means công bằng.", "Unlearning for fair k-means clustering."), t("Dữ liệu bảng, không phải mạng nơ-ron.", "Tabular data rather than neural networks.")],
+  ];
+  const list = el("div", "stack");
+  const show = (f) => { list.innerHTML = ""; P.forEach(([n, v, o, c, a, b]) => { if (f !== "all" && f !== c) return; list.appendChild(el("details", "item", `<summary><span class="t">${n} <span class="muted small">· ${v}</span></span><span class="pill ${C[c][1]}">${C[c][0]}</span></summary><div class="body"><p><b>${t("Bài làm gì", "What it does")}:</b> ${a}</p><p><b>${t("So với luận văn", "Against the thesis")}:</b> ${b}</p><p class="src">${o}</p></div>`)); }); };
+  s.appendChild(seg(t("Mức liên quan", "Relevance"), [["all", t("Tất cả", "All")], ...Object.entries(C).map(([k, x]) => [k, x[0]])], "all", show)); s.appendChild(list); show("all");
+  s.appendChild(el("div", "card", `<h3>${t("Phương pháp đề xuất vẫn chưa chốt", "The proposed method is not chosen yet")}</h3><p class="small muted">${t("Hướng chung là thuật toán unlearning có tính đến Non-IID, với 3 ứng viên chưa kiểm chứng. Chọn vào 21/12, dựa trên điểm yếu quan sát được của các baseline.", "The direction is a Non-IID-aware unlearning algorithm, with 3 untested candidates. The choice is due on 21 Dec, based on weaknesses observed in the baselines.")}</p><ul class="clean small muted" style="margin-top:8px"><li>${t("PGA theo mức chiếm giữ lớp: bán kính hoặc trọng số ascent phụ thuộc mức target chiếm giữ từng lớp.", "Class-ownership-aware PGA: projection radius or ascent weight depends on how much the target dominates each class.")}</li><li>${t("Recovery bảo toàn non-target: thêm ràng buộc trên các lớp dùng chung.", "Non-target-preserving recovery: adds constraints on shared classes.")}</li><li>${t("Calibration của FedEraser theo mức lệch: số vòng hoặc tỉ lệ phụ thuộc phân phối lớp của target.", "FedEraser calibration by skew: rounds or ratio depend on the target's class distribution.")}</li></ul></div>`));
+});
+
+add("open", t("Quyết định", "Decisions"), (s) => {
+  s.innerHTML = `<p class="eyebrow">${t("Cần chốt", "To settle")}</p><h2>${t("9 điểm còn mở, 5 điểm nên chốt trước lần chạy chính thức", "9 open points, 5 to settle before the official run")}</h2><p class="lede">${t("Trong 5 điểm đó, code chỉ tự dừng khi chưa có quy tắc target. Bốn điểm còn lại đã có giá trị tạm trong config, nhưng đổi sau khi chạy thì phải chạy lại. Mỗi mục kèm một đề xuất ban đầu để phản biện.", "Of those 5, the code only stops itself when the target rule is missing. The other four have provisional values in config, but changing them after a run means rerunning. Each item includes an initial suggestion to challenge.")}</p>`;
+  const Q = [
+    [1, t("Giữ đủ 3 quy tắc target như thiết kế, hay thu hẹp?", "Keep all 3 target rules as designed, or narrow?"), t("Kế hoạch là ít nhất 3 seed × 3 target. Config chính thức cố ý để trống và cần một bản cho mỗi quy tắc, chưa tạo. Lần chạy tự dừng khi chưa có quy tắc.", "The plan is at least 3 seeds × 3 targets. Official configs are blank on purpose and need one copy per rule, not yet created. A run stops itself without a rule."), [t("Giữ đủ T1, T2, T3: đúng thiết kế, thấy kết quả có phụ thuộc cách chọn không.", "Keep T1, T2, T3: matches the design and shows whether results depend on the choice."), t("Thu hẹp còn 1 quy tắc: nhanh hơn nhưng là thay đổi thiết kế, cần ghi rõ.", "Narrow to 1 rule: faster, but a design change that must be stated.")], t("Giữ đủ 3 quy tắc. Chỉ thu hẹp nếu thời gian chạy đo được thực sự không kham nổi.", "Keep all 3 rules. Narrow only if measured run time proves unworkable.")],
+    [1, t("Ngưỡng noise floor (trung bình + 2 × độ lệch chuẩn) có chấp nhận được không?", "Is the noise-floor threshold (mean + 2 × standard deviation) acceptable?"), t("Chưa tìm được tiền lệ, và ngưỡng chỉ dựa trên 3 cặp phụ thuộc nhau.", "No precedent has been found, and it rests on only 3 dependent pairs."), [t("Giữ c = 2.", "Keep c = 2."), t("Đổi quy tắc, hoặc tăng số lần retrain.", "Change the rule or add more retrains.")], t("Giữ c = 2, trình bày rõ là quy ước và báo cáo thêm kết luận thay đổi ra sao ở c khác.", "Keep c = 2, present it plainly as a convention and also report how conclusions change at other c values.")],
+    [1, t("Dùng lại seed 42, 43, 44 cho floor có đủ không?", "Is reusing seeds 42, 43, 44 for the floor enough?"), t("Các seed này cũng được dùng cho các ô khác của lưới, nên floor kém độc lập hơn lý tưởng.", "These seeds also serve other grid cells, so the floor is less independent than ideal."), [t("Giữ nguyên và ghi rõ hạn chế.", "Keep them and state the limitation."), t("Thêm 2–3 seed riêng cho floor.", "Add 2–3 floor-only seeds.")], t("Giữ nguyên ở lượt đầu, chỉ thêm seed nếu kết luận nằm sát ngưỡng.", "Keep them for the first pass and add seeds only if conclusions sit near the threshold.")],
+    [1, t("Có cần kiểm tra hội tụ của R = 5 trước khi chạy không?", "Should R = 5 be convergence-checked before running?"), t("R = 5 kế thừa từ cấu hình trước, chưa kiểm tra với 10 client. Mô hình chạy thử 2 vòng rất yếu nên nhiều dòng chưa phân biệt được.", "R = 5 is inherited and unchecked with 10 clients. Smoke models after 2 rounds are very weak, so many rows cannot discriminate."), [t("Chạy ngay rồi kiểm tra sau.", "Run now and check afterwards."), t("Thử vài giá trị R trước.", "Try a few R values first.")], t("Thử vài giá trị R trước, vì đổi R sau đó buộc phải chạy lại toàn bộ lưới.", "Try a few R values first, since changing R later forces a full grid rerun.")],
+    [1, t("Trung vị thấp hơn cho T1 khi số client chẵn có ổn không?", "Is the lower median for T1 with an even client count acceptable?"), t("Kế hoạch không quy định trường hợp này, nên code tự chọn và có ghi rõ.", "The plan does not cover this case, so the code makes a documented choice."), [t("Giữ trung vị thấp hơn.", "Keep the lower median."), t("Đổi sang trung vị cao hơn.", "Switch to the upper median.")], t("Giữ nguyên, vì quy tắc chỉ cần chọn ra đúng một client một cách cố định.", "Keep it, since the rule only needs to pick exactly one client consistently.")],
+    [0, t("Dùng chuẩn trích dẫn nào?", "Which citation style?"), t("Chưa chọn, cần theo quy định của trường hoặc khoa.", "Not chosen yet, as it should follow the school or faculty rule."), [], t("Hỏi quy định rồi áp dụng từ các chương viết đầu tiên.", "Check the rule and apply it from the first chapters written.")],
+    [0, t("Có giữ KD-FU trong phạm vi không?", "Should KD-FU stay in scope?"), t("Baseline tùy chọn: chỉ là bản arXiv, cần dữ liệu không nhãn ở server, và cách đo phải thiết kế lại.", "An optional baseline: arXiv only, needs unlabeled server data, and its evaluation would need redesigning."), [t("Bỏ hẳn.", "Drop it."), t("Thử trên MNIST nếu còn thời gian.", "Try it on MNIST if time remains.")], t("Bỏ khỏi cam kết, vì lịch đang chật.", "Remove it from the commitments, as the schedule is already tight.")],
+    [0, t("Khoảng trống nghiên cứu có còn đủ mới không?", "Is the research gap still novel enough?"), t("Các bài 2025–2026 đang tiến gần. GDFA là bài gần nhất về số liệu.", "2025–2026 papers are moving closer. GDFA is the nearest quantitatively."), [], t("Rà lại bảng khoảng trống trước 21/12, trước khi chốt phương pháp đề xuất.", "Review the gap table before 21 Dec, ahead of choosing the proposed method.")],
+    [0, t("Khi nào giải thích mức giảm không đều theo α?", "When should the uneven drop across α be explained?"), t(`Accuracy giảm ${num((S3["1.0"].acc - S3["0.5"].acc) * 100)} điểm % rồi ${num((S3["0.5"].acc - S3["0.1"].acc) * 100)} điểm % (bước α không đều, một seed, không có điểm đo giữa 0,5 và 0,1). Cách giải thích hiện tại chưa nói được vì sao chênh như vậy.`, `Accuracy drops ${num((S3["1.0"].acc - S3["0.5"].acc) * 100)} pp, then ${num((S3["0.5"].acc - S3["0.1"].acc) * 100)} pp (unequal α steps, one seed, nothing measured between 0.5 and 0.1). The current explanation does not account for this difference.`), [], t("Làm trước lần chạy Non-IID đầu tiên, vì nó giúp diễn giải kết quả ở α = 0,1. Không cản việc chạy.", "Do it before the first Non-IID run, as it helps interpret α = 0.1 results. It does not block the run.")],
+  ];
+  const list = el("div", "stack");
+  const show = (f) => { list.innerHTML = ""; Q.forEach(([bl, q, ctx, op, sug], i) => { if (f === "b" && !bl) return; const d = el("details", "item", `<summary><span class="num">${i + 1}</span><span class="t">${q}</span><span class="pill ${bl ? "risk" : "flat"}">${bl ? t("Chốt trước khi chạy", "Settle before run") : t("Không chặn", "Non-blocking")}</span></summary><div class="body"><p>${ctx}</p>${op.length ? `<ul class="clean">${op.map((o) => `<li>${o}</li>`).join("")}</ul>` : ""}<div class="note"><b>${t("Đề xuất", "Suggestion")}:</b> ${sug}</div></div>`); list.appendChild(d); }); };
+  s.appendChild(seg(t("Hiển thị", "Show"), [["all", t("Tất cả", "All")], ["b", t("Chỉ mục cần chốt trước", "Before-run only")]], "all", show)); s.appendChild(list); show("all");
+  const first = list.querySelector("details"); if (first) first.open = true;
+});
+
+add("road", t("Lộ trình", "Roadmap"), (s) => {
+  s.innerHTML = `<p class="eyebrow">${t("Lộ trình đến khi nộp", "Road to submission")}</p><h2>${t("Mốc 25/10 còn dang dở và FedEraser chưa có code. Việc cần làm ngay là khép lại mốc này.", "The 25 Oct milestone is unfinished and FedEraser has no code. The priority is closing that milestone.")}</h2><p class="lede">${t("Code Retrain đã xong, nhưng chưa commit và Tuần 13 chưa chạy. FedEraser (26/10–08/11) có thể viết song song. Lưới so sánh từ 23/11 mới cần kết quả Retrain chính thức, nên đó là mốc phải giữ.", "The Retrain code is finished, but it is uncommitted and Week 13 has not run. FedEraser (26 Oct–8 Nov) can be built in parallel. The comparison from 23 Nov is what needs official Retrain results, so that is the date to protect.")}</p>`;
+  const start = Date.UTC(2026, 9, 12), end = Date.UTC(2027, 3, 12), now = Date.UTC(2026, 10, 3), P = (d) => 100 * (d - start) / (end - start), U = (m, d) => Date.UTC(m >= 9 ? 2026 : 2027, m, d);
+  const I = [[t("Retrain, noise floor, chỉ số quên", "Retrain, noise floor, metrics"), [9, 12], [9, 26], "late", t("Dang dở: code xong, chưa commit, Tuần 13 chưa chạy", "Unfinished: coded, uncommitted, Week 13 not run")], ["FedEraser", [9, 26], [10, 9], "now", t("Đang ở cửa sổ này, chưa có code", "In this window, no code yet")], ["PGA", [10, 9], [10, 23], "plan", ""], [t("So sánh 3 baseline, MNIST × 4 mức α", "Compare 3 baselines, MNIST × 4 α levels"), [10, 23], [11, 7], "plan", ""], [t("Đọc thêm, phân loại phương pháp", "Further reading, taxonomy"), [11, 7], [11, 21], "plan", ""], [t("Bảng khoảng trống, chốt phương pháp", "Gap table, choose the method"), [11, 21], [11, 28], "plan", ""], [t("Xây phương pháp đề xuất", "Build the proposed method"), [11, 28], [0, 25], "plan", ""], [t("Lưới benchmark cuối", "Final benchmark grid"), [0, 25], [1, 8], "plan", ""], [t("Dự phòng Tết", "Tết buffer"), [1, 8], [1, 15], "buf", ""], [t("MIA, ablation", "MIA, ablation"), [1, 15], [2, 1], "plan", ""], [t("Viết luận văn", "Write the thesis"), [2, 1], [2, 22], "plan", ""], [t("Slide, demo, tập dượt", "Slides, demo, rehearsal"), [2, 22], [3, 5], "plan", ""], [t("Dự phòng và nộp", "Buffer and submit"), [3, 5], [3, 12], "buf", ""]];
+  const fmt = ([m, d]) => t(`${d}/${m + 1}`, `${d} ${["Jan", "Feb", "Mar", "Apr", "", "", "", "", "", "Oct", "Nov", "Dec"][m]}`);
+  const c = el("div", "card"), sc = el("div", "scroll"), g = el("div", "gantt");
+  I.forEach(([n, a, b, cl, note]) => { const x = P(U(...a)), w = P(U(...b)) - x; g.appendChild(el("div", "row", `<span>${n}</span><div class="track" title="${fmt(a)} – ${fmt(b)}${note ? " · " + note : ""}"><div class="bar ${cl}" style="left:${x}%;width:${w}%"></div><div class="today" style="left:${P(now)}%"></div></div>`)); });
+  sc.appendChild(g); c.appendChild(sc);
+  c.appendChild(el("div", "legend", `<span><i style="background:var(--c2)"></i>${t("Còn dang dở", "Unfinished")}</span><span><i style="background:var(--c4)"></i>${t("Cửa sổ hiện tại", "Current window")}</span><span><i style="background:var(--c1);opacity:.55"></i>${t("Theo kế hoạch", "Planned")}</span><span><i style="background:var(--ink);width:2px"></i>${t("Hôm nay, 03/11", "Today, 3 Nov")}</span>`)); c.lastChild.style.marginTop = "10px";
+  s.appendChild(c);
+  const n = el("div", "grid2");
+  n.appendChild(el("div", "card", `<h3>${t("Việc kế tiếp, theo thứ tự", "Next, in order")}</h3><ol class="small" style="margin:0;padding-left:18px"><li>${t("Chốt 5 điểm cần quyết trước khi chạy.", "Settle the 5 before-run points.")}</li><li>${t("Khóa phiên bản code, chạy Tuần 13, rồi chạy lưới Retrain chính thức trước 23/11.", "Lock the code version, run Week 13, then run the official Retrain grid before 23 Nov.")}</li><li>${t("Song song: xây FedEraser, đo lượng lưu trữ.", "In parallel: build FedEraser and measure its storage.")}</li><li>${t("Xây PGA, rồi so sánh 3 baseline.", "Build PGA, then compare the 3 baselines.")}</li></ol></div>`));
+  n.appendChild(el("div", "card", `<h3>${t("Rủi ro chính", "Main risks")}</h3><ul class="clean small"><li>${t("Mốc 25/10 và FedEraser kéo dài sẽ thu hẹp thời gian xây baseline trước khi phải chốt phương pháp vào 21/12.", "If the 25 Oct milestone and FedEraser run long, there is less time to build baselines before the method choice on 21 Dec.")}</li><li>${t("Khoảng trống nghiên cứu có thể hẹp thêm, nên lượt quét tài liệu vẫn chạy hàng tháng.", "The research gap may narrow further, so the literature scan keeps running monthly.")}</li><li>${t("Noise floor có thể không phân biệt được ở một số dòng, ngay cả khi mô hình đã huấn luyện đủ.", "The noise floor may fail to discriminate on some rows, even with properly trained models.")}</li></ul></div>`));
+  s.appendChild(n);
+});
+
+/* ---------- navigation ---------- */
+const main = document.getElementById("main"), rail = document.getElementById("rail");
+let cur = 0;
+slides.forEach((sl, i) => {
+  sl.node = el("section", "slide"); sl.node.hidden = true; sl.node.id = "s-" + sl.id; main.appendChild(sl.node);
+  const b = el("button", null, sl.name); b.type = "button"; b.onclick = () => go(i); rail.appendChild(b); sl.btn = b;
+});
+function go(k, keepScroll) {
+  const i = typeof k === "number" ? k : slides.findIndex((x) => x.id === k);
+  if (i < 0) return;
+  cur = i; const sl = slides[i];
+  slides.forEach((x, j) => { x.node.hidden = j !== i; x.btn.setAttribute("aria-current", j === i); });
+  if (!sl.done) { sl.build(sl.node); sl.done = true; }
+  sl.btn.scrollIntoView({ block: "nearest", inline: "center" });
+  document.getElementById("prog").style.width = (100 * (i + 1) / slides.length) + "%";
+  document.getElementById("pos").textContent = `${i + 1} / ${slides.length}`;
+  document.getElementById("prev").disabled = i === 0;
+  const nx = document.getElementById("next"); nx.disabled = i === slides.length - 1;
+  nx.textContent = i < slides.length - 1 ? t("Tiếp: ", "Next: ") + slides[i + 1].name + " →" : t("Hết", "End");
+  document.getElementById("prev").textContent = "← " + t("Trước", "Back");
+  try { history.replaceState(null, "", "#" + sl.id); } catch (e) {}
+  if (!keepScroll) window.scrollTo(0, 0);
+}
+document.getElementById("prev").onclick = () => go(cur - 1);
+document.getElementById("next").onclick = () => go(cur + 1);
+document.addEventListener("keydown", (e) => {
+  if (e.target.matches("input,textarea,select")) return;
+  if (e.key === "ArrowRight" && cur < slides.length - 1) go(cur + 1);
+  if (e.key === "ArrowLeft" && cur > 0) go(cur - 1);
+});
+window.addEventListener("hashchange", () => go(location.hash.slice(1), true));
+document.getElementById("meta").innerHTML = `${t("Tháng 11/2026", "November 2026")} · <a href="${OTHER === "en" ? "index-en.html" : "index.html"}${location.hash}" onclick="this.href=this.href.split('#')[0]+location.hash">${OTHER.toUpperCase()}</a>`;
+const startId = location.hash.slice(1);
+go(slides.some((x) => x.id === startId) ? startId : 0, true);
