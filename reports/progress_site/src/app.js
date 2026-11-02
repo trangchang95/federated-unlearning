@@ -398,6 +398,9 @@ add("road", t("Lộ trình", "Roadmap"), (s) => {
 
 /* ---------- navigation ---------- */
 const main = document.getElementById("main"), rail = document.getElementById("rail");
+main.innerHTML = ""; rail.innerHTML = "";
+document.documentElement.lang = LANG;
+document.title = document.getElementById("brand").textContent = t("Tiến độ Federated Unlearning", "Federated Unlearning Progress");
 let cur = 0;
 slides.forEach((sl, i) => {
   sl.node = el("section", "slide"); sl.node.hidden = true; sl.node.id = "s-" + sl.id; main.appendChild(sl.node);
@@ -421,12 +424,13 @@ function go(k, keepScroll) {
 }
 document.getElementById("prev").onclick = () => go(cur - 1);
 document.getElementById("next").onclick = () => go(cur + 1);
-document.addEventListener("keydown", (e) => {
+document.onkeydown = (e) => {
   if (e.target.matches("input,textarea,select")) return;
   if (e.key === "ArrowRight" && cur < slides.length - 1) go(cur + 1);
   if (e.key === "ArrowLeft" && cur > 0) go(cur - 1);
-});
-window.addEventListener("hashchange", () => go(location.hash.slice(1), true));
-document.getElementById("meta").innerHTML = `${t("Tháng 11/2026", "November 2026")} · <a href="${OTHER === "en" ? "index-en.html" : "index.html"}${location.hash}" onclick="this.href=this.href.split('#')[0]+location.hash">${OTHER.toUpperCase()}</a>`;
-const startId = location.hash.slice(1);
+};
+window.onhashchange = () => go(location.hash.slice(1), true);
+document.getElementById("meta").innerHTML = `${t("Tháng 11/2026", "November 2026")} · <button id="lang" type="button" aria-label="${t("Switch to English", "Chuyển sang tiếng Việt")}">${OTHER.toUpperCase()}</button>`;
+document.getElementById("lang").onclick = () => boot(OTHER, LANG, slides[cur].id);
+const startId = keep || location.hash.slice(1);
 go(slides.some((x) => x.id === startId) ? startId : 0, true);

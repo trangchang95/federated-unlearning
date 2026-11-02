@@ -40,7 +40,7 @@ button{font:inherit;color:inherit}
 
 header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);padding-top:12px;border-bottom:1px solid var(--line)}
 .brand{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}
-.brand b{font:600 1rem var(--display)} .brand span{font-size:.78rem;color:var(--muted);white-space:nowrap}
+.brand b{font:600 1rem var(--display)} #lang{background:none;border:0;padding:0;color:var(--accent);font-weight:600;font-size:inherit;text-decoration:underline;cursor:pointer} .brand span{font-size:.78rem;color:var(--muted);white-space:nowrap}
 .rail{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}.rail::-webkit-scrollbar{display:none}
 .rail button{background:none;border:0;border-bottom:2px solid transparent;padding:7px 10px 9px;color:var(--muted);font-size:.82rem;font-weight:500;white-space:nowrap;cursor:pointer}
 .rail button:hover{color:var(--ink)} .rail button[aria-current="true"]{color:var(--accent);border-color:var(--accent)}
@@ -144,12 +144,15 @@ footer.bar span{font-size:.76rem;color:var(--muted);text-align:center}
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <div class="brand"><b>__TITLE__</b><span id="meta"></span></div>
+  <div class="brand"><b id="brand">__TITLE__</b><span id="meta"></span></div>
   <nav class="rail" id="rail" aria-label="Slides"></nav>
 </div><div class="progress"><i id="prog"></i></div></header>
 <main class="wrap" id="main"></main>
 <div class="wrap"><footer class="bar"><button id="prev"></button><span id="pos"></span><button id="next" class="primary"></button></footer></div>
-<script>const LANG="__LANG__",OTHER="__OTHER__",D=__DATA__;</script>
-<script>__APP__</script>
+<script>const D=__DATA__;
+function boot(LANG,OTHER,keep){
+__APP__
+}
+boot("__LANG__","__OTHER__");</script>
 </body>
 </html>

@@ -40,7 +40,7 @@ button{font:inherit;color:inherit}
 
 header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);padding-top:12px;border-bottom:1px solid var(--line)}
 .brand{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}
-.brand b{font:600 1rem var(--display)} .brand span{font-size:.78rem;color:var(--muted);white-space:nowrap}
+.brand b{font:600 1rem var(--display)} #lang{background:none;border:0;padding:0;color:var(--accent);font-weight:600;font-size:inherit;text-decoration:underline;cursor:pointer} .brand span{font-size:.78rem;color:var(--muted);white-space:nowrap}
 .rail{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}.rail::-webkit-scrollbar{display:none}
 .rail button{background:none;border:0;border-bottom:2px solid transparent;padding:7px 10px 9px;color:var(--muted);font-size:.82rem;font-weight:500;white-space:nowrap;cursor:pointer}
 .rail button:hover{color:var(--ink)} .rail button[aria-current="true"]{color:var(--accent);border-color:var(--accent)}
@@ -144,12 +144,12 @@ footer.bar span{font-size:.76rem;color:var(--muted);text-align:center}
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <div class="brand"><b>Tiến độ Federated Unlearning</b><span id="meta"></span></div>
+  <div class="brand"><b id="brand">Tiến độ Federated Unlearning</b><span id="meta"></span></div>
   <nav class="rail" id="rail" aria-label="Slides"></nav>
 </div><div class="progress"><i id="prog"></i></div></header>
 <main class="wrap" id="main"></main>
 <div class="wrap"><footer class="bar"><button id="prev"></button><span id="pos"></span><button id="next" class="primary"></button></footer></div>
-<script>const LANG="vi",OTHER="en",D={
+<script>const D={
  "m1": {
   "baselines": [
    {
@@ -1583,8 +1583,9 @@ footer.bar span{font-size:.76rem;color:var(--muted);text-align:center}
   "week13Run": false
  },
  "tests": 180
-};</script>
-<script>"use strict";
+};
+function boot(LANG,OTHER,keep){
+"use strict";
 const t = (vi, en) => (LANG === "vi" ? vi : en);
 const num = (x, d = 2) => { const s = x.toFixed(d); return LANG === "vi" ? s.replace(".", ",") : s; };
 const pct = (x, d = 2) => num(x * 100, d) + "%";
@@ -1984,6 +1985,9 @@ add("road", t("Lộ trình", "Roadmap"), (s) => {
 
 /* ---------- navigation ---------- */
 const main = document.getElementById("main"), rail = document.getElementById("rail");
+main.innerHTML = ""; rail.innerHTML = "";
+document.documentElement.lang = LANG;
+document.title = document.getElementById("brand").textContent = t("Tiến độ Federated Unlearning", "Federated Unlearning Progress");
 let cur = 0;
 slides.forEach((sl, i) => {
   sl.node = el("section", "slide"); sl.node.hidden = true; sl.node.id = "s-" + sl.id; main.appendChild(sl.node);
@@ -2007,15 +2011,18 @@ function go(k, keepScroll) {
 }
 document.getElementById("prev").onclick = () => go(cur - 1);
 document.getElementById("next").onclick = () => go(cur + 1);
-document.addEventListener("keydown", (e) => {
+document.onkeydown = (e) => {
   if (e.target.matches("input,textarea,select")) return;
   if (e.key === "ArrowRight" && cur < slides.length - 1) go(cur + 1);
   if (e.key === "ArrowLeft" && cur > 0) go(cur - 1);
-});
-window.addEventListener("hashchange", () => go(location.hash.slice(1), true));
-document.getElementById("meta").innerHTML = `${t("Tháng 11/2026", "November 2026")} · <a href="${OTHER === "en" ? "index-en.html" : "index.html"}${location.hash}" onclick="this.href=this.href.split('#')[0]+location.hash">${OTHER.toUpperCase()}</a>`;
-const startId = location.hash.slice(1);
+};
+window.onhashchange = () => go(location.hash.slice(1), true);
+document.getElementById("meta").innerHTML = `${t("Tháng 11/2026", "November 2026")} · <button id="lang" type="button" aria-label="${t("Switch to English", "Chuyển sang tiếng Việt")}">${OTHER.toUpperCase()}</button>`;
+document.getElementById("lang").onclick = () => boot(OTHER, LANG, slides[cur].id);
+const startId = keep || location.hash.slice(1);
 go(slides.some((x) => x.id === startId) ? startId : 0, true);
-</script>
+
+}
+boot("vi","en");</script>
 </body>
 </html>
