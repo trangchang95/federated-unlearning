@@ -139,6 +139,15 @@ footer.bar button:disabled{opacity:.35;cursor:default}
 footer.bar button.primary{background:var(--accent);border-color:var(--accent);color:var(--bg)}
 footer.bar span{font-size:.76rem;color:var(--muted);text-align:center}
 @media (max-width:680px){.gantt{min-width:0;gap:7px}.gantt .row{grid-template-columns:minmax(0,1fr);gap:2px}}
+.figs{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:12px}
+.figs h4{margin:0;font:600 .9rem var(--body)}
+.figbtn{display:block;width:100%;border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px;cursor:zoom-in}
+.figbtn img{display:block;margin:0 auto;max-width:100%;max-height:440px;height:auto}
+dialog.lb{border:0;border-radius:10px;padding:10px;background:#fff;color:#1c2541;max-width:96vw;max-height:94vh}
+dialog.lb::backdrop{background:rgba(10,12,18,.75)}
+dialog.lb img{display:block;max-width:100%;max-height:82vh;margin:0 auto}
+dialog.lb p{font-size:.84rem;margin:8px 4px 2px}
+dialog.lb button{float:right;border:1px solid #bbb;background:#fff;color:#1c2541;border-radius:6px;padding:3px 10px;font-size:.8rem;cursor:pointer}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -310,7 +319,69 @@ footer.bar span{font-size:.76rem;color:var(--muted);text-align:center}
     "ship": 0.744,
     "truck": 0.741
    }
-  }
+  },
+  "classDist": [
+   {
+    "digit": "0",
+    "train": "4832",
+    "val": "1036",
+    "test": "1035"
+   },
+   {
+    "digit": "1",
+    "train": "5514",
+    "val": "1182",
+    "test": "1181"
+   },
+   {
+    "digit": "2",
+    "train": "4893",
+    "val": "1048",
+    "test": "1049"
+   },
+   {
+    "digit": "3",
+    "train": "4999",
+    "val": "1071",
+    "test": "1071"
+   },
+   {
+    "digit": "4",
+    "train": "4777",
+    "val": "1023",
+    "test": "1024"
+   },
+   {
+    "digit": "5",
+    "train": "4419",
+    "val": "947",
+    "test": "947"
+   },
+   {
+    "digit": "6",
+    "train": "4813",
+    "val": "1031",
+    "test": "1032"
+   },
+   {
+    "digit": "7",
+    "train": "5105",
+    "val": "1094",
+    "test": "1094"
+   },
+   {
+    "digit": "8",
+    "train": "4777",
+    "val": "1024",
+    "test": "1024"
+   },
+   {
+    "digit": "9",
+    "train": "4871",
+    "val": "1044",
+    "test": "1043"
+   }
+  ]
  },
  "m2": {
   "base": {
@@ -379,7 +450,33 @@ footer.bar span{font-size:.76rem;color:var(--muted);text-align:center}
     0.9095,
     0.9135,
     0.9035
-   ]
+   ],
+   "pcF": [
+    0.977551,
+    0.973568,
+    0.85562,
+    0.910891,
+    0.93279,
+    0.838565,
+    0.934238,
+    0.904669,
+    0.886037,
+    0.873142
+   ],
+   "pcC": [
+    0.979592,
+    0.988546,
+    0.947674,
+    0.966337,
+    0.952138,
+    0.914798,
+    0.957203,
+    0.948444,
+    0.897331,
+    0.914767
+   ],
+   "f1F": 0.908618,
+   "f1C": 0.946912
   },
   "e2": {
    "K": 5,
@@ -467,7 +564,33 @@ footer.bar span{font-size:.76rem;color:var(--muted);text-align:center}
     0.9215,
     0.9245,
     0.921
-   ]
+   ],
+   "pcF": [
+    0.979592,
+    0.978855,
+    0.886628,
+    0.90198,
+    0.9389,
+    0.896861,
+    0.93215,
+    0.927043,
+    0.883984,
+    0.896928
+   ],
+   "pcC": [
+    0.981633,
+    0.986784,
+    0.964147,
+    0.963366,
+    0.960285,
+    0.949552,
+    0.973904,
+    0.957198,
+    0.950719,
+    0.925669
+   ],
+   "f1F": 0.922066,
+   "f1C": 0.961348
   },
   "k10": {
    "K": 10,
@@ -540,7 +663,33 @@ footer.bar span{font-size:.76rem;color:var(--muted);text-align:center}
     0.909,
     0.89,
     0.903
-   ]
+   ],
+   "pcF": [
+    0.977551,
+    0.969163,
+    0.85562,
+    0.872277,
+    0.921589,
+    0.813901,
+    0.913361,
+    0.890078,
+    0.85729,
+    0.869177
+   ],
+   "pcC": [
+    0.979592,
+    0.988546,
+    0.947674,
+    0.966337,
+    0.952138,
+    0.914798,
+    0.957203,
+    0.948444,
+    0.897331,
+    0.914767
+   ],
+   "f1F": 0.893736,
+   "f1C": 0.946912
   }
  },
  "m3": {
@@ -1582,6 +1731,42 @@ footer.bar span{font-size:.76rem;color:var(--muted);text-align:center}
   },
   "week13Run": false
  },
+ "figSrc": {
+  "w1_digits": "results/month1_week1/sample_digits.png",
+  "w1_cm": "results/month1_week1/confusion_matrix.png",
+  "w2_curve": "results/month1_week2/learning_curve.png",
+  "w2_cm": "results/month1_week2/confusion_matrix.png",
+  "w3_cnn_curve": "results/month1_week3_mnist_cnn/learning_curve.png",
+  "w3_cnn_cm": "results/month1_week3_mnist_cnn/confusion_matrix.png",
+  "w3_cnn_maps": "results/month1_week3_mnist_cnn/feature_maps.png",
+  "w3_cifar_curve": "results/month1_week3_cifar10_cnn/learning_curve.png",
+  "w3_cifar_cm": "results/month1_week3_cifar10_cnn/confusion_matrix.png",
+  "w3_cifar_maps": "results/month1_week3_cifar10_cnn/feature_maps.png",
+  "w8_base_conv": "results/month2_week8_mnist_iid_comparison/convergence_comparison.png",
+  "w8_base_cmF": "results/month2_week8_mnist_iid_comparison/fedavg_confusion_matrix.png",
+  "w8_base_cmC": "results/month2_week8_mnist_iid_comparison/centralized_confusion_matrix.png",
+  "w8_e2_conv": "results/month2_week8_mnist_e2_variant/convergence_comparison.png",
+  "w8_e2_cmF": "results/month2_week8_mnist_e2_variant/fedavg_confusion_matrix.png",
+  "w8_e2_cmC": "results/month2_week8_mnist_e2_variant/centralized_confusion_matrix.png",
+  "w8_k10_conv": "results/month2_week8_mnist_k10_variant/convergence_comparison.png",
+  "w8_k10_cmF": "results/month2_week8_mnist_k10_variant/fedavg_confusion_matrix.png",
+  "w8_k10_cmC": "results/month2_week8_mnist_k10_variant/centralized_confusion_matrix.png",
+  "w9_dist": "results/month3_week9_mnist_iid_vs_noniid/class_distribution.png",
+  "w9_conv": "results/month3_week9_mnist_iid_vs_noniid/convergence_comparison.png",
+  "w9_cmI": "results/month3_week9_mnist_iid_vs_noniid/iid_confusion_matrix.png",
+  "w9_cmN": "results/month3_week9_mnist_iid_vs_noniid/noniid_confusion_matrix.png",
+  "w10_1.0_dist": "results/month3_week10_mnist_alpha1.0/class_distribution.png",
+  "w10_1.0_conv": "results/month3_week10_mnist_alpha1.0/convergence_comparison.png",
+  "w10_1.0_cm": "results/month3_week10_mnist_alpha1.0/fedavg_confusion_matrix.png",
+  "w10_0.5_dist": "results/month3_week10_mnist_alpha0.5/class_distribution.png",
+  "w10_0.5_conv": "results/month3_week10_mnist_alpha0.5/convergence_comparison.png",
+  "w10_0.5_cm": "results/month3_week10_mnist_alpha0.5/fedavg_confusion_matrix.png",
+  "w10_0.1_dist": "results/month3_week10_mnist_alpha0.1/class_distribution.png",
+  "w10_0.1_conv": "results/month3_week10_mnist_alpha0.1/convergence_comparison.png",
+  "w10_0.1_cm": "results/month3_week10_mnist_alpha0.1/fedavg_confusion_matrix.png",
+  "w11_e1": "results/month3_week11_mnist_fedprox_mu_sweep/convergence_comparison.png",
+  "w11_e5": "results/month3_week11_mnist_fedprox_mu_sweep_e5/convergence_comparison.png"
+ },
  "tests": 180
 };
 function boot(LANG,OTHER,keep){
@@ -1719,6 +1904,26 @@ function heat(hist, sizes) {
   return `<div class="scroll"><table class="heat"><thead><tr><th>${t("Client", "Client")}</th>${[0,1,2,3,4,5,6,7,8,9].map((d) => `<th>${d}</th>`).join("")}<th>${t("Tổng", "Total")}</th></tr></thead><tbody>${hist.map((r, i) =>
     `<tr><th>${i}</th>${r.map((v, d) => `<td title="${t("Client", "Client")} ${i}, ${t("chữ số", "digit")} ${d}: ${v}" style="background:color-mix(in srgb,var(--c1) ${v ? Math.max(6, Math.round(85 * Math.sqrt(v / max))) : 0}%,transparent)">${v || "·"}</td>`).join("")}<th>${r.reduce((a, b) => a + b, 0)}</th></tr>`).join("")}</tbody></table></div>`;
 }
+function figs(host, items) {
+  const w = el("div", "figs"), area = el("div", "stack");
+  w.appendChild(el("h4", null, t("Hình từ lần chạy đã lưu", "Figures from the saved run")));
+  const show = (i) => {
+    const it = items[i]; area.innerHTML = "";
+    const b = el("button", "figbtn", `<img loading="lazy" src="figures/${it[0]}.png" alt="${it[1]}">`);
+    b.type = "button"; b.setAttribute("aria-label", t("Phóng to: ", "Enlarge: ") + it[1]);
+    b.onclick = () => {
+      const d = el("dialog", "lb", `<button type="button">${t("Đóng", "Close")}</button><img src="figures/${it[0]}.png" alt="${it[1]}"><p>${it[1]}</p>`);
+      document.body.appendChild(d); d.querySelector("button").onclick = () => d.close();
+      d.onclick = (e) => { if (e.target === d) d.close(); }; d.onclose = () => d.remove(); d.showModal();
+    };
+    area.appendChild(b); area.appendChild(el("p", "small muted", it[1]));
+    if (it[2]) area.appendChild(el("div", "note", it[2]));
+    area.appendChild(el("p", "src", t("Nguồn: ", "Source: ") + `<span class="mono">${D.figSrc[it[0]]}</span>` + t(". Chữ trong hình giữ tiếng Anh như bản gốc. Bấm vào hình để phóng to.", ". Click the figure to enlarge.")));
+  };
+  if (items.length > 1) w.appendChild(seg(t("Hình", "Figure"), items.map((it, i) => [i, it[3]]), 0, show));
+  w.appendChild(area); host.appendChild(w); show(0);
+}
+const cmL = t("Ma trận nhầm lẫn", "Confusion matrix"), cuL = t("Đường học", "Learning curve");
 const src = (s) => el("p", "src", t("Nguồn: ", "Source: ") + `<span class="mono">${s}</span>`);
 const seedNote = () => t("Một seed (42), nên chưa có khoảng dao động.", "One seed (42), so no spread is available.");
 
@@ -1777,11 +1982,11 @@ add("m1", t("Tháng 1", "Month 1"), (s) => {
   const h = el("div"); h.style.display = "contents"; s.appendChild(h);
   const curve = (c, ids) => lines(c, { label: t("Độ chính xác theo epoch", "Accuracy by epoch"), xLabel: "Epoch", series: ids.flatMap(([id, n, c1, c2]) => [{ name: n + " · " + t("kiểm định", "validation"), color: c1, pts: D.m1.curves[id].map((p) => ({ x: p.e, y: p.val })) }, { name: n + " · " + t("huấn luyện", "training"), color: c2, pts: D.m1.curves[id].map((p) => ({ x: p.e, y: p.train })) }]) });
   monthSlide(h, [
-    { tab: t("T1 · Logistic", "W1 · Logistic"), title: t(`Mốc sàn: ${pct(B[0].acc)} trên MNIST`, `The floor: ${pct(B[0].acc)} on MNIST`), text: t(`Mô hình tuyến tính đơn giản, chia dữ liệu 70/15/15, F1 ${pct(B[0].f1)}. Mô hình phức tạp hơn mà thấp hơn mức này thì nhiều khả năng có lỗi.`, `A simple linear model with a 70/15/15 split and ${pct(B[0].f1)} F1. A more complex model scoring below this probably has a bug.`), viz: (c) => { bars(c, { label: "MNIST", cats: B.slice(0, 1).map((b) => name[b.id]), series: [{ name: t("Độ chính xác", "Accuracy"), color: "var(--c1)", values: [B[0].acc] }], h: 190 }); c.appendChild(src("results/month1_week1/metrics.json")); } },
-    { tab: t("T2 · MLP", "W2 · MLP"), title: t(`Mạng nơ-ron đầu tiên: ${pct(B[1].acc)}`, `First neural network: ${pct(B[1].acc)}`), text: t("Viết vòng huấn luyện bằng PyTorch với 1 lớp ẩn 128 đơn vị. Đường huấn luyện và kiểm định vẫn đi sát nhau.", "A PyTorch training loop with one 128-unit hidden layer. Training and validation curves stay close together."), viz: (c) => { curve(c, [["mlp", "MLP", "var(--c1)", "var(--c2)"]]); c.appendChild(src("results/month1_week2/metrics.json")); } },
+    { tab: t("T1 · Logistic", "W1 · Logistic"), title: t(`Mốc sàn: ${pct(B[0].acc)} trên MNIST`, `The floor: ${pct(B[0].acc)} on MNIST`), text: t(`Mô hình tuyến tính đơn giản, chia dữ liệu 70/15/15, F1 ${pct(B[0].f1)}. Mô hình phức tạp hơn mà thấp hơn mức này thì nhiều khả năng có lỗi.`, `A simple linear model with a 70/15/15 split and ${pct(B[0].f1)} F1. A more complex model scoring below this probably has a bug.`), viz: (c) => { bars(c, { label: "MNIST", cats: B.slice(0, 1).map((b) => name[b.id]), series: [{ name: t("Độ chính xác", "Accuracy"), color: "var(--c1)", values: [B[0].acc] }], h: 190 }); c.appendChild(src("results/month1_week1/metrics.json")); figs(c, [["w1_digits", t("Một ảnh mẫu cho mỗi chữ số MNIST.", "One sample image per MNIST digit."), null, t("Ảnh mẫu", "Samples")], ["w1_cm", t("Ma trận nhầm lẫn của hồi quy logistic trên tập test. Ô ngoài đường chéo là dự đoán sai.", "Logistic regression confusion matrix on the test set. Off-diagonal cells are mistakes."), t("Nhầm nhiều nhất là chữ số 4 với 9 (38 mẫu), và 3 với 5 (39 mẫu).", "The largest confusions are digit 4 with 9 (38 samples) and 3 with 5 (39 samples)."), cmL]]); withTable(c, [t("Chữ số", "Digit"), t("Huấn luyện", "Train"), t("Kiểm định", "Validation"), "Test"], D.m1.classDist.map((r) => [r.digit, r.train, r.val, r.test])); } },
+    { tab: t("T2 · MLP", "W2 · MLP"), title: t(`Mạng nơ-ron đầu tiên: ${pct(B[1].acc)}`, `First neural network: ${pct(B[1].acc)}`), text: t("Viết vòng huấn luyện bằng PyTorch với 1 lớp ẩn 128 đơn vị. Đường huấn luyện và kiểm định vẫn đi sát nhau.", "A PyTorch training loop with one 128-unit hidden layer. Training and validation curves stay close together."), viz: (c) => { curve(c, [["mlp", "MLP", "var(--c1)", "var(--c2)"]]); c.appendChild(src("results/month1_week2/metrics.json")); figs(c, [["w2_curve", t("Loss và accuracy theo epoch của MLP.", "MLP loss and accuracy by epoch."), null, cuL], ["w2_cm", t("Ma trận nhầm lẫn của MLP trên tập test.", "MLP confusion matrix on the test set."), null, cmL]]); } },
     { tab: t("T3 · CNN", "W3 · CNN"), title: t(`CNN: ${pct(B[2].acc)} trên MNIST, ${pct(B[3].acc)} trên CIFAR-10`, `CNN: ${pct(B[2].acc)} on MNIST, ${pct(B[3].acc)} on CIFAR-10`), text: t("CIFAR-10 khó hơn nhiều. Bấm đổi tập dữ liệu để xem lớp nào mô hình còn yếu. Hai tập khác độ khó nên không dùng để xếp hạng mô hình.", "CIFAR-10 is much harder. Switch dataset to see which classes the model struggles with. The two tasks differ in difficulty, so this is not a model ranking."), viz: (c) => {
       const area = el("div", "stack");
-      const show = (k) => { area.innerHTML = ""; const pc = D.m1.perClass[k]; bars(area, { label: t("Độ chính xác theo lớp", "Accuracy by class"), cats: Object.keys(pc), series: [{ name: t("Độ chính xác", "Accuracy"), color: "var(--c1)", values: Object.values(pc) }], d: 0 }); withTable(area, [t("Lớp", "Class"), t("Độ chính xác", "Accuracy")], Object.entries(pc).map(([a, b]) => [a, pct(b, 1)])); curve(area, [[k, k === "cnn" ? "MNIST" : "CIFAR-10", "var(--c1)", "var(--c2)"]]); };
+      const show = (k) => { area.innerHTML = ""; const pc = D.m1.perClass[k]; bars(area, { label: t("Độ chính xác theo lớp", "Accuracy by class"), cats: Object.keys(pc), series: [{ name: t("Độ chính xác", "Accuracy"), color: "var(--c1)", values: Object.values(pc) }], d: 0 }); withTable(area, [t("Lớp", "Class"), t("Độ chính xác", "Accuracy")], Object.entries(pc).map(([a, b]) => [a, pct(b, 1)])); curve(area, [[k, k === "cnn" ? "MNIST" : "CIFAR-10", "var(--c1)", "var(--c2)"]]); figs(area, [["w3_" + k + "_cm", t("Ma trận nhầm lẫn của CNN trên tập test.", "CNN confusion matrix on the test set."), k === "cifar" ? t("Mèo và chó nhầm với nhau nhiều nhất (208 và 160 mẫu).", "Cats and dogs are confused with each other most (208 and 160 samples).") : null, cmL], ["w3_" + k + "_maps", t("Phản hồi của lớp tích chập đầu tiên với một ảnh mẫu.", "First convolution layer responses to one sample image."), null, t("Bản đồ đặc trưng", "Feature maps")], ["w3_" + k + "_curve", t("Loss và accuracy theo epoch của CNN.", "CNN loss and accuracy by epoch."), null, cuL]]); };
       c.appendChild(seg(t("Tập dữ liệu", "Dataset"), [["cnn", "MNIST"], ["cifar", "CIFAR-10"]], "cnn", show)); c.appendChild(area); show("cnn"); c.appendChild(src("results/month1_week3_mnist_cnn, results/month1_week3_cifar10_cnn")); } },
     { tab: t("T4 · Phương pháp", "W4 · Method"), title: t("Tổng hợp baseline và siết quy trình tái lập", "Baselines combined, reproducibility tightened"), text: t("Đọc SISA để có khái niệm machine unlearning. Rà soát phát hiện hai điểm yếu: nhiều file chưa commit, và code tự chọn CPU/GPU theo máy. Cả hai đã được sửa trước khi đóng tháng, và các số liệu được chạy lại theo config. Các thí nghiệm PyTorch cho lại đúng kết quả. Hồi quy logistic còn lệch khoảng 1/10.000 mẫu giữa các lần chạy, không đổi kết luận.", "SISA reading introduced machine unlearning. An audit found two weaknesses: many files were uncommitted, and the code picked CPU or GPU by machine. Both were fixed before closing the month, and results were rerun from config. The PyTorch experiments reproduced exactly. Logistic regression still varies by about 1 in 10,000 samples between runs, which changes no conclusion."), viz: (c) => { bars(c, { label: t("Bốn baseline", "Four baselines"), cats: B.map((b) => name[b.id]), series: [{ name: t("Độ chính xác", "Accuracy"), color: "var(--c1)", values: B.map((b) => b.acc) }] }); withTable(c, [t("Mô hình", "Model"), t("Dữ liệu", "Data"), t("Độ chính xác", "Accuracy"), "F1"], B.map((b) => [name[b.id], b.dataset, pct(b.acc), pct(b.f1)])); c.appendChild(el("p", "src", seedNote())); } },
   ]);
@@ -1806,7 +2011,7 @@ add("m2", t("Tháng 2", "Month 2"), (s) => {
     { tab: t("T7 · Flower", "W7 · Flower"), title: t("Đối chiếu với Flower 1.30", "Cross-check against Flower 1.30"), text: t("Flower chỉ dùng để tham chiếu. Khi nhận cùng dữ liệu đầu vào, phép tổng hợp của Flower và của code tự viết cho cùng kết quả (ví dụ 20/80 mẫu ra 2,6). Bộ kiểm tra có 20 test, gồm 13 test FedAvg và 7 test tương thích Flower.", "Flower is a reference only. Given the same inputs, Flower's aggregation and the hand-written code give the same result (for example 20/80 samples gives 2.6). The suite has 20 tests: 13 for FedAvg and 7 for Flower compatibility."), viz: (c) => { c.appendChild(el("div", "note", t("<b>Một khác biệt đáng ghi lại:</b> với C = 0,3 và 5 client, code tự viết chọn 2 client (làm tròn lên), còn Flower chọn 1 (làm tròn xuống, với min_fit_clients = 1). Cách chọn client có thể đổi tốc độ hội tụ, nên kết quả phải ghi rõ quy tắc này.", "<b>A difference worth recording:</b> with C = 0.3 and 5 clients, the hand-written code selects 2 clients (rounding up) and Flower selects 1 (rounding down, with min_fit_clients = 1). Selection can change convergence, so results must state this rule."))); c.appendChild(src("reports/month2_week7_flower_compatibility.md")); } },
     { tab: t("T8 · So sánh", "W8 · Comparison"), title: t("FedAvg so với huấn luyện tập trung", "FedAvg against centralized training"), text: t("Cùng mô hình khởi tạo và cùng lượng dữ liệu đã duyệt. Đổi cấu hình để xem chênh lệch thay đổi thế nào.", "Same initial model and the same amount of data processed. Switch configuration to see how the gap changes."), viz: (c) => {
       const a = el("div", "stack");
-      const show = (k) => { const v = M2[k]; a.innerHTML = `<div class="grid3"><div class="kpi"><b>${pct(v.fedavg)}</b><span>FedAvg</span></div><div class="kpi"><b>${pct(v.central)}</b><span>${t("Tập trung", "Centralized")}</span></div><div class="kpi"><b>${pp(v.gap)}</b><span>${t("Chênh lệch", "Gap")} · ${t("truyền tải", "traffic")} ${mb(v.bytes)}</span></div></div>`; lines(a, { label: t("Độ chính xác kiểm định", "Validation accuracy"), xLabel: t("Số lượt duyệt dữ liệu", "Data passes"), series: [{ name: t("Tập trung", "Centralized"), color: "var(--c1)", pts: v.curveC }, { name: "FedAvg", color: "var(--c2)", pts: v.curveF }] }); const mn = Math.min(...v.clients), mx = Math.max(...v.clients); a.appendChild(el("p", "small muted", t(`Độ chính xác từng client trên phần test riêng: ${pct(mn)} đến ${pct(mx)}.`, `Accuracy per client on its own test subset: ${pct(mn)} to ${pct(mx)}.`))); };
+      const show = (k) => { const v = M2[k]; a.innerHTML = `<div class="grid3"><div class="kpi"><b>${pct(v.fedavg)}</b><span>FedAvg</span></div><div class="kpi"><b>${pct(v.central)}</b><span>${t("Tập trung", "Centralized")}</span></div><div class="kpi"><b>${pp(v.gap)}</b><span>${t("Chênh lệch", "Gap")} · ${t("truyền tải", "traffic")} ${mb(v.bytes)}</span></div></div>`; lines(a, { label: t("Độ chính xác kiểm định", "Validation accuracy"), xLabel: t("Số lượt duyệt dữ liệu", "Data passes"), series: [{ name: t("Tập trung", "Centralized"), color: "var(--c1)", pts: v.curveC }, { name: "FedAvg", color: "var(--c2)", pts: v.curveF }] }); const mn = Math.min(...v.clients), mx = Math.max(...v.clients); a.appendChild(el("p", "small muted", t(`Độ chính xác từng client trên phần test riêng: ${pct(mn)} đến ${pct(mx)}. Macro F1: FedAvg ${pct(v.f1F)}, tập trung ${pct(v.f1C)}.`, `Accuracy per client on its own test subset: ${pct(mn)} to ${pct(mx)}. Macro F1: FedAvg ${pct(v.f1F)}, centralized ${pct(v.f1C)}.`))); bars(a, { label: t("Độ chính xác theo chữ số", "Accuracy by digit"), cats: [0,1,2,3,4,5,6,7,8,9].map(String), series: [{ name: t("Tập trung", "Centralized"), color: "var(--c1)", values: v.pcC }, { name: "FedAvg", color: "var(--c2)", values: v.pcF }], d: 0 }); figs(a, [["w8_" + k + "_conv", t("Accuracy và loss kiểm định theo số lượt duyệt dữ liệu.", "Validation accuracy and loss by data passes."), null, t("Hội tụ", "Convergence")], ["w8_" + k + "_cmF", t("Ma trận nhầm lẫn của FedAvg trên tập test.", "FedAvg confusion matrix on the test set."), null, "FedAvg"], ["w8_" + k + "_cmC", t("Ma trận nhầm lẫn của huấn luyện tập trung trên tập test.", "Centralized confusion matrix on the test set."), null, t("Tập trung", "Centralized")]]); };
       c.appendChild(seg(t("Cấu hình", "Configuration"), [["base", "K=5, E=1"], ["e2", "K=5, E=2"], ["k10", "K=10, E=1"]], "base", show)); c.appendChild(a); show("base");
       withTable(c, [t("Cấu hình", "Configuration"), "FedAvg", t("Tập trung", "Centralized"), t("Chênh lệch", "Gap"), t("Truyền tải", "Traffic")], [["base", "K=5, E=1"], ["e2", "K=5, E=2"], ["k10", "K=10, E=1"]].map(([k, n]) => [n, pct(M2[k].fedavg), pct(M2[k].central), pp(M2[k].gap), mb(M2[k].bytes)]));
       c.appendChild(src("results/month2_week8_mnist_iid_comparison, _e2_variant, _k10_variant")); c.appendChild(el("p", "src", seedNote())); } },
@@ -1818,15 +2023,15 @@ add("m3", t("Tháng 3", "Month 3"), (s) => {
   const drop = S3["0.5"].acc - S3["0.1"].acc, soft = S3["1.0"].acc - S3["0.5"].acc;
   s.innerHTML = `<p class="eyebrow">${t("Tháng 3 · Tuần 9–12", "Month 3 · Weeks 9–12")}</p><h2>${t(`Mức giảm do Non-IID không đều: từ α = 0,5 xuống 0,1 mất ${num(drop * 100)} điểm %`, `Non-IID damage is uneven: α = 0.5 to 0.1 costs ${num(drop * 100)} pp`)}</h2><p class="lede">${t("Đây là lý do luận văn phải đánh giá unlearning theo từng mức lệch, thay vì chỉ một mức.", "This is why the thesis must evaluate unlearning at each skew level, not just one.")}</p>`;
   const h = el("div"); h.style.display = "contents"; s.appendChild(h);
-  const panel = (c, keys, cur) => {
+  const panel = (c, keys, cur, fg) => {
     const a = el("div", "stack");
-    const show = (k) => { const v = S3[k]; a.innerHTML = `<div class="grid3"><div class="kpi"><b>${pct(v.acc)}</b><span>${t("FedAvg trên tập test", "FedAvg on the test set")}</span></div><div class="kpi"><b>${pct(v.f1)}</b><span>Macro F1</span></div><div class="kpi"><b>${pp(v.gap)}</b><span>${t("so với tập trung", "against centralized")} (${pct(M2.base.central)})</span></div></div><p class="small muted">${t("Số mẫu của từng chữ số ở mỗi client. Ô càng đậm càng nhiều mẫu, dấu · nghĩa là không có mẫu.", "Samples of each digit at each client. Darker means more samples, and · means none.")}</p>` + heat(v.hist); };
+    const show = (k) => { const v = S3[k]; a.innerHTML = `<div class="grid3"><div class="kpi"><b>${pct(v.acc)}</b><span>${t("FedAvg trên tập test", "FedAvg on the test set")}</span></div><div class="kpi"><b>${pct(v.f1)}</b><span>Macro F1</span></div><div class="kpi"><b>${pp(v.gap)}</b><span>${t("so với tập trung", "against centralized")} (${pct(M2.base.central)})</span></div></div><p class="small muted">${t("Số mẫu của từng chữ số ở mỗi client. Ô càng đậm càng nhiều mẫu, dấu · nghĩa là không có mẫu.", "Samples of each digit at each client. Darker means more samples, and · means none.")}</p>` + heat(v.hist); if (fg) fg(a, k); };
     c.appendChild(seg(t("Cách chia", "Partition"), keys.map((k) => [k, SNAME[k]]), cur, show)); c.appendChild(a); show(cur);
   };
   monthSlide(h, [
-    { tab: t("T9 · Shard", "W9 · Shards"), title: t(`Trường hợp cực đoan: ${pct(S3.iid.acc)} xuống ${pct(S3.shards.acc)}`, `The extreme case: ${pct(S3.iid.acc)} down to ${pct(S3.shards.acc)}`), text: t("Mỗi client nhận 2 shard nên chỉ thấy khoảng 1–2 chữ số. Mỗi client kéo mô hình về một hướng riêng, gọi là client drift. Lượng truyền tải không đổi.", "Each client gets 2 shards, so it sees about 1–2 digits. Each pulls the model its own way, which is called client drift. Traffic does not change."), viz: (c) => { panel(c, ["iid", "shards"], "shards"); c.appendChild(src("results/month3_week9_mnist_iid_vs_noniid/metrics.json")); } },
-    { tab: t("T10 · Dirichlet", "W10 · Dirichlet"), title: t("Điều chỉnh mức lệch bằng Dirichlet(α)", "Tuning the skew with Dirichlet(α)"), text: t("α càng nhỏ, mỗi chữ số càng dồn vào ít client. Ở α = 0,1 nhiều ô trống hẳn: client mất hoàn toàn một số chữ số, không chỉ lệch tỉ lệ.", "The smaller α is, the more each digit concentrates in few clients. At α = 0.1 many cells are empty: clients lose some digits entirely, rather than just seeing skewed proportions."), viz: (c) => { panel(c, ["1.0", "0.5", "0.1"], "0.1"); const k = ["iid", "1.0", "0.5", "0.1", "shards"]; lines(c, { label: t("Độ chính xác test theo vòng", "Test accuracy by round"), xLabel: t("Vòng", "Round"), series: [["iid", "var(--c1)"], ["0.5", "var(--c3)"], ["0.1", "var(--c4)"], ["shards", "var(--c2)"]].map(([x, col]) => ({ name: SNAME[x], color: col, pts: S3[x].curve })) }); withTable(c, [t("Mức lệch", "Skew"), "FedAvg", t("So với tập trung", "Against centralized")], k.map((x) => [SNAME[x], pct(S3[x].acc), pp(S3[x].gap)])); c.appendChild(src("results/month3_week10_mnist_alpha{1.0,0.5,0.1}/metrics.json")); } },
-    { tab: t("T11 · FedProx", "W11 · FedProx"), title: t("FedProx không vượt FedAvg trong thiết lập này", "FedProx did not beat FedAvg in this setup"), text: t(`Ở α = 0,1, cả ba giá trị μ đều không cao hơn FedAvg, ở cả E = 1 và E = 5. Thiết lập chỉ có 5 vòng và các client có cùng số epoch cục bộ, nên kết quả không bác bỏ FedProx nói chung.`, `At α = 0.1, none of the three μ values beat FedAvg, at either E = 1 or E = 5. The setup has only 5 rounds and the same local epochs on every client, so this does not refute FedProx in general.`), viz: (c) => { const a = el("div", "stack"), mu = ["0", "0.01", "0.1", "1.0"], lab = (m) => (m === "0" ? "FedAvg" : "μ = " + num(+m, m === "1.0" ? 1 : m === "0.1" ? 1 : 2)); const show = (e) => { a.innerHTML = ""; bars(a, { label: "FedProx", cats: mu.map(lab), series: [{ name: t("Độ chính xác", "Accuracy"), color: "var(--c1)", values: mu.map((m) => D.m3.sweep[e][m]) }], d: 2 }); }; c.appendChild(seg(t("Số epoch cục bộ", "Local epochs"), [["e1", "E = 1"], ["e5", "E = 5"]], "e1", show)); c.appendChild(a); show("e1"); withTable(c, ["", "E = 1", "E = 5"], mu.map((m) => [lab(m), pct(D.m3.sweep.e1[m]), pct(D.m3.sweep.e5[m])])); c.appendChild(src("results/month3_week11_mnist_fedprox_mu_sweep, _e5")); } },
+    { tab: t("T9 · Shard", "W9 · Shards"), title: t(`Trường hợp cực đoan: ${pct(S3.iid.acc)} xuống ${pct(S3.shards.acc)}`, `The extreme case: ${pct(S3.iid.acc)} down to ${pct(S3.shards.acc)}`), text: t("Mỗi client nhận 2 shard nên chỉ thấy khoảng 1–2 chữ số. Mỗi client kéo mô hình về một hướng riêng, gọi là client drift. Lượng truyền tải không đổi.", "Each client gets 2 shards, so it sees about 1–2 digits. Each pulls the model its own way, which is called client drift. Traffic does not change."), viz: (c) => { panel(c, ["iid", "shards"], "shards"); c.appendChild(src("results/month3_week9_mnist_iid_vs_noniid/metrics.json")); figs(c, [["w9_cmN", t("Ma trận nhầm lẫn của FedAvg với shard.", "FedAvg confusion matrix with shards."), t("<b>Điều accuracy tổng không cho thấy:</b> chữ số 9 chỉ đúng 2 mẫu, phần lớn bị đoán thành 4 hoặc 7. Chữ số 5 chỉ đúng 146 mẫu.", "<b>What overall accuracy hides:</b> only 2 samples of digit 9 are correct, with most predicted as 4 or 7. Digit 5 gets only 146 correct."), t("Shard", "Shards")], ["w9_cmI", t("Ma trận nhầm lẫn của FedAvg với IID, để so sánh.", "FedAvg confusion matrix with IID, for comparison."), null, "IID"], ["w9_dist", t("Phân bố chữ số giữa các client: IID và shard.", "Digit distribution across clients: IID and shards."), null, t("Phân bố", "Distribution")], ["w9_conv", t("Accuracy test theo vòng: IID và shard.", "Test accuracy by round: IID and shards."), null, t("Hội tụ", "Convergence")]]); } },
+    { tab: t("T10 · Dirichlet", "W10 · Dirichlet"), title: t("Điều chỉnh mức lệch bằng Dirichlet(α)", "Tuning the skew with Dirichlet(α)"), text: t("α càng nhỏ, mỗi chữ số càng dồn vào ít client. Ở α = 0,1 nhiều ô trống hẳn: client mất hoàn toàn một số chữ số, không chỉ lệch tỉ lệ.", "The smaller α is, the more each digit concentrates in few clients. At α = 0.1 many cells are empty: clients lose some digits entirely, rather than just seeing skewed proportions."), viz: (c) => { panel(c, ["1.0", "0.5", "0.1"], "0.1", (a, x) => figs(a, [["w10_" + x + "_cm", t("Ma trận nhầm lẫn của FedAvg trên tập test.", "FedAvg confusion matrix on the test set."), x === "0.1" ? t("<b>Điều accuracy tổng không cho thấy:</b> cột dự đoán chữ số 5 toàn số 0, nghĩa là mô hình không dự đoán chữ số 5 cho mẫu nào, dù chữ số này vẫn có ở client 0. Accuracy các chữ số khác cũng chênh nhau nhiều, ví dụ chữ số 1 đúng 1123 mẫu còn chữ số 8 đúng 515 mẫu.", "<b>What overall accuracy hides:</b> the column for predicted digit 5 is all zeros, so the model never predicts 5, even though client 0 holds that digit. Accuracy also varies widely across other digits: 1123 correct for digit 1 against 515 for digit 8.") : null, cmL], ["w10_" + x + "_dist", t("Phân bố chữ số giữa các client.", "Digit distribution across clients."), null, t("Phân bố", "Distribution")], ["w10_" + x + "_conv", t("Accuracy test theo vòng, FedAvg so với tập trung.", "Test accuracy by round, FedAvg against centralized."), null, t("Hội tụ", "Convergence")]])); const k = ["iid", "1.0", "0.5", "0.1", "shards"]; lines(c, { label: t("Độ chính xác test theo vòng", "Test accuracy by round"), xLabel: t("Vòng", "Round"), series: [["iid", "var(--c1)"], ["0.5", "var(--c3)"], ["0.1", "var(--c4)"], ["shards", "var(--c2)"]].map(([x, col]) => ({ name: SNAME[x], color: col, pts: S3[x].curve })) }); withTable(c, [t("Mức lệch", "Skew"), "FedAvg", t("So với tập trung", "Against centralized")], k.map((x) => [SNAME[x], pct(S3[x].acc), pp(S3[x].gap)])); c.appendChild(src("results/month3_week10_mnist_alpha{1.0,0.5,0.1}/metrics.json")); } },
+    { tab: t("T11 · FedProx", "W11 · FedProx"), title: t("FedProx không vượt FedAvg trong thiết lập này", "FedProx did not beat FedAvg in this setup"), text: t(`Ở α = 0,1, cả ba giá trị μ đều không cao hơn FedAvg, ở cả E = 1 và E = 5. Thiết lập chỉ có 5 vòng và các client có cùng số epoch cục bộ, nên kết quả không bác bỏ FedProx nói chung.`, `At α = 0.1, none of the three μ values beat FedAvg, at either E = 1 or E = 5. The setup has only 5 rounds and the same local epochs on every client, so this does not refute FedProx in general.`), viz: (c) => { const a = el("div", "stack"), mu = ["0", "0.01", "0.1", "1.0"], lab = (m) => (m === "0" ? "FedAvg" : "μ = " + num(+m, m === "1.0" ? 1 : m === "0.1" ? 1 : 2)); const show = (e) => { a.innerHTML = ""; bars(a, { label: "FedProx", cats: mu.map(lab), series: [{ name: t("Độ chính xác", "Accuracy"), color: "var(--c1)", values: mu.map((m) => D.m3.sweep[e][m]) }], d: 2 }); figs(a, [["w11_" + e, t("Accuracy test theo vòng ở α = 0,1.", "Test accuracy by round at α = 0.1."), t("μ = 1,0 dẫn đầu ở vòng 1 rồi tăng chậm nhất và kết thúc thấp nhất, nên chỉ nhìn vòng đầu sẽ kết luận sai.", "μ = 1.0 leads at round 1, then grows slowest and finishes lowest, so judging by the first round alone would mislead."), ""]]); }; c.appendChild(seg(t("Số epoch cục bộ", "Local epochs"), [["e1", "E = 1"], ["e5", "E = 5"]], "e1", show)); c.appendChild(a); show("e1"); withTable(c, ["", "E = 1", "E = 5"], mu.map((m) => [lab(m), pct(D.m3.sweep.e1[m]), pct(D.m3.sweep.e5[m])])); c.appendChild(src("results/month3_week11_mnist_fedprox_mu_sweep, _e5")); } },
     { tab: t("T12 · Benchmark", "W12 · Benchmark"), title: t("FedAvg và FedProx trên 4 mức lệch", "FedAvg and FedProx across 4 skew levels"), text: t(`FedProx (μ = 0,01) thấp hơn FedAvg một chút ở cả 4 mức. Truyền tải như nhau (${mb(D.m3.bytes)}).`, `FedProx (μ = 0.01) sits slightly below FedAvg at all 4 levels. Traffic is identical (${mb(D.m3.bytes)}).`), viz: (c) => { const k = ["iid", "1.0", "0.5", "0.1"]; bars(c, { label: "FedAvg, FedProx", cats: k.map((x) => SNAME[x]), series: [{ name: "FedAvg", color: "var(--c1)", values: k.map((x) => D.m3.bench[x].fedavg) }, { name: "FedProx (μ = " + num(0.01) + ")", color: "var(--c2)", values: k.map((x) => D.m3.bench[x].fedprox) }] }); withTable(c, [t("Mức lệch", "Skew"), "FedAvg", "FedProx"], k.map((x) => [SNAME[x], pct(D.m3.bench[x].fedavg), pct(D.m3.bench[x].fedprox)])); c.appendChild(el("div", "note warn", t("<b>Hạn chế cần nói rõ:</b> μ = 0,01 được chọn vì tốt nhất trên tập test, chỉ ở α = 0,1 và E = 1, nên so sánh có thể hơi thiên vị cho FedProx. Chênh lệch chỉ 0,05–0,17 điểm % trên một seed, nên chưa đủ để nói FedProx kém hơn ở các mức này.", "<b>A limitation to state:</b> μ = 0.01 was chosen as the best on the test set, at α = 0.1 and E = 1 only, so the comparison may slightly favour FedProx. The gaps are just 0.05–0.17 pp on one seed, too small to say FedProx is worse at these levels."))); c.appendChild(src("results/month3_week12_*_fedprox, results/month3_week11_mnist_fedprox_mu_sweep")); } },
   ]);
   s.appendChild(el("p", "so", t(`<b>Kết quả của tháng:</b> α từ 1,0 xuống 0,5 chỉ mất ${num(soft * 100)} điểm %, nhưng từ 0,5 xuống 0,1 mất ${num(drop * 100)} điểm %. Đây là một seed, 5 vòng, và không có điểm đo giữa 0,5 và 0,1. Nguyên nhân chưa được giải thích trọn vẹn (mục 9, trang Quyết định).`, `<b>Month outcome:</b> α from 1.0 to 0.5 costs only ${num(soft * 100)} pp, but 0.5 to 0.1 costs ${num(drop * 100)} pp. This is one seed, 5 rounds, with nothing measured between 0.5 and 0.1. The cause is not fully explained yet (item 9, Decisions slide).`)));
@@ -1844,7 +2049,7 @@ add("m4", t("Tháng 4", "Month 4"), (s) => {
         const box = el("div", "chart"); a.appendChild(box); const sz = v.sizes, mx = Math.max(...sz);
         box.innerHTML = `<div class="stack small" style="gap:3px">${sz.map((n, i) => `<div style="display:grid;grid-template-columns:58px 1fr 44px;gap:8px;align-items:center"><span class="${i === chosen ? "" : "muted"}">${t("Client", "Client")} ${i}</span><div style="background:var(--surface-2);border-radius:3px;height:14px"><div style="height:100%;border-radius:3px;width:${Math.max(0.5, 100 * n / mx)}%;background:${i === chosen ? "var(--c2)" : "color-mix(in srgb,var(--c1) 55%,transparent)"}"></div></div><span class="mono" style="text-align:right">${n}</span></div>`).join("")}</div>`;
         const extra = rule === "t3" ? t(` (giữ ${pct(v.t3share, 1)} số mẫu chữ số ${v.t3class})`, ` (holds ${pct(v.t3share, 1)} of digit ${v.t3class})`) : "";
-        a.appendChild(el("p", "small", t(`Được chọn: <b>client ${chosen}</b>${extra}. Đây là phân chia thử với ${v.train} mẫu, không phải lưới chính thức.`, `Selected: <b>client ${chosen}</b>${extra}. This is a smoke partition of ${v.train} samples, not the official grid.`))); };
+        a.appendChild(el("p", "small", t(`Được chọn: <b>client ${chosen}</b>${extra}. Đây là phân chia thử với ${v.train} mẫu, không phải lưới chính thức. Các lần chạy thử không lưu hình, nên tháng này chưa có hình.`, `Selected: <b>client ${chosen}</b>${extra}. This is a smoke partition of ${v.train} samples, not the official grid. Smoke runs save no figures, so this month has none yet.`))); };
       c.appendChild(seg(t("Phân chia thử", "Smoke partition"), [["a01", SNAME["0.1"]], ["iid", "IID"]], "a01", (k) => { part = k; draw(); })); c.appendChild(a); draw();
       c.appendChild(src("results/smoke_month4_week14_v3_mnist_*/metrics.json"));
       c.appendChild(el("div", "note", `<b>${t("Bộ đo đi kèm", "Metrics that come with it")}:</b> ${t("so với retrain trên 3 phần dữ liệu (test chung, target, non-target), và tách target thành lớp dùng chung và lớp do target chiếm giữ (≥ 50%). Dùng hai chỉ số: chênh lệch accuracy và tỉ lệ đồng thuận dự đoán. Tham số mô hình không được so trực tiếp.", "comparison with retrain on 3 data splits (global test, target, non-target), with the target split into shared and target-dominant (≥ 50%) classes. Two measures: accuracy gap and prediction agreement. Model parameters are not compared directly.")}</div>`)); } },
