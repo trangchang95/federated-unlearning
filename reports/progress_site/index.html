@@ -218,7 +218,7 @@ footer.foot{color:var(--muted); font-size:.76rem; padding:30px 0 10px; border-to
         </div>
         <div class="tlItem current">
           <div class="tlHead"><b>Tháng 4, Tuần 13–14 — Retrain &amp; noise floor</b><span class="pill warn">Đang làm</span></div>
-          <p class="tlBody">Cơ chế unlearning liên-federated đầu tiên: bộ chạy Retrain (M<sub>retrain</sub><sup>(−A)</sup>), cách chọn client mục tiêu, và noise floor để đo "giống retrain đến mức nào". Đã code và test xong (180 test pass), <b style="color:var(--ink)">chưa chạy lưới canonical</b> — xem 2 tab tiếp theo để biết chi tiết.</p>
+          <p class="tlBody">Cơ chế unlearning liên-federated đầu tiên: bộ chạy Retrain (M<sub>retrain</sub><sup>(−A)</sup>), cách chọn client mục tiêu, và noise floor để đo "giống retrain đến mức nào". Đã code và test xong (180 test pass), <b style="color:var(--ink)">chưa chạy lưới canonical</b> — xem 2 tab tiếp theo để biết chi tiết. Đã hoàn tất ôn tập toàn bộ nội dung từ nền tảng đến Tuần 14; 3 hàm lõi của giai đoạn này đang ở mức hiểu "đi qua từng bước", cần lên mức "tự giải thích lại được" trước khi chạy lưới canonical.</p>
         </div>
         <div class="tlItem next">
           <div class="tlHead"><b>Kế tiếp — PGA, FedEraser, phương pháp đề xuất</b><span class="pill flat">Chưa bắt đầu</span></div>
@@ -243,6 +243,7 @@ footer.foot{color:var(--muted); font-size:.76rem; padding:30px 0 10px; border-to
         <ul style="margin:0; padding-left:18px; color:var(--muted); font-size:.9rem">
           <li><b style="color:var(--ink)">PGA</b> và <b style="color:var(--ink)">FedEraser</b> — hai baseline bắt buộc theo đề cương — chưa triển khai; đây là bước kế tiếp sau khi lưới canonical Retrain chạy xong.</li>
           <li><code>target_selection_rule</code> (T1/T2/T3) vẫn để trống trong config canonical — đang chờ chọn hướng.</li>
+          <li>3 hàm lõi của Tuần 13–14 (Retrain, forgetting metrics, noise floor) mới ở mức hiểu "đi qua từng bước" — quy tắc của luận văn yêu cầu lên mức "tự giải thích lại được" trước khi cho chạy lưới canonical.</li>
           <li>8 điểm phương pháp luận còn mở, cần chốt trước khi chạy lưới chính thức (xem tab "Quyết định còn mở").</li>
         </ul>
       </div>
