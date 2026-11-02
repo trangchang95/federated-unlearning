@@ -1,0 +1,600 @@
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Tiến độ Federated Unlearning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* layout: sticky tab bar at top, one scrollable panel per view, [hidden] toggles panels */
+:root{
+  --bg:#faf7f0; --surface:#ffffff; --surface-2:#f1ece1;
+  --ink:#1c2541; --muted:#5c6378; --line:#e4dccb;
+  --accent:#0f6e64; --accent-ink:#e9fbf6;
+  --warm:#b5590f;
+  --good:#2f7a4f; --good-bg:#e7f3ea;
+  --warn:#9a6b08; --warn-bg:#faf0d8;
+  --risk:#b03a2e; --risk-bg:#fbe9e5;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15181f; --surface:#1c212b; --surface-2:#242a36;
+    --ink:#eceaf0; --muted:#9aa0b4; --line:#323a48;
+    --accent:#3fcab8; --accent-ink:#0b1a17;
+    --warm:#e08a4a;
+    --good:#6bc98f; --good-bg:#17261d;
+    --warn:#e0b84a; --warn-bg:#2b2308;
+    --risk:#e18277; --risk-bg:#2b1613;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15181f; --surface:#1c212b; --surface-2:#242a36;
+  --ink:#eceaf0; --muted:#9aa0b4; --line:#323a48;
+  --accent:#3fcab8; --accent-ink:#0b1a17;
+  --warm:#e08a4a;
+  --good:#6bc98f; --good-bg:#17261d;
+  --warn:#e0b84a; --warn-bg:#2b2308;
+  --risk:#e18277; --risk-bg:#2b1613;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,sans-serif;
+  font-size:15px; line-height:1.55;
+  padding-left:max(16px, env(safe-area-inset-left,0px));
+  padding-right:max(16px, env(safe-area-inset-right,0px));
+}
+h1,h2,h3{font-family:"Fraunces",Georgia,serif; text-wrap:balance; margin:0; color:var(--ink)}
+code,.mono{font-family:"IBM Plex Mono",monospace}
+a{color:var(--accent)}
+.wrap{max-width:860px; margin:0 auto}
+
+/* -- top identity + nav -- */
+header.top{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:20;
+  background:var(--bg); padding:14px 0 0;
+  border-bottom:1px solid var(--line);
+}
+body::before{
+  content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top,0px);
+  z-index:21; background:var(--bg);
+}
+.titleRow{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; padding-bottom:10px}
+.titleRow h1{font-size:1.35rem; font-weight:600}
+.titleRow .meta{color:var(--muted); font-size:.8rem; white-space:nowrap}
+nav.tabs{display:flex; gap:4px; overflow-x:auto; padding-bottom:0; scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{
+  appearance:none; border:none; background:transparent; color:var(--muted);
+  font-family:"IBM Plex Sans",sans-serif; font-size:.82rem; font-weight:500;
+  padding:9px 12px 11px; cursor:pointer; white-space:nowrap; border-bottom:2px solid transparent;
+  border-radius:0;
+}
+nav.tabs button:hover{color:var(--ink)}
+nav.tabs button[aria-selected="true"]{color:var(--accent); border-bottom-color:var(--accent)}
+
+main{padding:22px 0 56px}
+section.view{display:flex; flex-direction:column; gap:22px}
+section.view[hidden]{display:none}
+
+.lede{color:var(--muted); font-size:.95rem; max-width:620px}
+.card{
+  background:var(--surface); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px;
+}
+.cardTitle{font-family:"Fraunces",serif; font-weight:600; font-size:1.05rem; margin:0 0 8px}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+@media (max-width:620px){.grid2{grid-template-columns:1fr}}
+
+.pill{
+  display:inline-flex; align-items:center; gap:5px; font-size:.72rem; font-weight:600;
+  padding:3px 9px; border-radius:99px; letter-spacing:.02em;
+}
+.pill.good{background:var(--good-bg); color:var(--good)}
+.pill.warn{background:var(--warn-bg); color:var(--warn)}
+.pill.risk{background:var(--risk-bg); color:var(--risk)}
+.pill.flat{background:var(--surface-2); color:var(--muted)}
+
+/* decisions / questions as <details> */
+details.item{
+  background:var(--surface); border:1px solid var(--line); border-radius:10px;
+  padding:0; overflow:hidden;
+}
+details.item > summary{
+  list-style:none; cursor:pointer; padding:13px 16px; display:flex; align-items:center;
+  gap:10px; font-weight:500;
+}
+details.item > summary::-webkit-details-marker{display:none}
+details.item > summary::before{
+  content:"+"; font-family:"IBM Plex Mono",monospace; color:var(--accent); font-weight:600;
+  width:16px; text-align:center; flex:none; transition:transform .15s ease;
+}
+details.item[open] > summary::before{content:"–"}
+details.item .body{padding:0 16px 16px; color:var(--muted); font-size:.9rem}
+details.item .body p{margin:0 0 10px}
+details.item .body p:last-child{margin-bottom:0}
+.num{font-family:"IBM Plex Mono",monospace; color:var(--muted); font-size:.78rem; flex:none}
+.qTag{margin-left:auto; flex:none}
+
+.optList{margin:8px 0 0; padding-left:18px}
+.optList li{margin-bottom:4px}
+.askBox{
+  margin-top:10px; padding:9px 12px; background:var(--surface-2); border-radius:7px;
+  border-left:3px solid var(--warm); color:var(--ink); font-size:.88rem;
+}
+.askBox b{color:var(--warm)}
+
+table.lit{width:100%; border-collapse:collapse; font-size:.85rem}
+table.lit th{text-align:left; color:var(--muted); font-weight:500; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; padding:6px 8px; border-bottom:1px solid var(--line)}
+table.lit td{padding:9px 8px; border-bottom:1px solid var(--line); vertical-align:top}
+table.lit tr:last-child td{border-bottom:none}
+.tblwrap{overflow-x:auto}
+
+svg text{font-family:"IBM Plex Sans",sans-serif; fill:var(--ink)}
+.diagram{width:100%; height:auto; display:block}
+.node{fill:var(--surface); stroke:var(--line); stroke-width:1.5; rx:8}
+.node.target{stroke:var(--warm); stroke-width:2}
+.nodeLabel{font-size:12px; font-weight:600}
+.nodeSub{font-size:10.5px; fill:var(--muted)}
+.edge{stroke:var(--muted); stroke-width:1.4; fill:none; marker-end:url(#arrow)}
+.hoverZone{fill:transparent; cursor:pointer}
+.ruleCard{
+  position:absolute; max-width:260px; background:var(--surface); border:1px solid var(--line);
+  border-radius:8px; padding:10px 12px; font-size:.78rem; color:var(--muted); box-shadow:0 6px 18px rgba(0,0,0,.12);
+  pointer-events:none; opacity:0; transition:opacity .12s ease; z-index:5;
+}
+.ruleCard b{color:var(--ink); display:block; margin-bottom:3px; font-size:.82rem}
+.diagramWrap{position:relative}
+
+.floorStrip{position:relative; height:54px; margin:14px 0 6px}
+.floorBand{position:absolute; top:18px; height:18px; background:var(--good-bg); border-radius:4px}
+.floorMark{position:absolute; top:6px; width:2px; height:42px; background:var(--muted)}
+.floorMark .lbl{position:absolute; top:-18px; left:50%; transform:translateX(-50%); font-size:.68rem; color:var(--muted); white-space:nowrap}
+.floorPoint{position:absolute; top:14px; width:11px; height:11px; border-radius:50%; transform:translate(-50%,0); cursor:default}
+.floorPoint.in{background:var(--good)}
+.floorPoint.out{background:var(--risk)}
+.floorAxis{position:relative; height:16px; border-top:1px solid var(--line)}
+.floorAxis span{position:absolute; top:3px; font-size:.68rem; color:var(--muted); transform:translateX(-50%)}
+.legendRow{display:flex; gap:16px; flex-wrap:wrap; font-size:.78rem; color:var(--muted); margin-top:4px}
+.legendRow .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; vertical-align:middle}
+
+.sourceNote{color:var(--muted); font-size:.74rem; font-style:italic; margin-top:4px}
+blockquote.flag{
+  margin:0; padding:10px 14px; background:var(--risk-bg); border-left:3px solid var(--risk);
+  border-radius:0 7px 7px 0; color:var(--ink); font-size:.86rem;
+}
+footer.foot{color:var(--muted); font-size:.76rem; padding:30px 0 10px; border-top:1px solid var(--line); margin-top:10px}
+
+.tl{position:relative; padding-left:22px; margin:0}
+.tl::before{content:""; position:absolute; left:4px; top:4px; bottom:4px; width:2px; background:var(--line)}
+.tlItem{position:relative; padding-bottom:20px}
+.tlItem:last-child{padding-bottom:0}
+.tlItem::before{content:""; position:absolute; left:-22px; top:3px; width:11px; height:11px; border-radius:50%; background:var(--good); border:2px solid var(--bg)}
+.tlItem.current::before{background:var(--warm)}
+.tlItem.next::before{background:var(--line); border-color:var(--bg)}
+.tlHead{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
+.tlHead b{font-family:"Fraunces",serif; font-size:1rem; font-weight:600}
+.tlBody{color:var(--muted); font-size:.86rem; margin-top:4px; max-width:620px}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="titleRow">
+      <h1>Tiến độ Federated Unlearning</h1>
+      <span class="meta">Cập nhật tháng 11/2026 · <a href="index-en.html" style="font-weight:600">EN</a></span>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button data-view="overview">Tổng quan</button>
+      <button data-view="retrain">Retrain &amp; target client</button>
+      <button data-view="noisefloor">Noise floor</button>
+      <button data-view="decisions">13 quyết định đã áp dụng</button>
+      <button data-view="literature">Literature tháng 11</button>
+      <button data-view="questions">Quyết định còn mở</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="view" data-view="overview">
+    <p class="lede">Trang này tóm tắt tiến độ chung của toàn bộ đồ án — từ baseline MNIST/CIFAR-10 đến cơ chế unlearning liên-federated đầu tiên — cùng kết quả rà soát tài liệu tháng 11 và các quyết định phương pháp luận còn mở. Di chuyển giữa các mục bằng thanh tab phía trên; mỗi thẻ có thể bấm để mở rộng chi tiết.</p>
+
+    <div class="card">
+      <p class="cardTitle">Lộ trình theo tháng</p>
+      <div class="tl">
+        <div class="tlItem">
+          <div class="tlHead"><b>Tháng 1 — Nền tảng</b><span class="pill good">Gate 1 · đạt</span></div>
+          <p class="tlBody">Python/ML cơ bản, baseline MLP và CNN trên MNIST/CIFAR-10, đọc SISA, báo cáo Tháng 1.</p>
+        </div>
+        <div class="tlItem">
+          <div class="tlHead"><b>Tháng 2 — FedAvg</b><span class="pill good">Gate 2 · đạt</span></div>
+          <p class="tlBody">Tự code FedAvg (không dùng Flower cho kết quả chính), đối chiếu với Flower chỉ để tham khảo, so sánh multi-client đầu tiên với cấu hình K=10/E=2.</p>
+        </div>
+        <div class="tlItem">
+          <div class="tlHead"><b>Tháng 3 — Non-IID</b><span class="pill good">Gate 3 · đạt (sau bổ sung)</span></div>
+          <p class="tlBody">Phân chia dữ liệu kiểu Dirichlet(α), so sánh IID vs Non-IID, cài FedProx (không vượt FedAvg trong thiết lập này). 7/8 câu đạt mức tốt; 1 câu còn ở mức chưa đầy đủ, không chặn tiến độ (chi tiết ở tab "Quyết định còn mở").</p>
+        </div>
+        <div class="tlItem current">
+          <div class="tlHead"><b>Tháng 4, Tuần 13–14 — Retrain &amp; noise floor</b><span class="pill warn">Đang làm</span></div>
+          <p class="tlBody">Cơ chế unlearning liên-federated đầu tiên: bộ chạy Retrain (M<sub>retrain</sub><sup>(−A)</sup>), cách chọn client mục tiêu, và noise floor để đo "giống retrain đến mức nào". Đã code và test xong (180 test pass), <b style="color:var(--ink)">chưa chạy lưới canonical</b> — xem 2 tab tiếp theo để biết chi tiết.</p>
+        </div>
+        <div class="tlItem next">
+          <div class="tlHead"><b>Kế tiếp — PGA, FedEraser, phương pháp đề xuất</b><span class="pill flat">Chưa bắt đầu</span></div>
+          <p class="tlBody">Hai baseline bắt buộc (PGA, FedEraser) sẽ được xây sau khi lưới canonical Retrain chạy xong; sau đó là phương pháp đề xuất của luận văn (chỉnh cường độ PGA/FedEraser theo mức độ lệch Non-IID của target).</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <p class="cardTitle">Đã hoàn thành ở giai đoạn hiện tại</p>
+        <ul style="margin:0; padding-left:18px; color:var(--muted); font-size:.9rem">
+          <li>Bộ chạy <b style="color:var(--ink)">Retrain liên-federated</b> (M và M<sub>retrain</sub><sup>(−A)</sup>) — mô hình đối chứng gốc cho mọi phép so sánh unlearning sau này.</li>
+          <li>Cơ chế <b style="color:var(--ink)">chọn client mục tiêu</b> theo 3 quy tắc cố định (T1/T2/T3), chọn trước khi có kết quả.</li>
+          <li><b style="color:var(--ink)">Noise floor</b> — quy ước riêng của luận văn để phân biệt "mô hình giống retrain" và "mô hình thực sự quên".</li>
+          <li>13 quyết định thiết kế đã được áp dụng vào code/config (chi tiết ở tab riêng).</li>
+          <li>Rà soát 5 bài báo mới (tháng 11) — chưa bài nào đe dọa trực tiếp đóng góp của luận văn.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <p class="cardTitle">Chưa làm / cần quyết định</p>
+        <ul style="margin:0; padding-left:18px; color:var(--muted); font-size:.9rem">
+          <li><b style="color:var(--ink)">PGA</b> và <b style="color:var(--ink)">FedEraser</b> — hai baseline bắt buộc theo đề cương — chưa triển khai; đây là bước kế tiếp sau khi lưới canonical Retrain chạy xong.</li>
+          <li><code>target_selection_rule</code> (T1/T2/T3) vẫn để trống trong config canonical — đang chờ chọn hướng.</li>
+          <li>8 điểm phương pháp luận còn mở, cần chốt trước khi chạy lưới chính thức (xem tab "Quyết định còn mở").</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="cardTitle">Vì sao Retrain phải xong trước PGA/FedEraser</p>
+      <p style="color:var(--muted); font-size:.9rem; margin:0">
+        Mọi phát biểu kiểu "phương pháp X làm mô hình quên client A" chỉ có nghĩa khi so sánh với
+        M<sub>retrain</sub><sup>(−A)</sup> — mô hình được train lại từ đầu, chưa từng thấy dữ liệu của A.
+        Đây là chuẩn vàng (gold standard): không có nó, không có cơ sở để nói PGA hay FedEraser có hiệu quả hay không.
+        Vì vậy Tuần 13–14 tập trung dựng đúng bộ Retrain + cách đo "giống retrain đến mức nào" trước khi đụng đến
+        bất kỳ thuật toán unlearning thật sự nào.
+      </p>
+    </div>
+  </section>
+
+  <section class="view" data-view="retrain" hidden>
+    <p class="lede">Hai mô hình được train từ cùng một điểm khởi đầu (w<sub>0</sub>) và cùng seed; điểm khác nhau duy nhất là client mục tiêu A có tham gia huấn luyện hay không. Di chuột vào từng ô để xem quy tắc chọn A.</p>
+
+    <div class="diagramWrap">
+      <svg viewBox="0 0 760 230" class="diagram" id="retrainDiagram" role="img" aria-label="Sơ đồ so sánh M và M retrain trừ A">
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--muted)"></path></marker>
+        </defs>
+        <!-- w0 -->
+        <rect x="20" y="95" width="110" height="46" class="node" rx="8"></rect>
+        <text x="75" y="115" text-anchor="middle" class="nodeLabel">w₀</text>
+        <text x="75" y="130" text-anchor="middle" class="nodeSub">khởi tạo chung</text>
+
+        <!-- arrows to M and retrain -->
+        <path d="M130,105 C190,70 230,55 270,50" class="edge"></path>
+        <path d="M130,135 C190,170 230,185 270,190" class="edge"></path>
+
+        <!-- M (all clients) -->
+        <rect x="270" y="24" width="190" height="56" class="node"></rect>
+        <text x="365" y="47" text-anchor="middle" class="nodeLabel">M — toàn bộ 10 client</text>
+        <text x="365" y="64" text-anchor="middle" class="nodeSub">FedAvg, R vòng, cùng seed</text>
+
+        <!-- Retrain (exclude A) -->
+        <rect x="270" y="164" width="190" height="56" class="node target"></rect>
+        <text x="365" y="187" text-anchor="middle" class="nodeLabel">M_retrain⁻ᴬ — trừ client A</text>
+        <text x="365" y="204" text-anchor="middle" class="nodeSub">9 client còn lại, cùng seed</text>
+
+        <!-- arrow to comparison -->
+        <path d="M460,52 C560,80 600,95 630,110" class="edge"></path>
+        <path d="M460,192 C560,160 600,135 630,120" class="edge"></path>
+        <rect x="620" y="94" width="120" height="42" class="node" style="stroke:var(--accent)"></rect>
+        <text x="680" y="112" text-anchor="middle" class="nodeLabel" style="fill:var(--accent)">So sánh</text>
+        <text x="680" y="126" text-anchor="middle" class="nodeSub">noise floor</text>
+
+        <!-- rule hover zones below retrain box -->
+        <g id="ruleT1" class="hoverZone" data-rule="t1"><rect x="270" y="222" width="60" height="8" fill="transparent"></rect><text x="280" y="-9999"></text></g>
+      </svg>
+
+      <div style="display:flex; gap:10px; margin-top:4px; flex-wrap:wrap">
+        <button type="button" class="ruleBtn" data-rule="t1" style="all:unset; cursor:pointer; font-size:.78rem; padding:6px 11px; border:1px solid var(--line); border-radius:99px; color:var(--muted)">T1 · median size</button>
+        <button type="button" class="ruleBtn" data-rule="t2" style="all:unset; cursor:pointer; font-size:.78rem; padding:6px 11px; border:1px solid var(--line); border-radius:99px; color:var(--muted)">T2 · client lớn nhất</button>
+        <button type="button" class="ruleBtn" data-rule="t3" style="all:unset; cursor:pointer; font-size:.78rem; padding:6px 11px; border:1px solid var(--line); border-radius:99px; color:var(--muted)">T3 · lệch một lớp cao nhất</button>
+      </div>
+      <div class="card" id="ruleDetail" style="margin-top:10px">
+        <p class="cardTitle" id="ruleDetailTitle">T1 · median size</p>
+        <p id="ruleDetailText" style="color:var(--muted); font-size:.88rem; margin:0">Sắp các client theo (số lượng mẫu, ID), chọn client ở vị trí trung vị. Với 10 client (số chẵn), quy tắc hiện tại lấy <b>trung vị thấp hơn</b> (lower median) — một quy ước chưa có trong đề cương, đang chờ xác nhận.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="cardTitle">Vì sao chọn trước khi train?</p>
+      <p style="color:var(--muted); font-size:.9rem; margin:0">Quy tắc T1/T2/T3 được áp vào <i>phân chia dữ liệu</i>, không nhìn vào kết quả — tránh lặp lại vấn đề từng gặp khi chọn siêu tham số μ ở một buổi học trước (chọn sau khi thấy kết quả tốt sẽ làm sai lệch kết luận). Hai config canonical hiện để <code>target_selection_rule: null</code> có chủ đích; bộ chạy sẽ tự chặn nếu khởi động ngay bây giờ — đây là một trong các điểm đang chờ xác nhận.</p>
+    </div>
+  </section>
+
+  <section class="view" data-view="noisefloor" hidden>
+    <p class="lede">
+      Ngay cả hai lần retrain giống nhau tuyệt đối (cùng loại trừ client A) cũng cho ra hai mô hình hơi khác nhau, chỉ vì seed ngẫu nhiên khác nhau. Độ khác nhau đó là <b>noise floor</b> — ngưỡng để nói một mô hình "giống retrain" hay không.
+    </p>
+
+    <blockquote class="flag">
+      <b style="display:block; margin-bottom:3px">Quy ước gốc của luận văn — không có tiền lệ trong literature</b>
+      Phương pháp noise-floor (so sánh từng cặp trong nhiều lần retrain độc lập để tạo ngưỡng phân biệt) do luận văn tự đề xuất. Đã kiểm tra lại toàn bộ <code>literature_matrix.md</code> và gap table: không bài báo FU nào trong danh mục dùng đúng cách này để định ngưỡng "giống retrain". Đây là điểm cần xác nhận trước khi dùng làm tiêu chí chính của luận văn.
+    </blockquote>
+
+    <div class="card">
+      <p class="cardTitle">Công thức, bằng lời</p>
+      <p style="color:var(--muted); font-size:.9rem">
+        Lấy 5 lần retrain loại A với seed khác nhau (bộ 42 + 2 seed phụ của chính lưới chính, nhân với 2 cách thay đổi seed). So khoảng cách accuracy giữa mọi cặp retrain với nhau — đó là "độ lệch tự nhiên" dù không có gì sai. Ngưỡng = trung bình + 2×độ lệch chuẩn của các khoảng cách đó. Một mô hình M<sub>x</sub> được coi là "trong noise floor" (= giống retrain, có thể đã quên A) nếu khoảng cách của nó với các bản retrain không vượt ngưỡng này.
+      </p>
+      <p style="color:var(--muted); font-size:.9rem; margin:0">
+        Luận văn chạy <b>2 phiên bản của floor cùng lúc</b>: Floor A chỉ đổi thứ tự minibatch (giữ nguyên trọng số khởi tạo); Floor B đổi cả trọng số khởi tạo. Cả hai được báo cáo song song, không trộn thành một số duy nhất.
+      </p>
+    </div>
+
+    <div class="card">
+      <p class="cardTitle">Ví dụ minh họa (dữ liệu smoke-test, α = 0.1, chưa phải số liệu chính thức)</p>
+      <div class="floorStrip" id="floorStripA">
+        <div class="floorBand" id="floorBandA"></div>
+      </div>
+      <div class="floorAxis" id="floorAxisA"></div>
+      <p class="sourceNote">Floor A (chỉ đổi thứ tự minibatch) — M nằm trong floor trên lớp target-dominant (chưa đủ dữ liệu để kết luận, N nhỏ).</p>
+
+      <div class="floorStrip" id="floorStripB" style="margin-top:18px">
+        <div class="floorBand" id="floorBandB"></div>
+      </div>
+      <div class="floorAxis" id="floorAxisB"></div>
+      <p class="sourceNote">Floor B (đổi cả trọng số khởi tạo) — M nằm <b>ngoài</b> floor trên gap accuracy của lớp target và lớp dùng chung.</p>
+
+      <div class="legendRow">
+        <span><span class="dot" style="background:var(--good)"></span>trong floor (giống retrain)</span>
+        <span><span class="dot" style="background:var(--risk)"></span>ngoài floor (khác biệt rõ)</span>
+      </div>
+      <p class="sourceNote" style="margin-top:8px">Đây là số liệu smoke-test (2 vòng, worktree chưa commit) chỉ để minh họa cách đọc biểu đồ — không dùng để kết luận cho luận văn.</p>
+    </div>
+  </section>
+
+  <section class="view" data-view="decisions" hidden>
+    <p class="lede">13 điểm còn mở từ các lần review trước đã được quyết định và áp dụng vào code/config. Bấm vào từng mục để xem vì sao.</p>
+
+    <div style="display:flex; flex-direction:column; gap:8px" id="decisionsList"></div>
+  </section>
+
+  <section class="view" data-view="literature" hidden>
+    <p class="lede">Quy trình quét literature hàng tháng (tự động, chạy nền) vừa hoàn thành lượt đầu tiên: 5 bài báo công bố trong tháng 10/2026 được xác minh và tóm tắt. Kết luận chung: <span class="pill good">chưa bài nào đe dọa đóng góp</span> — nhưng khoảng cách với bài gần nhất đang hẹp lại.</p>
+
+    <div class="tblwrap">
+      <table class="lit">
+        <thead><tr><th>Bài báo</th><th>Hướng chính</th><th>Liên quan đến luận văn</th><th>Kết luận</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>ATONE</b><br><span class="sourceNote">arXiv 2610.22584</span></td>
+            <td>Suy ra client lỗi từ "triệu chứng" muộn, không biết trước mục tiêu cần quên</td>
+            <td>Khác bài toán: luận văn giả định mục tiêu A đã biết trước</td>
+            <td><span class="pill good">Không chồng lấn</span></td>
+          </tr>
+          <tr>
+            <td><b>FairKMeans-FU</b><br><span class="sourceNote">arXiv 2610.13717</span></td>
+            <td>Unlearning công bằng cho phân cụm k-means liên-federated</td>
+            <td>Dữ liệu bảng, không phải mạng nơ-ron; thuật toán khác hoàn toàn</td>
+            <td><span class="pill good">Không chồng lấn</span></td>
+          </tr>
+          <tr>
+            <td><b>FedZOUL</b><br><span class="sourceNote">arXiv 2610.35211</span></td>
+            <td>Unlearning chính xác cho tối ưu zeroth-order, xóa theo mẫu dữ liệu</td>
+            <td>Xóa mẫu, không xóa cả client; tối ưu zeroth-order khác FedAvg</td>
+            <td><span class="pill good">Liên quan yếu</span></td>
+          </tr>
+          <tr>
+            <td><b>"Practical FU" (Qiao et al.)</b><br><span class="sourceNote">Alexandria Eng. J. 2026</span></td>
+            <td>Kết hợp chống-quên bằng knowledge distillation + cơ chế xóa client</td>
+            <td>Cùng họ bài toán (client-level unlearning); không dùng cường độ theo mức Non-IID</td>
+            <td><span class="pill warn">Theo dõi — đọc kỹ nhất tháng này</span></td>
+          </tr>
+          <tr>
+            <td><b>"Not All Retained Clients Are Equal"</b><br><span class="sourceNote">arXiv 2610.31786, workshop NeurIPS 2026</span></td>
+            <td>Chọn <i>tập con client</i> tham gia retrain lại (thay vì retrain với toàn bộ client còn lại)</td>
+            <td>Dùng chung baseline Retrain/FedEraser/GDFA với luận văn; không dùng PGA; không có seed/variance (không dùng được cho so sánh định lượng theo chuẩn noise-floor của luận văn)</td>
+            <td><span class="pill warn">Gần về bài toán, khác cơ chế</span></td>
+          </tr>
+          <tr>
+            <td><b>SURE (Split FU)</b><br><span class="sourceNote">arXiv 2610.36465</span></td>
+            <td>Unlearning cho federated learning kiểu "split" (mô hình bị cắt làm 2 phần client/server)</td>
+            <td>Kiến trúc hệ thống khác (split FL, không phải FedAvg thuần)</td>
+            <td><span class="pill good">Không chồng lấn</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <p class="cardTitle">Đối thủ định lượng gần nhất cần theo dõi: GDFA</p>
+      <p style="color:var(--muted); font-size:.9rem">
+        Lượt quét trước (không thuộc tháng 11) đã xác minh <b>GDFA (CVPR 2026)</b> benchmark trực tiếp PGA và SIFU — hai phương pháp luận văn cũng dùng — trên cùng họ dataset (MNIST/FMNIST/CIFAR-10/CIFAR-100), cùng quy ước Dirichlet-α, và vượt cả hai ở α = 0.5. Tuy nhiên GDFA chỉ thử nghiệm ở <b>một mức α</b> cho bảng kết quả chính, không quét toàn dải IID→0.1 — đúng trục mà hướng đề xuất của luận văn (chỉnh cường độ theo mức độ lệch Non-IID) muốn khai thác.
+      </p>
+      <p style="color:var(--muted); font-size:.9rem; margin:0">
+        Các bài khác đã kiểm tra trước đó — <b>Lethe</b> (benchmark, không phải đối thủ cạnh tranh; phát hiện của nó củng cố đúng lý do luận văn cần noise-floor/MIA) và <b>FedCCCU</b> (unlearn ở mức class-trong-client, không phải cả client, không có tham số mức độ Non-IID) — đều không chồng lấn trực tiếp.
+      </p>
+    </div>
+  </section>
+
+  <section class="view" data-view="questions" hidden>
+    <p class="lede">8 điểm phương pháp luận còn mở, cần chốt trước khi chạy lưới thí nghiệm canonical. Mỗi mục có bối cảnh ngắn, các hướng đang cân nhắc, và quyết định cần chốt.</p>
+    <div style="display:flex; flex-direction:column; gap:8px" id="questionsList"></div>
+  </section>
+
+  <footer class="foot">
+    Nguồn: <span class="mono">notes/changes/2026-10-10_*.md</span>, <span class="mono">literature/literature_matrix.md</span>, <span class="mono">literature/gap_table_draft.md</span>, danh sách quyết định còn mở soạn ngày 2026-11-02.
+  </footer>
+</main>
+
+<div class="ruleCard" id="floatTip"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- tab navigation ----------
+  var tabs = document.getElementById('tabs');
+  var views = document.querySelectorAll('section.view');
+  var validViews = ['overview','retrain','noisefloor','decisions','literature','questions'];
+
+  function showView(name){
+    if (validViews.indexOf(name) === -1) name = 'overview';
+    views.forEach(function(v){ v.hidden = (v.getAttribute('data-view') !== name); });
+    tabs.querySelectorAll('button').forEach(function(b){
+      b.setAttribute('aria-selected', b.getAttribute('data-view') === name ? 'true':'false');
+    });
+  }
+  tabs.addEventListener('click', function(e){
+    var btn = e.target.closest('button[data-view]');
+    if(!btn) return;
+    var name = btn.getAttribute('data-view');
+    try { history.replaceState(null,'', '#'+name); } catch(e){}
+    showView(name);
+  });
+  var initial = (location.hash || '').replace('#','');
+  showView(initial || 'overview');
+
+  // ---------- target-selection rule explainer ----------
+  var ruleInfo = {
+    t1: {
+      title: "T1 · median size",
+      text: "Sắp các client theo (số lượng mẫu, ID), chọn client ở vị trí trung vị. Với 10 client (số chẵn), quy tắc hiện tại lấy <b>trung vị thấp hơn</b> (lower median) — một quy ước chưa có trong đề cương, đang chờ xác nhận."
+    },
+    t2: {
+      title: "T2 · client lớn nhất",
+      text: "Chọn client giữ nhiều mẫu huấn luyện nhất; nếu có hòa, lấy ID nhỏ nhất. Đây là trường hợp 'khó nhất' cho hệ thống — loại một lượng dữ liệu lớn khỏi quá trình retrain."
+    },
+    t3: {
+      title: "T3 · lệch một lớp cao nhất",
+      text: "Chọn client có một nhãn (lớp) mà bản thân client đó nắm giữ tỉ lệ cao nhất trong toàn liên đoàn — gắn trực tiếp với khái niệm 'target-dominant class' mà luận văn dùng để đánh giá việc quên theo lớp."
+    }
+  };
+  var ruleBtns = document.querySelectorAll('.ruleBtn');
+  var rTitle = document.getElementById('ruleDetailTitle');
+  var rText = document.getElementById('ruleDetailText');
+  ruleBtns.forEach(function(b){
+    b.addEventListener('click', function(){
+      ruleBtns.forEach(function(x){ x.style.background=''; x.style.color='var(--muted)'; x.style.borderColor='var(--line)'; });
+      b.style.background = 'var(--accent-ink)'; b.style.color='var(--accent)'; b.style.borderColor='var(--accent)';
+      var info = ruleInfo[b.getAttribute('data-rule')];
+      rTitle.textContent = info.title;
+      rText.innerHTML = info.text;
+    });
+  });
+  ruleBtns[0].click();
+
+  // ---------- noise floor strip (illustrative smoke numbers) ----------
+  function buildStrip(stripId, bandId, axisId, floorLo, floorHi, points, axisMax){
+    var strip = document.getElementById(stripId);
+    var band = document.getElementById(bandId);
+    var axis = document.getElementById(axisId);
+    var w = strip.clientWidth || 600;
+    function x(v){ return (v/axisMax)*w; }
+    band.style.left = x(floorLo)+'px';
+    band.style.width = (x(floorHi)-x(floorLo))+'px';
+    points.forEach(function(p){
+      var pt = document.createElement('div');
+      pt.className = 'floorPoint ' + (p.v <= floorHi ? 'in':'out');
+      pt.style.left = x(p.v)+'px';
+      pt.title = p.label + ': ' + p.v;
+      strip.appendChild(pt);
+      var mark = document.createElement('div');
+      mark.className = 'floorMark';
+      mark.style.left = x(p.v)+'px';
+      mark.innerHTML = '<span class="lbl">'+p.label+'</span>';
+      strip.appendChild(mark);
+    });
+    [0, axisMax*0.5, axisMax].forEach(function(v){
+      var s = document.createElement('span');
+      s.style.left = x(v)+'px';
+      s.textContent = (v*100).toFixed(0)+'%';
+      axis.appendChild(s);
+    });
+  }
+  // illustrative values consistent with the alpha=0.1 smoke note (M outside floor B on target/shared gap only)
+  buildStrip('floorStripA','floorBandA','floorAxisA', 0.02, 0.09, [
+    {label:'M vs retrain (global)', v:0.03},
+    {label:'M vs retrain (target-dominant)', v:0.06}
+  ], 0.14);
+  buildStrip('floorStripB','floorBandB','floorAxisB', 0.02, 0.07, [
+    {label:'M vs retrain (shared-class)', v:0.09},
+    {label:'M vs retrain (target)', v:0.11}
+  ], 0.16);
+
+  // ---------- decisions data ----------
+  var decisions = [
+    {t:"Noise floor dùng cả 2 cách thay đổi seed", b:"Floor A chỉ đổi thứ tự minibatch (giữ trọng số khởi tạo); Floor B đổi cả trọng số khởi tạo. Cả hai được báo cáo song song, không gộp lại — vì mỗi floor trả lời một câu hỏi khác nhau về nguồn gây nhiễu.", tag:"noise floor"},
+    {t:"Seed của noise floor = seed của chính lưới thí nghiệm (42/43/44)", b:"Không tạo seed riêng biệt cho noise floor — dùng lại 3 seed đã có trong lưới chính. Ít độc lập hơn lý tưởng, đã ghi là hạn chế trong config; tiết kiệm được số lần chạy.", tag:"noise floor"},
+    {t:"Ngưỡng = trung bình + 2×độ lệch chuẩn, hòa tính là 'trong floor'", b:"Quy ước riêng của luận văn (không có tiền lệ literature — xem tab Noise floor). Độ lệch chuẩn tính theo mẫu (ddof=1), không phải theo cả tập (population).", tag:"noise floor"},
+    {t:"Positive control báo cáo cạnh mọi kết luận", b:"Bên cạnh việc nói 'M có trong floor hay không', luôn báo cáo liệu M (mô hình gốc, chưa unlearn) có nằm NGOÀI floor hay không — để chứng minh floor thực sự phân biệt được gì đó, không phải một ngưỡng vô nghĩa quá rộng.", tag:"noise floor"},
+    {t:"So với TẤT CẢ 5 lần retrain, không chỉ một bản tham chiếu", b:"Mỗi mô hình được so với cả 5 bản retrain của mỗi floor; lưu lại khoảng min–max và cờ riêng cho từng cặp. 'Có ý nghĩa' (informative) nghĩa là nằm ngoài floor so với MỌI bản tham chiếu của floor đó, không chỉ một.", tag:"noise floor"},
+    {t:"Accuracy gap và agreement giữ riêng, không gộp một kết luận", b:"Hai mô hình có thể cùng accuracy nhưng dự đoán khác nhau trên từng mẫu — agreement nắm được điều accuracy gap không thấy. Không đưa ra một verdict chung vì có thể che mất sự khác biệt này.", tag:"noise floor"},
+    {t:"Độ lệch chuẩn mẫu (ddof=1); chỉ có 1 cặp thì không tính được ngưỡng", b:"Dùng công thức ước lượng độ lệch chuẩn chuẩn (chia cho n−1), không dùng công thức mô tả toàn tập. Nếu chỉ có một cặp retrain, hệ thống báo lỗi thay vì âm thầm trả về một số không đáng tin.", tag:"noise floor"},
+    {t:"Cơ chế chọn client mục tiêu (T1/T2/T3) đã được code, chưa chốt dùng rule nào", b:"Cả 3 quy tắc đã triển khai và test trên dữ liệu nhỏ (toy partition). Quy tắc nào dùng cho lưới canonical vẫn để trống (null) có chủ đích — xem tab 'Quyết định còn mở', mục 1.", tag:"target selection"},
+    {t:"Giữ nguyên R=5 vòng, E=1, B=128, lr=0.1 từ các tháng trước", b:"Chưa kiểm tra lại độ hội tụ riêng cho cấu hình 10-client của Tuần 14 (có loại trừ target). Đây là hạn chế đã ghi nhận, không phải lỗi — xem câu hỏi số 4.", tag:"hạ tầng"},
+    {t:"Giữ 15% dữ liệu validation để riêng, không dùng", b:"Giữ nguyên tập train 51.000 mẫu như Tháng 2–3 để có thể so sánh xuyên suốt các mốc; không gộp phần validation vào train hoặc dùng để chọn mô hình ở giai đoạn này.", tag:"hạ tầng"},
+    {t:"Chấp nhận chạy toàn bộ trên CPU (không dùng GPU/MPS)", b:"Để so sánh 'Speedup' (tỉ lệ thời gian retrain / thời gian unlearning) công bằng, mọi phương pháp phải đo trên cùng loại thiết bị. Chấp nhận CPU-only, dù máy có hỗ trợ MPS, vì MPS không đảm bảo tái lập bit-chính xác.", tag:"hạ tầng"},
+    {t:"Giữ tên gọi 'non-target clients' đúng như hiện tại", b:"'Non-target' vẫn là dữ liệu HUẤN LUYỆN của các client còn lại, không phải một tập test riêng để dành — ghi rõ trong mọi file kết quả (<span class=\"mono\">split_definitions</span>) để không ai hiểu nhầm đây là dữ liệu chưa từng thấy.", tag:"báo cáo"},
+    {t:"Báo cáo rõ số lượng 'ô' (cell) có dữ liệu khi tính trung bình", b:"Khi một nhóm lớp (ví dụ lớp target-dominant) không có mẫu nào, kết quả ghi là 'không có dữ liệu' (None), không bao giờ tính nhầm thành 0. Mọi số trung bình đi kèm số ô thực sự đóng góp, để không đánh giá sai một kết quả dựa trên dữ liệu rất ít.", tag:"báo cáo"}
+  ];
+  var decWrap = document.getElementById('decisionsList');
+  decisions.forEach(function(d, i){
+    var el = document.createElement('details');
+    el.className = 'item';
+    el.innerHTML = '<summary><span class="num">'+String(i+1).padStart(2,'0')+'</span><span>'+d.t+'</span><span class="qTag pill flat">'+d.tag+'</span></summary><div class="body"><p>'+d.b+'</p></div>';
+    decWrap.appendChild(el);
+  });
+
+  // ---------- questions data ----------
+  var questions = [
+    {t:"Chạy target_selection_rule nào cho lưới canonical Tuần 14?", tag:"cần quyết định",
+      body:"Ba quy tắc T1 (median size) / T2 (lớn nhất) / T3 (lệch một lớp cao nhất) đã code xong, chọn trước khi train (không nhìn kết quả).",
+      opts:["Chạy cả 3 rule làm 3 bộ canonical song song — tốn gấp 3 compute, cho thấy kết quả không phụ thuộc cách chọn.","Chọn 1 rule chính (ví dụ T3, vì gắn trực tiếp với trục Non-IID luận văn muốn nổi bật) + rule khác chỉ chạy nhỏ (ablation) nếu còn ngân sách."],
+      ask:"Nên chạy cả 3 rule làm canonical, hay chọn 1 rule chính và các rule khác chỉ làm kiểm tra độ bền (robustness check)?"},
+    {t:"Quy ước tie-break của T1 khi số client là số chẵn", tag:"cần xác nhận",
+      body:"T1 sắp client theo (số mẫu, ID) rồi lấy trung vị; với 10 client (số chẵn) điều này lấy trung vị THẤP HƠN, không phải trung bình hai giá trị giữa — đề cương không quy định rõ cho trường hợp số chẵn.",
+      opts:["Giữ lower median (đã code, đã test trên dữ liệu nhỏ).","Đổi sang upper median hoặc một quy ước khác hợp lý hơn về phương pháp luận."],
+      ask:"Quy ước 'trung vị thấp hơn' cho T1 khi số client chẵn có chấp nhận được không, hay cần đổi?"},
+    {t:"Noise floor chỉ dùng đúng 3 seed của lưới chính (42/43/44)", tag:"cần quyết định",
+      body:"Quyết định đã chốt: noise floor dùng 3 lần retrain với seed 42 (seed chính) cộng 2 seed thêm (43, 44) — đây cũng chính là các seed khác dùng cho các ô khác trong lưới thí nghiệm, không phải seed độc lập riêng. Hệ quả: ít độc lập hơn lý tưởng.",
+      opts:["Giữ như hiện tại (3 seed của lưới, không thêm).","Cấp thêm ngân sách thời gian/compute để chạy thêm 2-3 seed độc lập, tách biệt hoàn toàn với seed dùng cho ô chính."],
+      ask:"Mức độ 'ít độc lập' này có đủ chấp nhận cho luận văn Thạc sĩ, hay cần ngân sách riêng cho seed độc lập?"},
+    {t:"R=5 vòng chưa được kiểm tra hội tụ ở cấu hình 10-client", tag:"cần quyết định",
+      body:"Số vòng huấn luyện (R=5) giữ nguyên từ các mốc trước, nhưng chưa kiểm tra hội tụ riêng cho cấu hình Tuần 14 (10 client, có loại trừ target). Đây là hạn chế đã ghi nhận, không phải lỗi.",
+      opts:["Chạy canonical ngay với R=5, kiểm tra hội tụ sau trên kết quả (nếu không hội tụ, chạy lại với R lớn hơn và ghi rõ đây là lần chạy lại).","Làm một lượt kiểm tra hội tụ nhỏ (vài giá trị R) trước, rồi mới chốt R cho canonical."],
+      ask:"Có cần kiểm tra hội tụ trước khi chạy canonical, hay chạy trước và xác nhận hội tụ sau là đủ?"},
+    {t:"Chuẩn trình bày citation (citation style) cho luận văn", tag:"cần thông tin từ trường/khoa",
+      body:"Quy tắc bằng chứng của luận văn yêu cầu mọi citation lấy từ literature_matrix.md, nhưng kiểu trình bày (APA, IEEE, Chicago, …) hiện vẫn để trống — chưa chọn vì cần hỏi trường/khoa trước.",
+      opts:[],
+      ask:"Trường/khoa yêu cầu chuẩn citation nào cho luận văn Thạc sĩ này?"},
+    {t:"Có nên đầu tư thời gian reproduce KD-FU (tùy chọn)?", tag:"cần quyết định",
+      body:"KD-FU (Wu, Zhu, Mitra 2022) là baseline tùy chọn trong đề cương, chỉ chạy 'nếu reproduce được' — bài này chưa qua bình duyệt (chỉ có bản arXiv), không công bố seed, và cần dữ liệu unlabeled ở server — một giả định chưa có sẵn trong hạ tầng hiện tại. Ngân sách thời gian: 15–20 giờ/tuần cho toàn bộ luận văn.",
+      opts:["Bỏ qua KD-FU, tập trung hoàn toàn vào Retrain + FedEraser + PGA (bắt buộc) và phương pháp đề xuất.","Vẫn thử reproduce KD-FU ở quy mô nhỏ (chỉ MNIST) nếu còn thời gian sau khi 3 baseline bắt buộc đã chạy xong."],
+      ask:"Có nên chính thức loại KD-FU khỏi phạm vi, hay vẫn giữ là 'làm nếu còn thời gian'?"},
+    {t:"Gap table có còn đứng vững trước gate phân tích khoảng trống (gap-analysis)?", tag:"cần review",
+      body:"Lần quét literature tháng 11 (lần đầu của quy trình quét tự động mới) tìm thấy một số công trình 2025–2026 rất gần hướng đề xuất: GDFA (CVPR 2026) benchmark trực tiếp PGA và SIFU, vượt cả hai ở α=0.5 nhưng chỉ thử 1 mức α; 'Not All Retained Clients Are Equal' chia sẻ 3 baseline nhưng chọn tập con client thay vì chỉnh cường độ phương pháp. Chi tiết đầy đủ ở tab 'Literature tháng 11'. Kết luận hiện tại (chưa được xác nhận chính thức): chưa bài nào tiền chiếm đúng đóng góp, nhưng khoảng cách đang hẹp lại.",
+      opts:[],
+      ask:"Cần review gap table để xác nhận đóng góp (chỉnh cường độ PGA/FedEraser theo mức độ lệch Non-IID của target) còn đủ mới không, trước khi đầu tư thời gian xây phương pháp đề xuất."},
+    {t:"Gate 3, câu hỏi về độ dốc thay đổi accuracy theo α vẫn ở mức 'chưa đầy đủ' (không chặn tiến độ)", tag:"không chặn, cần lịch",
+      body:"Gate 3 đã ĐÓNG — ĐẠT sau các vòng bổ sung, 7/8 câu đạt mức tốt. Câu còn lại: giải thích vì sao accuracy giảm chỉ 0,76 điểm % từ α=1,0 sang 0,5, nhưng giảm 18,23 điểm % từ α=0,5 sang 0,1. Giải thích hiện tại hợp lý nhưng chưa giải thích được độ dốc thay đổi này. Ghi chú gốc đề xuất nên hoàn tất trước thí nghiệm unlearning Non-IID đầu tiên — mà federated retrain Tuần 14 chính là thí nghiệm đó.",
+      opts:["Hoàn tất câu hỏi này trước khi chạy canonical Tuần 14.","Để song song hoặc sau đó, như một mục riêng không chặn tiến độ."],
+      ask:"Câu hỏi này có thực sự cần hoàn tất trước khi chạy canonical Tuần 14, hay có thể để song song/sau đó?"}
+  ];
+  var qWrap = document.getElementById('questionsList');
+  questions.forEach(function(q, i){
+    var el = document.createElement('details');
+    el.className = 'item';
+    var optsHtml = q.opts.length ? '<ul class="optList">'+q.opts.map(function(o){return '<li>'+o+'</li>';}).join('')+'</ul>' : '';
+    el.innerHTML =
+      '<summary><span class="num">Q'+(i+1)+'</span><span>'+q.t+'</span><span class="qTag pill warn">'+q.tag+'</span></summary>'+
+      '<div class="body"><p>'+q.body+'</p>'+optsHtml+'<div class="askBox"><b>Cần quyết định:</b> '+q.ask+'</div></div>';
+    qWrap.appendChild(el);
+  });
+
+})();
+</script>
