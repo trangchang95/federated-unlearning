@@ -102,6 +102,27 @@ def smoke(v):
 D["m4"] = {"a01": smoke("alpha0.1"), "iid": smoke("iid"),
            "week13Run": (repo / "results" / "month4_week13_mnist_full_retraining").exists()}
 assert D["m4"]["week13Run"] is False, "Week 13 has now run: update the page text"
+import csv, shutil
+figdir = out.parent.parent / "figures"
+figdir.mkdir(exist_ok=True)
+FIGS = {
+ "w1_digits": "month1_week1/sample_digits", "w1_cm": "month1_week1/confusion_matrix",
+ "w2_curve": "month1_week2/learning_curve", "w2_cm": "month1_week2/confusion_matrix",
+ **{f"w3_{k}_{n}": f"month1_week3_{d}/{m}" for k, d in [("cnn", "mnist_cnn"), ("cifar", "cifar10_cnn")] for n, m in [("curve", "learning_curve"), ("cm", "confusion_matrix"), ("maps", "feature_maps")]},
+ **{f"w8_{k}_{n}": f"month2_week8_mnist_{d}/{m}" for k, d in [("base", "iid_comparison"), ("e2", "e2_variant"), ("k10", "k10_variant")] for n, m in [("conv", "convergence_comparison"), ("cmF", "fedavg_confusion_matrix"), ("cmC", "centralized_confusion_matrix")]},
+ "w9_dist": "month3_week9_mnist_iid_vs_noniid/class_distribution", "w9_conv": "month3_week9_mnist_iid_vs_noniid/convergence_comparison",
+ "w9_cmI": "month3_week9_mnist_iid_vs_noniid/iid_confusion_matrix", "w9_cmN": "month3_week9_mnist_iid_vs_noniid/noniid_confusion_matrix",
+ **{f"w10_{a}_{n}": f"month3_week10_mnist_alpha{a}/{m}" for a in ["1.0", "0.5", "0.1"] for n, m in [("dist", "class_distribution"), ("conv", "convergence_comparison"), ("cm", "fedavg_confusion_matrix")]},
+ "w11_e1": "month3_week11_mnist_fedprox_mu_sweep/convergence_comparison", "w11_e5": "month3_week11_mnist_fedprox_mu_sweep_e5/convergence_comparison",
+}
+for k, rel in FIGS.items():
+    shutil.copyfile(repo / "results" / f"{rel}.png", figdir / f"{k}.png")
+D["figSrc"] = {k: f"results/{rel}.png" for k, rel in FIGS.items()}
+D["m1"]["classDist"] = list(csv.DictReader(open(repo / "results/month1_week1/class_distribution.csv")))
+for k, d in [("base", "iid_comparison"), ("e2", "e2_variant"), ("k10", "k10_variant")]:
+    r = J(f"month2_week8_mnist_{d}")
+    D["m2"][k]["pcF"], D["m2"][k]["pcC"] = r["fedavg"]["per_class_accuracy"], r["centralized"]["per_class_accuracy"]
+    D["m2"][k]["f1F"], D["m2"][k]["f1C"] = r["fedavg"]["f1_macro"], r["centralized"]["f1_macro"]
 run = subprocess.run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py"], cwd=repo, capture_output=True, text=True)
 assert run.returncode == 0, "test suite failing"
 D["tests"] = int(re.search(r"Ran (\d+) tests", run.stderr).group(1))

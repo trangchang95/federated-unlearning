@@ -159,7 +159,69 @@
     "ship": 0.744,
     "truck": 0.741
    }
-  }
+  },
+  "classDist": [
+   {
+    "digit": "0",
+    "train": "4832",
+    "val": "1036",
+    "test": "1035"
+   },
+   {
+    "digit": "1",
+    "train": "5514",
+    "val": "1182",
+    "test": "1181"
+   },
+   {
+    "digit": "2",
+    "train": "4893",
+    "val": "1048",
+    "test": "1049"
+   },
+   {
+    "digit": "3",
+    "train": "4999",
+    "val": "1071",
+    "test": "1071"
+   },
+   {
+    "digit": "4",
+    "train": "4777",
+    "val": "1023",
+    "test": "1024"
+   },
+   {
+    "digit": "5",
+    "train": "4419",
+    "val": "947",
+    "test": "947"
+   },
+   {
+    "digit": "6",
+    "train": "4813",
+    "val": "1031",
+    "test": "1032"
+   },
+   {
+    "digit": "7",
+    "train": "5105",
+    "val": "1094",
+    "test": "1094"
+   },
+   {
+    "digit": "8",
+    "train": "4777",
+    "val": "1024",
+    "test": "1024"
+   },
+   {
+    "digit": "9",
+    "train": "4871",
+    "val": "1044",
+    "test": "1043"
+   }
+  ]
  },
  "m2": {
   "base": {
@@ -228,7 +290,33 @@
     0.9095,
     0.9135,
     0.9035
-   ]
+   ],
+   "pcF": [
+    0.977551,
+    0.973568,
+    0.85562,
+    0.910891,
+    0.93279,
+    0.838565,
+    0.934238,
+    0.904669,
+    0.886037,
+    0.873142
+   ],
+   "pcC": [
+    0.979592,
+    0.988546,
+    0.947674,
+    0.966337,
+    0.952138,
+    0.914798,
+    0.957203,
+    0.948444,
+    0.897331,
+    0.914767
+   ],
+   "f1F": 0.908618,
+   "f1C": 0.946912
   },
   "e2": {
    "K": 5,
@@ -316,7 +404,33 @@
     0.9215,
     0.9245,
     0.921
-   ]
+   ],
+   "pcF": [
+    0.979592,
+    0.978855,
+    0.886628,
+    0.90198,
+    0.9389,
+    0.896861,
+    0.93215,
+    0.927043,
+    0.883984,
+    0.896928
+   ],
+   "pcC": [
+    0.981633,
+    0.986784,
+    0.964147,
+    0.963366,
+    0.960285,
+    0.949552,
+    0.973904,
+    0.957198,
+    0.950719,
+    0.925669
+   ],
+   "f1F": 0.922066,
+   "f1C": 0.961348
   },
   "k10": {
    "K": 10,
@@ -389,7 +503,33 @@
     0.909,
     0.89,
     0.903
-   ]
+   ],
+   "pcF": [
+    0.977551,
+    0.969163,
+    0.85562,
+    0.872277,
+    0.921589,
+    0.813901,
+    0.913361,
+    0.890078,
+    0.85729,
+    0.869177
+   ],
+   "pcC": [
+    0.979592,
+    0.988546,
+    0.947674,
+    0.966337,
+    0.952138,
+    0.914798,
+    0.957203,
+    0.948444,
+    0.897331,
+    0.914767
+   ],
+   "f1F": 0.893736,
+   "f1C": 0.946912
   }
  },
  "m3": {
@@ -1430,6 +1570,42 @@
    "train": 5000
   },
   "week13Run": false
+ },
+ "figSrc": {
+  "w1_digits": "results/month1_week1/sample_digits.png",
+  "w1_cm": "results/month1_week1/confusion_matrix.png",
+  "w2_curve": "results/month1_week2/learning_curve.png",
+  "w2_cm": "results/month1_week2/confusion_matrix.png",
+  "w3_cnn_curve": "results/month1_week3_mnist_cnn/learning_curve.png",
+  "w3_cnn_cm": "results/month1_week3_mnist_cnn/confusion_matrix.png",
+  "w3_cnn_maps": "results/month1_week3_mnist_cnn/feature_maps.png",
+  "w3_cifar_curve": "results/month1_week3_cifar10_cnn/learning_curve.png",
+  "w3_cifar_cm": "results/month1_week3_cifar10_cnn/confusion_matrix.png",
+  "w3_cifar_maps": "results/month1_week3_cifar10_cnn/feature_maps.png",
+  "w8_base_conv": "results/month2_week8_mnist_iid_comparison/convergence_comparison.png",
+  "w8_base_cmF": "results/month2_week8_mnist_iid_comparison/fedavg_confusion_matrix.png",
+  "w8_base_cmC": "results/month2_week8_mnist_iid_comparison/centralized_confusion_matrix.png",
+  "w8_e2_conv": "results/month2_week8_mnist_e2_variant/convergence_comparison.png",
+  "w8_e2_cmF": "results/month2_week8_mnist_e2_variant/fedavg_confusion_matrix.png",
+  "w8_e2_cmC": "results/month2_week8_mnist_e2_variant/centralized_confusion_matrix.png",
+  "w8_k10_conv": "results/month2_week8_mnist_k10_variant/convergence_comparison.png",
+  "w8_k10_cmF": "results/month2_week8_mnist_k10_variant/fedavg_confusion_matrix.png",
+  "w8_k10_cmC": "results/month2_week8_mnist_k10_variant/centralized_confusion_matrix.png",
+  "w9_dist": "results/month3_week9_mnist_iid_vs_noniid/class_distribution.png",
+  "w9_conv": "results/month3_week9_mnist_iid_vs_noniid/convergence_comparison.png",
+  "w9_cmI": "results/month3_week9_mnist_iid_vs_noniid/iid_confusion_matrix.png",
+  "w9_cmN": "results/month3_week9_mnist_iid_vs_noniid/noniid_confusion_matrix.png",
+  "w10_1.0_dist": "results/month3_week10_mnist_alpha1.0/class_distribution.png",
+  "w10_1.0_conv": "results/month3_week10_mnist_alpha1.0/convergence_comparison.png",
+  "w10_1.0_cm": "results/month3_week10_mnist_alpha1.0/fedavg_confusion_matrix.png",
+  "w10_0.5_dist": "results/month3_week10_mnist_alpha0.5/class_distribution.png",
+  "w10_0.5_conv": "results/month3_week10_mnist_alpha0.5/convergence_comparison.png",
+  "w10_0.5_cm": "results/month3_week10_mnist_alpha0.5/fedavg_confusion_matrix.png",
+  "w10_0.1_dist": "results/month3_week10_mnist_alpha0.1/class_distribution.png",
+  "w10_0.1_conv": "results/month3_week10_mnist_alpha0.1/convergence_comparison.png",
+  "w10_0.1_cm": "results/month3_week10_mnist_alpha0.1/fedavg_confusion_matrix.png",
+  "w11_e1": "results/month3_week11_mnist_fedprox_mu_sweep/convergence_comparison.png",
+  "w11_e5": "results/month3_week11_mnist_fedprox_mu_sweep_e5/convergence_comparison.png"
  },
  "tests": 180
 }
